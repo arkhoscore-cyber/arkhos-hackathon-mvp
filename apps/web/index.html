@@ -1,1 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARKHOS — Tribunal Simulado</title>
 
+<style>
+body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#0b0f14;
+    color:#e8f0ff;
+}
+header{
+    background:#111826;
+    padding:15px;
+    text-align:center;
+    font-weight:bold;
+    letter-spacing:1px;
+}
+.container{
+    padding:20px;
+}
+.card{
+    background:#151c2b;
+    padding:20px;
+    border-radius:8px;
+    margin-bottom:15px;
+}
+button{
+    background:#2b6cff;
+    color:white;
+    border:none;
+    padding:10px 15px;
+    border-radius:5px;
+    cursor:pointer;
+}
+button:hover{
+    background:#1d4ed8;
+}
+textarea{
+    width:100%;
+    height:120px;
+    background:#0f1625;
+    color:#fff;
+    border:1px solid #2a3655;
+    border-radius:5px;
+    padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+ARKHOS — Tribunal Simulado (MVP)
+</header>
+
+<div class="container">
+
+<div class="card">
+<h3>Inserir descrição do caso</h3>
+<textarea placeholder="Descreva o caso aqui..."></textarea>
+<br><br>
+<button>Iniciar Simulação</button>
+</div>
+
+<div class="card">
+<h3>Status do Sistema</h3>
+<p>Sistema inicializado. Aguardando dados.</p>
+</div>
+
+</div>
+
+</body>
+</html>
