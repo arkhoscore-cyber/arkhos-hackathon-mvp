@@ -162,4 +162,4 @@ function alternarPista(modo) {
 
 function guardarNoSistema() {
     alert("Protocolo registrado com sucesso na Memória Institucional do Escritório.");
-        }
+}
