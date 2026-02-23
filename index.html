@@ -7,91 +7,79 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <div class="header-container">
-            <div class="logo-central">
-                <span class="symbol">♈</span>
-                <h1>ARKHOS</h1>
-                <span class="symbol">∞</span>
+    <div class="interface-web">
+        <header>
+            <div class="header-container">
+                <div class="logo-central">
+                    <span class="symbol">♈</span>
+                    <h1>ARKHOS</h1>
+                    <span class="symbol">∞</span>
+                </div>
+                <div id="radar-vigilia">
+                    <p>MONITORAMENTO REGIONAL DE PRECEDENTES: <span class="status-on">ATIVO</span></p>
+                    <div class="scanner"></div>
+                </div>
             </div>
-            <div id="radar-vigilia">
-                <p>MONITORAMENTO REGIONAL DE PRECEDENTES: <span class="status-on">ATIVO</span></p>
-                <div class="scanner"></div>
+        </header>
+
+        <main id="app-container">
+            <section class="mode-selector">
+                <button id="btn-fast-track" class="btn-mode active" onclick="switchMode('fast')">PISTA RÁPIDA (PRO)</button>
+                <button id="btn-genesis-assist" class="btn-mode" onclick="switchMode('genesis')">ASSISTENTE GÊNESIS</button>
+            </section>
+
+            <section class="input-area">
+                <div id="panel-fast" class="input-panel">
+                    <label>Natureza da Ação</label>
+                    <select id="case-nature">
+                        <option value="trabalhista">Trabalhista</option>
+                        <option value="criminal">Criminal</option>
+                        <option value="civel">Cível</option>
+                    </select>
+                    <textarea id="pro-input" placeholder="Relate os fatos..."></textarea>
+                </div>
+
+                <div id="panel-genesis" class="input-panel hidden">
+                    <div id="chat-flow">
+                        <div class="msg bot"><b>ARKHOS:</b> Descreva sua situação abaixo.</div>
+                    </div>
+                    <div class="chat-controls">
+                        <input type="text" id="chat-user-msg" placeholder="Diga o que houve...">
+                        <button id="btn-send-chat">ENVIAR</button>
+                    </div>
+                </div>
+
+                <div class="upload-section">
+                    <label for="file-docs" class="upload-label">
+                        <span>📎 APORTAR EVIDÊNCIAS</span>
+                        <input type="file" id="file-docs" multiple>
+                    </label>
+                    <div id="file-display-area"></div>
+                </div>
+            </section>
+
+            <div class="integrity-monitor">
+                <div class="quadrilatero-grid">
+                    <div class="eixo" id="eixo-metal"><label>METAL</label><div class="bar"><div class="fill"></div></div></div>
+                    <div class="eixo" id="eixo-estado"><label>ESTADO</label><div class="bar"><div class="fill"></div></div></div>
+                    <div class="eixo" id="eixo-legiao"><label>LEGIÃO</label><div class="bar"><div class="fill"></div></div></div>
+                    <div class="eixo" id="eixo-logos"><label>LOGOS</label><div class="bar"><div class="fill"></div></div></div>
+                </div>
+                <div id="confidence-score">CONFIANÇA: <span>0%</span></div>
             </div>
+
+            <button id="btn-main-action" class="btn-primary">AUDITAR CASO</button>
+
+            <div class="export-actions">
+                <button class="btn-exp" onclick="window.print()">📥 EXPORTAR PDF</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="area-impressao-soberana" class="apenas-pdf">
         </div>
-    </header>
 
-    <main id="app-container">
-        <section class="mode-selector">
-            <button id="btn-fast-track" class="btn-mode active" onclick="switchMode('fast')">PISTA RÁPIDA (PRO)</button>
-            <button id="btn-genesis-assist" class="btn-mode" onclick="switchMode('genesis')">ASSISTENTE GÊNESIS</button>
-        </section>
-
-        <section class="input-area">
-            <div id="panel-fast" class="input-panel">
-                <label>Natureza da Ação</label>
-                <select id="case-nature">
-                    <option value="trabalhista">Trabalhista (R$/Verbas)</option>
-                    <option value="criminal">Criminal (Liberdade/Anos)</option>
-                    <option value="civel">Cível (R$/Danos)</option>
-                </select>
-                <textarea id="pro-input" placeholder="Relate os fatos aqui..."></textarea>
-            </div>
-
-            <div id="panel-genesis" class="input-panel hidden">
-                <div id="chat-flow">
-                    <div class="msg bot"><b>ARKHOS:</b> Descreva sua situação e anexe as provas abaixo.</div>
-                </div>
-                <div class="chat-controls">
-                    <input type="text" id="chat-user-msg" placeholder="Diga o que houve...">
-                    <button id="btn-send-chat">ENVIAR</button>
-                </div>
-            </div>
-
-            <div class="upload-section">
-                <label for="file-docs" class="upload-label">
-                    <span>📎 APORTAR EVIDÊNCIAS (EIXO DE ESTADO)</span>
-                    <input type="file" id="file-docs" multiple>
-                </label>
-                <div id="file-display-area" class="file-list-style">
-                    <p id="file-status">Nenhum arquivo anexado.</p>
-                </div>
-            </div>
-        </section>
-
-        <div class="integrity-monitor">
-            <h3>AUDITORIA DE INTEGRIDADE</h3>
-            <div class="quadrilatero-grid">
-                <div class="eixo" id="eixo-metal"><label>METAL</label><div class="bar"><div class="fill"></div></div></div>
-                <div class="eixo" id="eixo-legiao"><label>LEGIÃO</label><div class="bar"><div class="fill"></div></div></div>
-                <div class="eixo" id="eixo-estado"><label>ESTADO</label><div class="bar"><div class="fill"></div></div></div>
-                <div class="eixo" id="eixo-logos"><label>LOGOS</label><div class="bar"><div class="fill"></div></div></div>
-            </div>
-            <div id="confidence-score">ÍNDICE DE CONFIANÇA: <span>0%</span></div>
-        </div>
-
-        <button id="btn-main-action" class="btn-primary">AUDITAR E GERAR PROTOCOLO</button>
-
-        <section id="output-area" class="hidden">
-            <div id="missions-box" class="output-card warning hidden">
-                <h3>📋 MISSÕES DE REFORÇO OBRIGATÓRIAS</h3>
-                <ul id="mission-list"></ul>
-            </div>
-
-            <div id="dossie-box" class="output-card">
-                <div class="metrics-grid">
-                    <div class="m-card"><small>Expectativa</small><strong id="val-perda">--</strong></div>
-                    <div class="m-card"><small>Margem de Risco</small><strong id="val-erro">0%</strong></div>
-                </div>
-                <div id="legal-text-output" class="document-paper"></div>
-                
-                <div class="export-actions">
-                    <button class="btn-exp" onclick="window.print()">📥 EXPORTAR PDF</button>
-                    <button class="btn-exp save" onclick="alert('Salvo na Base Soberana!')">💾 GUARDAR NO SISTEMA</button>
-                </div>
-            </div>
-        </section>
-    </main>
     <script src="script.js"></script>
 </body>
-</html>
+    </html>
+    
