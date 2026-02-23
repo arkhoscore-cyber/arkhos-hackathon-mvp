@@ -1,6 +1,5 @@
 /* =========================================================
-   ARKHOS v3.5 - ESTAÇÃO DE CONFORMIDADE
-   ARQUIVO: style.css
+   ARKHOS v3.5 - ESTAÇÃO DE CONFORMIDADE (FINAL BILINGUE)
    ========================================================= */
 
 :root {
@@ -18,25 +17,19 @@
     --text-ink: #000000;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     background-color: var(--bg-base);
     color: var(--text-main);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Inter', sans-serif;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Trava o scroll geral, mantém só nas colunas */
+    overflow: hidden;
 }
 
-/* =========================================
-   1. CABEÇALHO (HEADER)
-   ========================================= */
+/* 1. CABEÇALHO & SELETOR DE IDIOMA */
 header {
     background-color: #000000;
     padding: 15px 30px;
@@ -56,36 +49,33 @@ header {
     display: inline-block;
 }
 
-.symbol { font-size: 1.2rem; margin-right: 8px; }
-.v-tag { font-size: 0.6rem; opacity: 0.6; vertical-align: top; }
 .subtitle { display: block; color: var(--text-muted); font-size: 0.65rem; letter-spacing: 1px; margin-top: 2px; }
 
-#vigilia-status {
+/* SELETOR DE IDIOMA (NOVO) */
+.lang-switcher {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.75rem;
-    letter-spacing: 1px;
+    gap: 8px;
+    background: #000;
+    padding: 5px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
 }
 
-.pulse-icon {
-    width: 8px;
-    height: 8px;
-    background: var(--success);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--success);
-    animation: pulse 2s infinite;
+.lang-btn {
+    background: transparent;
+    border: none;
+    color: #444;
+    font-size: 0.7rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-@keyframes pulse {
-    0% { transform: scale(0.9); opacity: 0.5; }
-    50% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(0.9); opacity: 0.5; }
-}
+.lang-btn.active { color: var(--gold); text-shadow: 0 0 8px var(--gold); }
+.divider { color: #222; font-size: 0.7rem; }
 
-/* =========================================
-   2. ESTRUTURA DA BANCADA (GRID)
-   ========================================= */
+/* 2. ESTRUTURA GRID */
 .bancada-container {
     display: grid;
     grid-template-columns: 450px 1fr;
@@ -112,9 +102,7 @@ header {
     overflow-y: auto;
 }
 
-/* =========================================
-   3. CONTROLES E INPUTS
-   ========================================= */
+/* 3. INPUTS E TEXTAREA */
 .seletor-pista {
     display: flex;
     background: #000;
@@ -132,7 +120,6 @@ header {
     font-size: 0.7rem;
     font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
 }
 
 .btn-pista.ativo {
@@ -151,14 +138,6 @@ header {
     gap: 15px;
 }
 
-.card-comando label {
-    color: var(--gold);
-    font-size: 0.7rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-/* Novo Elemento: Seletor de Competência */
 .select-tecnico {
     width: 100%;
     background: #000;
@@ -166,10 +145,7 @@ header {
     border: 1px solid #333;
     padding: 10px;
     font-size: 0.8rem;
-    outline: none;
-    font-family: inherit;
 }
-.select-tecnico:focus { border-color: var(--blue-tech); }
 
 textarea {
     width: 100%;
@@ -181,180 +157,83 @@ textarea {
     font-family: 'Courier New', monospace;
     font-size: 0.85rem;
     resize: none;
-    line-height: 1.5;
 }
-textarea:focus { border-color: var(--blue-tech); outline: none; }
 
-/* Acervo Probatório */
-.btn-anexo {
-    display: block;
-    border: 1px dashed #444;
-    padding: 12px;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: 0.3s;
-    background: #0a0a0a;
+/* 4. MÉTRICAS E DASHBOARD */
+.dashboard-lcu { display: flex; gap: 20px; }
+
+.metric-card {
+    background: var(--bg-surface);
+    padding: 20px;
+    flex: 1;
+    border-left: 3px solid var(--gold);
+    min-height: 90px;
 }
-.btn-anexo:hover { color: var(--blue-tech); border-color: var(--blue-tech); }
 
-.lista-arquivos {
-    margin-top: 10px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    max-height: 80px;
+.metric-card.warning { border-left-color: var(--danger); }
+.metric-card strong { 
+    display: block; 
+    font-size: 1.6rem; 
+    color: var(--gold); 
+    margin-top: 5px;
+    font-family: 'Orbitron', sans-serif; /* Se não tiver, vira Arial */
+}
+
+/* 5. MONITOR DE CONFORMIDADE */
+.monitor-integridade { background: #000; padding: 20px; border: 1px solid var(--border-color); }
+.grid-eixos { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.eixo label { display: block; font-size: 0.6rem; color: var(--text-muted); margin-bottom: 5px; }
+.bar { background: #222; height: 4px; border-radius: 2px; }
+.fill { background: var(--blue-tech); height: 100%; width: 0%; transition: width 0.6s ease; }
+
+/* 6. CANVAS DOCUMENTO (PRE-VISUALIZAÇÃO) */
+.canvas-documento {
+    background: var(--paper-white);
+    color: var(--text-ink);
+    min-height: 500px;
+    padding: 60px;
+    font-family: 'Times New Roman', serif;
+    border-radius: 2px;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.05);
     overflow-y: auto;
 }
 
-/* =========================================
-   4. MONITOR DE CONFORMIDADE
-   ========================================= */
-.monitor-integridade {
-    background: #000;
-    padding: 20px;
-    border: 1px solid var(--border-color);
-}
-
-.monitor-integridade h3 {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    margin-bottom: 15px;
-    text-align: center;
-    letter-spacing: 2px;
-}
-
-.grid-eixos {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.eixo label { display: block; font-size: 0.65rem; margin-bottom: 5px; color: var(--text-muted); }
-.bar { background: var(--border-color); height: 4px; border-radius: 2px; overflow: hidden; }
-.fill { background: var(--blue-tech); height: 100%; width: 0%; transition: width 0.5s ease; }
-
-.selos-validacao { display: flex; justify-content: space-between; margin-top: 20px; }
-.selo { font-size: 0.65rem; padding: 6px 12px; border: 1px solid #333; font-weight: bold; }
-.selo-off { color: #555; }
-.selo-on { border-color: var(--gold); color: var(--gold); background: rgba(212, 175, 55, 0.05); }
-
-/* =========================================
-   5. BOTÕES DE AÇÃO
-   ========================================= */
+/* 7. BOTÕES DE AÇÃO */
 .btn-main {
     background: transparent;
     border: 1px solid var(--gold);
     color: var(--gold);
     padding: 18px;
     font-weight: bold;
-    letter-spacing: 1px;
     cursor: pointer;
     transition: 0.3s;
-    text-align: center;
 }
+
 .btn-main:hover:not(:disabled) { background: var(--gold); color: #000; }
-.btn-main:disabled { border-color: #333; color: #333; cursor: not-allowed; }
+.btn-main:disabled { opacity: 0.3; cursor: not-allowed; }
 
-.acoes-finais { display: flex; gap: 15px; }
-.btn-secundario {
-    flex: 1;
-    background: var(--bg-panel);
-    border: 1px solid #333;
-    color: var(--text-main);
-    padding: 12px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.btn-secundario:hover { border-color: var(--text-main); }
-
-/* =========================================
-   6. RESULTADOS E MÉTRICAS
-   ========================================= */
-.dashboard-lcu { display: flex; gap: 20px; }
-.metric-card {
-    background: var(--bg-surface);
-    padding: 20px;
-    flex: 1;
-    border-left: 3px solid var(--gold);
-}
-.metric-card.warning { border-left-color: var(--danger); }
-.metric-card small { display: block; font-size: 0.65rem; color: var(--text-muted); margin-bottom: 8px; font-weight: bold; }
-.metric-card strong { font-size: 1.5rem; color: var(--gold); }
-.metric-card.warning strong { color: var(--danger); }
-
-/* Canvas de Revisão na Tela (Não é a impressão, é a visualização) */
-.canvas-documento {
-    background: var(--paper-white);
-    color: var(--text-ink);
-    min-height: 600px;
-    padding: 50px;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 12pt;
-    line-height: 1.6;
-    border-radius: 4px;
-    overflow-y: auto;
-}
-
-.placeholder-msg { text-align: center; margin-top: 150px; color: #999; }
-.placeholder-msg .icon { font-size: 2.5rem; display: block; margin-bottom: 10px; opacity: 0.5; }
-
-/* =========================================
-   7. CÂMARA DE IMPRESSÃO (NÚCLEO DO C05)
-   ========================================= */
-
-/* Na tela, a câmara de impressão NÃO existe */
-.only-print { display: none; }
-
-/* REGRAS DE IMPRESSÃO (O Nocaute Visual) */
+/* 8. REGRAS DE IMPRESSÃO (ESTRUTURA C05) */
 @media print {
-    /* 1. Remove margens da página do navegador */
-    @page { margin: 2cm; }
-
-    /* 2. Força o fundo branco e texto preto na raiz */
-    body, html {
-        background-color: white !important;
+    .no-print { display: none !important; }
+    .only-print { display: block !important; }
+    
+    body, html { background: white !important; color: black !important; }
+    
+    #secao-impressao-isolada {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 0;
+        margin: 0;
         color: black !important;
-        height: auto !important;
-        overflow: visible !important;
-    }
-
-    /* 3. DESLIGA TODA A INTERFACE (Header e Main inteiros) */
-    .no-print { 
-        display: none !important; 
-    }
-
-    /* 4. LIGA A CÂMARA BLINDADA (Somente o texto vai sair) */
-    .only-print, #secao-impressao-isolada { 
-        display: block !important; 
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
         background: white !important;
-        color: black !important;
-        font-family: 'Arial', sans-serif !important;
-        font-size: 12pt !important;
-        line-height: 1.6 !important;
-        text-align: justify !important;
-    }
-
-    /* 5. Reseta qualquer sombra ou borda acidental */
-    * {
-        box-shadow: none !important;
-        text-shadow: none !important;
-        border-radius: 0 !important;
     }
 }
 
-/* =========================================
-   8. RESPONSIVIDADE (Mobile/Termux)
-   ========================================= */
+/* 9. RESPONSIVIDADE */
 @media (max-width: 900px) {
     .bancada-container { grid-template-columns: 1fr; overflow-y: auto; }
-    .col-comando { border-right: none; height: auto; }
-    body { overflow-y: auto; height: auto; }
-       }
-                    
+    .col-comando { border-right: none; }
+    body { overflow-y: auto; }
+}
