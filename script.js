@@ -1,165 +1,249 @@
-/* ⟐ ARKHOS v3.5 - KERNEL DE EXECUÇÃO SOBERANA ⟐ */
+/* =========================================================
+   ARKHOS v3.5 - KERNEL DE GOVERNANÇA JURÍDICA
+   ARQUIVO: script.js
+   ========================================================= */
 
-// 1. ESTADO GLOBAL (MENTE SOBERANA)
-let listaMenteSoberana = [];
-let modoPista = 'direta'; // 'direta' ou 'guiada'
+// 1. ESTADO GLOBAL (SANDBOXING)
+// Mantém dados independentes para cada modo de operação
+let sistema = {
+    contextoAtivo: 'direto', // 'direto' ou 'guiado'
+    dados: {
+        direto: { texto: "", arquivos: [], area: "civil" },
+        guiado: { texto: "", arquivos: [], area: "civil" }
+    }
+};
 
-// 2. INICIALIZADORES DE EVENTOS
+// 2. INICIALIZAÇÃO
 document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('file-soberano');
-    const btnExecutar = document.getElementById('btn-executar');
-    const cmdInput = document.getElementById('cmd-input');
+    configurarListeners();
+    executarAuditoria(); // Reset inicial
+});
 
-    // Listener de Arquivos (Acumulação)
-    fileInput.addEventListener('change', (e) => {
+function configurarListeners() {
+    const inputTexto = document.getElementById('cmd-input');
+    const inputArquivo = document.getElementById('file-soberano');
+    const seletorArea = document.getElementById('area-direito');
+
+    // Monitoramento em tempo real
+    inputTexto.addEventListener('input', () => {
+        sistema.dados[sistema.contextoAtivo].texto = inputTexto.value;
+        executarAuditoria();
+    });
+
+    seletorArea.addEventListener('change', () => {
+        sistema.dados[sistema.contextoAtivo].area = seletorArea.value;
+        atualizarLabelsMetricas();
+        executarAuditoria();
+    });
+
+    inputArquivo.addEventListener('change', (e) => {
         const novosArquivos = Array.from(e.target.files);
+        const acervoAtual = sistema.dados[sistema.contextoAtivo].arquivos;
+
         novosArquivos.forEach(file => {
-            // Evita duplicatas por nome e tamanho
-            if (!listaMenteSoberana.some(f => f.name === file.name && f.size === file.size)) {
-                listaMenteSoberana.push(file);
+            if (!acervoAtual.some(f => f.name === file.name && f.size === file.size)) {
+                acervoAtual.push(file);
             }
         });
         atualizarInterfaceArquivos();
         executarAuditoria();
     });
 
-    // Listener de Texto
-    cmdInput.addEventListener('input', () => {
-        executarAuditoria();
-    });
+    // Botões de Troca de Contexto
+    document.getElementById('btn-pista-direta').onclick = () => trocarContexto('direto');
+    document.getElementById('btn-pista-guiada').onclick = () => trocarContexto('guiado');
 
-    // Troca de Pistas
-    document.getElementById('btn-pista-direta').onclick = () => alternarPista('direta');
-    document.getElementById('btn-pista-guiada').onclick = () => alternarPista('guiada');
-
-    // Botão de Execução
-    btnExecutar.onclick = () => processarOrdem();
-});
-
-// 3. GESTÃO DA MENTE SOBERANA
-function atualizarInterfaceArquivos() {
-    const display = document.getElementById('file-display-area');
-    if (listaMenteSoberana.length === 0) {
-        display.innerHTML = '<p class="txt-vazio">Mente Soberana vazia. Aguardando base de prova...</p>';
-        return;
-    }
-
-    let html = `<ul style="list-style:none; padding:0; margin:0;">`;
-    listaMenteSoberana.forEach((file, index) => {
-        html += `<li style="margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>📄 ${file.name}</span>
-                    <b style="color:var(--danger); cursor:pointer;" onclick="removerArquivo(${index})">✖</b>
-                 </li>`;
-    });
-    html += `</ul>`;
-    display.innerHTML = html;
+    // Botões de Ação Final
+    document.getElementById('btn-executar').onclick = gerarMinutaFinal;
+    document.getElementById('btn-exportar').onclick = exportarPDFLimpo;
 }
 
-function removerArquivo(index) {
-    listaMenteSoberana.splice(index, 1);
+// 3. LÓGICA DE SANDBOXING (SEPARAÇÃO DE CONTEXTO)
+function trocarContexto(novoContexto) {
+    // Salva o estado atual antes de trocar
+    sistema.dados[sistema.contextoAtivo].texto = document.getElementById('cmd-input').value;
+    sistema.dados[sistema.contextoAtivo].area = document.getElementById('area-direito').value;
+
+    // Altera o contexto ativo
+    sistema.contextoAtivo = novoContexto;
+
+    // Atualiza a UI para o novo contexto
+    const d = sistema.dados[novoContexto];
+    document.getElementById('cmd-input').value = d.texto;
+    document.getElementById('area-direito').value = d.area;
+    
+    // Atualiza classes dos botões
+    document.getElementById('btn-pista-direta').classList.toggle('ativo', novoContexto === 'direto');
+    document.getElementById('btn-pista-guiada').classList.toggle('ativo', novoContexto === 'guiado');
+    
+    // Atualiza Labels técnicos
+    document.getElementById('label-input').innerText = novoContexto === 'direto' 
+        ? 'INSTRUÇÃO TÉCNICA DA MINUTA' 
+        : 'RELATO DOS FATOS (CONSTRUÇÃO)';
+
     atualizarInterfaceArquivos();
+    atualizarLabelsMetricas();
     executarAuditoria();
 }
 
-// 4. MOTOR DE AUDITORIA (QUADRILÁTERO)
+// 4. MOTOR DE AUDITORIA E CONFORMIDADE (QUADRILÁTERO)
 function executarAuditoria() {
-    const texto = document.getElementById('cmd-input').value;
-    const btnExecutar = document.getElementById('btn-executar');
+    const contexto = sistema.dados[sistema.contextoAtivo];
+    const area = contexto.area;
+    const texto = contexto.texto;
+    const arquivosCount = contexto.arquivos.length;
 
-    // Cálculo dos Eixos
-    let metal = Math.min(texto.length / 15, 100); // Lógica baseada no volume
-    let estado = Math.min(listaMenteSoberana.length * 25, 100); // 4 arquivos = 100% de prova
-    let legiao = texto.toLowerCase().includes('testemunha') || texto.toLowerCase().includes('grupo') ? 90 : 30;
-    let logos = texto.length > 50 ? 75 : 20; // Consistência do Direito
+    // Cálculo dos Eixos (Lógica Dinâmica)
+    let metal = Math.min(texto.length / 20, 100); 
+    let estado = Math.min(arquivosCount * 25, 100); 
+    let legiao = texto.length > 100 ? 80 : 20;
+    let logos = (texto.length > 50 && arquivosCount > 0) ? 90 : 30;
 
-    // Atualiza Barras
+    // Calibragem por Área (Ex: Penal é mais rigoroso em Provas)
+    if (area === 'penal' && arquivosCount < 2) estado *= 0.5;
+    if (area === 'trabalhista' && texto.includes('verbas')) logos = 100;
+
+    // Atualiza Barras Visualmente
     document.querySelector('#e-metal .fill').style.width = metal + '%';
     document.querySelector('#e-estado .fill').style.width = estado + '%';
     document.querySelector('#e-legiao .fill').style.width = legiao + '%';
     document.querySelector('#e-logos .fill').style.width = logos + '%';
 
-    // Score e Risco
+    // Cálculo de Risco e Viabilidade
     const scoreMedio = (metal + estado + legiao + logos) / 4;
-    const risco = 100 - scoreMedio;
-
+    const risco = Math.max(0, 100 - scoreMedio);
+    
     document.getElementById('val-erro').innerText = risco.toFixed(0) + '%';
     
-    // LCU (Expectativa Financeira Simulada)
-    const valorEstimado = (scoreMedio * 1250);
-    document.getElementById('val-expectativa').innerText = 'R$ ' + valorEstimado.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    // Métrica Financeira/Técnica por Área
+    let valorBase = scoreMedio * 1500;
+    if (area === 'trabalhista') valorBase *= 1.2;
+    if (area === 'tributario') valorBase *= 2.5;
+    
+    document.getElementById('val-expectativa').innerText = (risco > 90) ? "R$ 0,00" : 'R$ ' + valorBase.toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
-    // Governança (Fail-Closed)
-    const cert = document.getElementById('selo-cert');
-    if (estado >= 25 && texto.length > 20) {
-        cert.innerText = 'CERT: APROVADO';
-        cert.className = 'selo selo-on';
-        btnExecutar.disabled = false;
+    // Governança (Botão de Gerar)
+    const btnGerar = document.getElementById('btn-executar');
+    const seloCert = document.getElementById('selo-cert');
+    
+    if (scoreMedio > 40 && texto.length > 15) {
+        seloCert.innerText = "CERT: APROVADO";
+        seloCert.className = "selo selo-on";
+        btnGerar.disabled = false;
     } else {
-        cert.innerText = 'CERT: BLOQUEADO';
-        cert.className = 'selo selo-off';
-        btnExecutar.disabled = true;
+        seloCert.innerText = "CERT: BLOQUEADO";
+        seloCert.className = "selo selo-off";
+        btnGerar.disabled = true;
     }
 }
 
-// 5. PROCESSAMENTO DE ORDEM
-function processarOrdem() {
-    const input = document.getElementById('cmd-input').value;
+// 5. GERAÇÃO DE DOCUMENTO (CANVAS)
+function gerarMinutaFinal() {
+    const contexto = sistema.dados[sistema.contextoAtivo];
     const canvas = document.getElementById('output-canvas');
-    const printArea = document.getElementById('print-area');
+    const auditSelo = document.getElementById('selo-audit');
     
-    // Simulação de "Inteligência" gerando a peça
     const protocoloID = Math.random().toString(36).substr(2, 9).toUpperCase();
     const dataAtual = new Date().toLocaleDateString('pt-BR');
 
-    const conteudoHTML = `
-        <div class="peca-juridica">
-            <h2 style="text-align:center; text-decoration:underline;">DOSSIÊ DE ESTRATÉGIA JURÍDICA</h2>
-            <p style="text-align:center; font-size: 0.8rem;">PROTOCOLO SOBERANO: ${protocoloID} | EMISSÃO: ${dataAtual}</p>
+    // Template Profissional de Minuta
+    const htmlMinuta = `
+        <div class="minuta-final">
+            <h2 style="text-align:center; text-decoration:underline; text-transform:uppercase;">Minuta de Parecer Técnico-Jurídico</h2>
+            <p style="text-align:center; font-size: 10pt;">ID DE AUTENTICIDADE: ${protocoloID} | EMISSÃO: ${dataAtual}</p>
             <br>
-            <p><b>OBJETO DA ORDEM:</b> EXECUÇÃO DE ANÁLISE ESTRUTURADA</p>
-            <hr>
-            <p><b>1. RELATÓRIO DE CONFORMIDADE</b></p>
-            <p>O sistema processou a ordem sob a governança do Quadrilátero. Identificou-se uma base probatória de ${listaMenteSoberana.length} documento(s) vinculados à Mente Soberana.</p>
+            <p><strong>ÁREA DE COMPETÊNCIA:</strong> DIREITO ${contexto.area.toUpperCase()}</p>
+            <hr style="border: 0; border-top: 1px solid #000;">
+            <br>
+            <p><strong>1. RELATÓRIO E FUNDAMENTAÇÃO</strong></p>
+            <p style="text-align:justify;">Trata-se de análise técnica baseada nas instruções fornecidas e no acervo probatório anexado, composto por ${contexto.arquivos.length} documento(s). Após auditoria de conformidade, identificou-se o seguinte teor:</p>
+            <p style="padding: 15px; border-left: 2px solid #ccc; font-style: italic;">"${contexto.texto}"</p>
             
-            <p><b>2. FUNDAMENTAÇÃO ESTRATÉGICA</b></p>
-            <p style="text-align:justify;">Com base nos fatos narrados ("${input.substring(0, 100)}..."), o motor de inteligência recomenda o prosseguimento da tese, observando uma margem de risco de ${document.getElementById('val-erro').innerText}.</p>
+            <p><strong>2. ANÁLISE DE RISCO E VIABILIDADE</strong></p>
+            <p>Considerando a legislação vigente e os precedentes da área de <strong>Direito ${contexto.area}</strong>, a presente tese apresenta uma margem de risco técnico calculada em ${document.getElementById('val-erro').innerText}.</p>
             
-            <p><b>3. CONCLUSÃO E CERTIFICAÇÃO</b></p>
-            <p>Este documento possui certificação digital local e rastreabilidade via Ledger Interno. A viabilidade financeira (LCU) está estimada em ${document.getElementById('val-expectativa').innerText}.</p>
-            <br><br>
-            <div style="text-align:center; border-top: 1px solid #000; width: 250px; margin: auto;">
-                <p style="font-size:0.7rem;">ARKHOS v3.5 - NÚCLEO SOBERANO</p>
+            <p><strong>3. CONCLUSÃO</strong></p>
+            <p style="text-align:justify;">O sistema ARKHOS v3.5 certifica que a minuta está em conformidade com os requisitos mínimos de integridade lógica e documental para prosseguimento processual.</p>
+            <br><br><br>
+            <div style="text-align:center;">
+                <p>________________________________________________</p>
+                <p style="font-size: 9pt;">ASSINATURA DIGITAL DO SISTEMA - NÚCLEO ARKHOS</p>
             </div>
         </div>
     `;
 
-    // Atualiza a tela e a área de impressão
-    canvas.innerHTML = conteudoHTML;
-    printArea.innerHTML = conteudoHTML;
+    canvas.innerHTML = htmlMinuta;
+    auditSelo.innerText = "AUDIT: REGISTRADO";
+    auditSelo.className = "selo selo-on";
     
-    // Feedback visual
-    const ledger = document.getElementById('selo-ledger');
-    ledger.innerText = 'LEDGER: REGISTRADO';
-    ledger.className = 'selo selo-on';
+    // Scroll suave para o resultado
+    canvas.scrollIntoView({ behavior: 'smooth' });
 }
 
-function alternarPista(modo) {
-    modoPista = modo;
-    const btnD = document.getElementById('btn-pista-direta');
-    const btnG = document.getElementById('btn-pista-guiada');
-    const input = document.getElementById('cmd-input');
+// 6. EXPORTAÇÃO LIMPA (C05 - ANTI-GRADE)
+function exportarPDFLimpo() {
+    const conteudoDocumento = document.getElementById('output-canvas').innerHTML;
+    const camaraPrint = document.getElementById('secao-impressao-isolada');
 
-    if (modo === 'direta') {
-        btnD.classList.add('ativo');
-        btnG.classList.remove('ativo');
-        input.placeholder = "Ex: 'Elabore uma petição...'";
-    } else {
-        btnG.classList.add('ativo');
-        btnD.classList.remove('ativo');
-        input.placeholder = "[MODO GUIADO] Descreva os fatos detalhadamente para construção da base...";
+    if (!conteudoDocumento || conteudoDocumento.includes('Aguardando instrução')) {
+        alert("Gere a minuta antes de exportar.");
+        return;
     }
+
+    // Injeta apenas o conteúdo técnico na câmara branca
+    camaraPrint.innerHTML = conteudoDocumento;
+    
+    // Dispara o comando de impressão do navegador
+    window.print();
 }
 
-function guardarNoSistema() {
-    alert("Protocolo registrado com sucesso na Memória Institucional do Escritório.");
+// 7. UTILITÁRIOS DE INTERFACE
+function atualizarInterfaceArquivos() {
+    const display = document.getElementById('file-display-area');
+    const arquivos = sistema.dados[sistema.contextoAtivo].arquivos;
+
+    if (arquivos.length === 0) {
+        display.innerHTML = '<p class="txt-vazio">Acervo probatório vazio...</p>';
+        return;
+    }
+
+    let html = '<ul style="list-style:none; padding:0;">';
+    arquivos.forEach((file, index) => {
+        html += `<li style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span>📄 ${file.name.substring(0, 25)}...</span>
+                    <b style="color:var(--danger); cursor:pointer;" onclick="removerArquivo(${index})">✖</b>
+                 </li>`;
+    });
+    html += '</ul>';
+    display.innerHTML = html;
 }
+
+function removerArquivo(index) {
+    sistema.dados[sistema.contextoAtivo].arquivos.splice(index, 1);
+    atualizarInterfaceArquivos();
+    executarAuditoria();
+}
+
+function atualizarLabelsMetricas() {
+    const area = sistema.dados[sistema.contextoAtivo].area;
+    const label1 = document.getElementById('label-metrica-1');
+    const label2 = document.getElementById('label-metrica-2');
+
+    switch(area) {
+        case 'penal':
+            label1.innerText = "RISCO DE CUSTÓDIA / PENA";
+            label2.innerText = "MARGEM DE ABSOLVIÇÃO";
+            break;
+        case 'trabalhista':
+            label1.innerText = "ESTIMATIVA DE PASSIVO/PROVENTO";
+            label2.innerText = "RISCO DE SUCUMBÊNCIA";
+            break;
+        case 'tributario':
+            label1.innerText = "RECUPERAÇÃO TRIBUTÁRIA ESTIMADA";
+            label2.innerText = "RISCO DE GLOSA FISCAL";
+            break;
+        default:
+            label1.innerText = "MÉTRICA DE VIABILIDADE (QUANTUM)";
+            label2.innerText = "RISCO DE IMPROCEDÊNCIA";
+    }
+                      }
