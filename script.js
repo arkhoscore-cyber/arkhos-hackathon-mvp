@@ -1,5 +1,5 @@
-// ARKHOS KERNEL v2.6 - PROTOCOLO DE PERSISTÊNCIA DE EVIDÊNCIAS
-let listaMenteSoberana = []; // Aqui ficam guardados todos os arquivos
+// ARKHOS KERNEL v3.0 - PROTOCOLO SOBERANO E EXTRAÇÃO PURA
+let listaMenteSoberana = []; 
 
 function switchMode(mode) {
     const panels = { fast: document.getElementById('panel-fast'), genesis: document.getElementById('panel-genesis') };
@@ -13,18 +13,14 @@ function switchMode(mode) {
     }
 }
 
-// LÓGICA DE ACUMULAÇÃO (O Segredo para segurar vários arquivos)
+// LÓGICA DE ARQUIVOS (Mente Soberana)
 document.getElementById('file-docs').addEventListener('change', function(e) {
-    const display = document.getElementById('file-display-area');
     const novosArquivos = Array.from(e.target.files);
-    
-    // Adiciona à mente soberana apenas se não for repetido
     novosArquivos.forEach(file => {
-        if (!listaMenteSoberana.some(item => item.name === file.name && item.size === file.size)) {
+        if (!listaMenteSoberana.some(item => item.name === file.name)) {
             listaMenteSoberana.push(file);
         }
     });
-
     atualizarInterfaceArquivos();
     executarAuditoria();
 });
@@ -32,7 +28,7 @@ document.getElementById('file-docs').addEventListener('change', function(e) {
 function atualizarInterfaceArquivos() {
     const display = document.getElementById('file-display-area');
     if (listaMenteSoberana.length > 0) {
-        let htmlLista = `<div class="file-counter"><b>${listaMenteSoberana.length} Documentos na Mente Soberana</b></div><ul class="lista-doc-arkhos">`;
+        let htmlLista = `<div class="file-counter"><b>${listaMenteSoberana.length} Documentos Detectados</b></div><ul class="lista-doc-arkhos">`;
         listaMenteSoberana.forEach((file, index) => {
             htmlLista += `<li>📄 ${file.name} <span class="btn-remove" onclick="removerDoc(${index})">✖</span></li>`;
         });
@@ -49,17 +45,17 @@ function removerDoc(index) {
     executarAuditoria();
 }
 
+// MOTOR DE AUDITORIA
 function executarAuditoria() {
     const nature = document.getElementById('case-nature').value;
     const proInput = document.getElementById('pro-input').value;
     
-    // Cálculos de Eixo baseados na Mente Soberana
     let metal = Math.min(proInput.length / 8, 100);
-    let estado = Math.min(listaMenteSoberana.length * 20, 100); // 5 arquivos = 100% de Prova
+    let estado = Math.min(listaMenteSoberana.length * 20, 100); 
     let legiao = proInput.toLowerCase().includes("testemunha") ? 90 : 30;
     let logos = 75;
 
-    // Atualiza as Barras de Integridade
+    // Atualiza Barras na Interface
     document.querySelector('#eixo-metal .fill').style.width = metal + '%';
     document.querySelector('#eixo-estado .fill').style.width = estado + '%';
     document.querySelector('#eixo-legiao .fill').style.width = legiao + '%';
@@ -70,47 +66,83 @@ function executarAuditoria() {
 
     document.querySelector('#confidence-score span').innerText = score.toFixed(0) + '%';
     document.getElementById('val-erro').innerText = risco.toFixed(0) + '%';
-    
-    // Cálculo de Métrica Financeira/Punitiva
-    let valorEstimado = nature === 'criminal' ? "Risco de Custódia Elevado" : "R$ " + (score * 750).toLocaleString('pt-BR');
-    document.getElementById('val-perda').innerText = valorEstimado;
+    document.getElementById('val-perda').innerText = nature === 'criminal' ? "Risco de Custódia" : "R$ " + (score * 750).toLocaleString('pt-BR');
 
-    // Gestão de Missões e Protocolo
+    // Missões
     const missionBox = document.getElementById('missions-box');
     const missionList = document.getElementById('mission-list');
     missionList.innerHTML = "";
-
     if (estado < 60) {
         missionBox.classList.remove('hidden');
-        missionList.innerHTML += `<li>🎯 <b>MISSÃO:</b> O Eixo de Estado (Provas) está insuficiente. Aporte mais evidências para reduzir o risco de ${risco.toFixed(0)}%.</li>`;
+        missionList.innerHTML += `<li>🎯 <b>REFORÇO:</b> Aporte mais documentos para baixar o risco de ${risco.toFixed(0)}%.</li>`;
     } else {
         missionBox.classList.add('hidden');
     }
 
-    document.getElementById('legal-text-output').innerHTML = `
-        <div class="protocolo-final">
-            <h2 style="text-align:center">PROTOCOLO SOBERANO DE EXPORTAÇÃO</h2>
-            <p style="text-align:center; font-size:12px;">GERADO VIA ARKHOS KERNEL v2.6</p>
-            <hr>
-            <p><b>DOCUMENTOS VINCULADOS:</b> ${listaMenteSoberana.length}</p>
-            <p><b>INTEGRIDADE DO CASO:</b> ${score.toFixed(0)}%</p>
-            <p><b>PARECER:</b> ${score > 70 ? "Alta viabilidade de êxito jurídico." : "Revisão obrigatória das provas aportadas."}</p>
-            <div class="relato-box"><b>RELATO REGISTRADO:</b><br>${proInput || "Nenhum dado informado."}</div>
-        </div>
-    `;
-    
+    // Mostra o preview simples na tela
+    document.getElementById('legal-text-output').innerHTML = `<strong>Protocolo Gerado com ${score.toFixed(0)}% de Confiança.</strong><br>Pronto para extração oficial.`;
     document.getElementById('output-area').classList.remove('hidden');
 }
 
-// Inicializadores de Eventos
+// --- A JOGADA MESTRE: FUNÇÃO DE EXPORTAÇÃO LIMPA ---
+function exportarPDF() {
+    const nature = document.getElementById('case-nature').value;
+    const proInput = document.getElementById('pro-input').value;
+    const score = document.querySelector('#confidence-score span').innerText;
+    const arquivos = listaMenteSoberana.map(f => `<li>📄 ${f.name}</li>`).join('');
+
+    const win = window.open('', '_blank');
+    win.document.write(`
+        <html>
+        <head>
+            <title>ARKHOS - Exportação Oficial</title>
+            <style>
+                body { font-family: 'Segoe UI', serif; padding: 40px; color: #1a1a1a; line-height: 1.6; }
+                .header { text-align: center; border-bottom: 3px solid #D4AF37; padding-bottom: 20px; }
+                .logo { color: #D4AF37; font-size: 35px; font-weight: bold; letter-spacing: 10px; }
+                .meta { display: flex; justify-content: space-between; margin-top: 20px; font-size: 14px; background: #f9f9f9; padding: 10px; border: 1px solid #ddd; }
+                h2 { color: #D4AF37; text-transform: uppercase; font-size: 18px; margin-top: 30px; border-left: 5px solid #D4AF37; padding-left: 10px; }
+                .content { background: #fff; padding: 20px; border: 1px solid #eee; min-height: 200px; }
+                .footer { margin-top: 50px; text-align: center; font-size: 10px; color: #aaa; border-top: 1px solid #eee; padding-top: 10px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="logo">♈ ARKHOS ∞</div>
+                <div style="text-transform: uppercase; letter-spacing: 2px; font-size: 12px;">Protocolo de Extração Soberana</div>
+            </div>
+            
+            <div class="meta">
+                <span><b>DATA:</b> ${new Date().toLocaleDateString()}</span>
+                <span><b>NATUREZA:</b> ${nature.toUpperCase()}</span>
+                <span><b>CONFIANÇA:</b> ${score}</span>
+            </div>
+
+            <h2>1. Relato dos Fatos</h2>
+            <div class="content">${proInput.replace(/\n/g, '<br>') || "Nenhum dado informado."}</div>
+
+            <h2>2. Evidências Vinculadas (Mente Soberana)</h2>
+            <div class="content"><ul>${arquivos || "Nenhum arquivo anexado."}</ul></div>
+
+            <div class="footer">
+                Este documento é uma extração oficial do sistema ARKHOS. A autenticidade dos dados é de responsabilidade do auditor.
+            </div>
+        </body>
+        </html>
+    `);
+    win.document.close();
+    win.print();
+}
+
+// Inicializadores
 document.getElementById('btn-main-action').addEventListener('click', executarAuditoria);
 document.getElementById('btn-send-chat').addEventListener('click', () => {
     const chatMsg = document.getElementById('chat-user-msg');
     if (chatMsg.value) {
-        document.getElementById('chat-flow').innerHTML += `<div class="msg user"><b>Você:</b> ${chatMsg.value}</div>`;
+        document.getElementById('chat-flow').innerHTML += `<div class="msg user">${chatMsg.value}</div>`;
         document.getElementById('pro-input').value += "\n" + chatMsg.value;
         chatMsg.value = "";
         executarAuditoria();
     }
 });
-                                                                                       
+                    
