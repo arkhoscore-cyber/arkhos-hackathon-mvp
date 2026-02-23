@@ -38,3 +38,9 @@ textarea { height: 150px; }
 .msg { padding: 10px; margin-bottom: 10px; border-radius: 5px; max-width: 80%; }
 .msg.bot { background: #333; }
 .msg.user { background: var(--accent); color: #000; margin-left: auto; }
+.export-actions { display: flex; gap: 10px; margin-top: 20px; }
+.btn-exp { flex: 1; padding: 15px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-weight: bold; }
+.btn-exp.save { background: var(--accent); color: #000; }
+.file-list-style { background: #000; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #222; }
+.warning { border: 1px solid #ff4444; background: #221111; }
+
