@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARKHOS v3.5 | Bancada de Execução Jurídica</title>
+    <title>ARKHOS v3.5 | Estação de Inteligência Jurídica</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,13 +11,13 @@
 <header class="no-print">
     <div class="header-container">
         <div class="logo-area">
-            <span class="symbol">♈</span>
+            <span class="symbol">⚖️</span>
             <h1>ARKHOS <span class="v-tag">v3.5</span></h1>
-            <small class="subtitle">SISTEMA DE INTELIGÊNCIA JURÍDICA GOVERNADA</small>
+            <small class="subtitle">ESTAÇÃO DE CONFORMIDADE E MINUTAGEM TÉCNICA</small>
         </div>
         <div id="vigilia-status">
             <div class="pulse-icon"></div>
-            <span>NÚCLEO DE GOVERNANÇA: <b id="status-core" class="status-on">ATIVO</b></span>
+            <span>NÚCLEO DE AUDITORIA: <b id="status-core" class="status-on">OPERACIONAL</b></span>
         </div>
     </div>
 </header>
@@ -27,86 +27,98 @@
     <section class="col-comando">
         
         <div class="seletor-pista">
-            <button id="btn-pista-direta" class="btn-pista ativo">MODO DIRETO (ORDEM)</button>
-            <button id="btn-pista-guiada" class="btn-pista">MODO GUIADO (ESTRUTURAL)</button>
+            <button id="btn-pista-direta" class="btn-pista ativo">MODO PROFISSIONAL (MINUTA)</button>
+            <button id="btn-pista-guiada" class="btn-pista">MODO ESTRUTURADO (RELATO)</button>
         </div>
 
         <div class="card-comando">
-            <label for="cmd-input">TERMINAL DE ORDEM / RELATO</label>
-            <textarea id="cmd-input" placeholder="Ex: 'Elabore uma petição inicial de danos morais baseada nas provas em anexo' ou inicie o relato dos fatos..."></textarea>
+            
+            <label for="area-direito">COMPETÊNCIA / ÁREA DE ATUAÇÃO</label>
+            <select id="area-direito" class="select-tecnico">
+                <option value="civil">Direito Civil (Contratos, Família, Danos)</option>
+                <option value="penal">Direito Criminal (Defesa, Inquérito, Execução)</option>
+                <option value="trabalhista">Direito Trabalhista (Reclamatória, Defesa)</option>
+                <option value="consumidor">Direito do Consumidor (Indenizações, Juizado)</option>
+                <option value="tributario">Direito Tributário (Defesa Fiscal, Recuperação)</option>
+                <option value="previdenciario">Direito Previdenciário (Concessão, Revisão)</option>
+                <option value="administrativo">Direito Administrativo (Licitações, Servidores)</option>
+            </select>
+
+            <label for="cmd-input" id="label-input">INSTRUÇÃO TÉCNICA DA MINUTA</label>
+            <textarea id="cmd-input" placeholder="Descreva os fatos ou a ordem jurídica de acordo com a área selecionada..."></textarea>
             
             <div class="upload-area">
                 <label for="file-soberano" class="btn-anexo">
-                    <span>📎 APORTAR EVIDÊNCIAS (MENTE SOBERANA)</span>
+                    <span>📎 APORTAR LASTRO DOCUMENTAL (ACERVO)</span>
                     <input type="file" id="file-soberano" multiple style="display:none;">
                 </label>
                 <div id="file-display-area" class="lista-arquivos">
-                    <p class="txt-vazio">Mente Soberana vazia. Aguardando base de prova...</p>
+                    <p class="txt-vazio">Acervo probatório vazio. Aguardando documentos...</p>
                 </div>
             </div>
         </div>
 
         <div class="monitor-integridade">
-            <h3>MONITOR DE CONFORMIDADE</h3>
+            <h3>ANÁLISE DE CONFORMIDADE PROCESSUAL</h3>
             <div class="grid-eixos">
                 <div class="eixo" id="e-metal">
-                    <label>METAL (Lógica)</label>
+                    <label>LÓGICA (Estrutura)</label>
                     <div class="bar"><div class="fill" style="width: 0%;"></div></div>
                 </div>
                 <div class="eixo" id="e-estado">
-                    <label>ESTADO (Provas)</label>
+                    <label>PROVAS (Acervo)</label>
                     <div class="bar"><div class="fill" style="width: 0%;"></div></div>
                 </div>
                 <div class="eixo" id="e-legiao">
-                    <label>LEGIÃO (Contexto)</label>
+                    <label>CONTEXTO (Jurisprudência)</label>
                     <div class="bar"><div class="fill" style="width: 0%;"></div></div>
                 </div>
                 <div class="eixo" id="e-logos">
-                    <label>LOGOS (Direito)</label>
+                    <label>DIREITO (Fundamentação)</label>
                     <div class="bar"><div class="fill" style="width: 0%;"></div></div>
                 </div>
             </div>
             
             <div class="selos-validacao">
-                <span id="selo-cert" class="selo selo-off">CERT: BLOQUEADO</span>
-                <span id="selo-ledger" class="selo selo-off">LEDGER: PENDENTE</span>
+                <span id="selo-cert" class="selo selo-off">CERT: AGUARDANDO</span>
+                <span id="selo-audit" class="selo selo-off">AUTENTICIDADE: PENDENTE</span>
             </div>
         </div>
 
-        <button id="btn-executar" class="btn-main" disabled>EXECUTAR ORDEM SOBERANA</button>
+        <button id="btn-executar" class="btn-main" disabled>GERAR MINUTA E PROTOCOLAR</button>
         
     </section>
 
     <section class="col-resultado">
         
         <div class="dashboard-lcu">
-            <div class="metric-card">
-                <small>EXPECTATIVA (LCU)</small>
-                <strong id="val-expectativa">R$ 0,00</strong>
+            <div class="metric-card" id="card-metrica-1">
+                <small id="label-metrica-1">MÉTRICA DE VIABILIDADE</small>
+                <strong id="val-expectativa">--</strong>
             </div>
-            <div class="metric-card warning">
-                <small>MARGEM DE RISCO</small>
-                <strong id="val-erro">100%</strong>
+            <div class="metric-card warning" id="card-metrica-2">
+                <small id="label-metrica-2">MARGEM DE RISCO TÉCNICO</small>
+                <strong id="val-erro">--</strong>
             </div>
         </div>
 
         <div id="output-canvas" class="canvas-documento">
             <div class="placeholder-msg">
-                <span class="icon">⚖️</span>
-                <p>O Sistema de Inteligência aguarda sua ordem e base de provas.</p>
+                <span class="icon">📄</span>
+                <p>Aguardando instrução técnica e acervo probatório para compilar o documento.</p>
             </div>
         </div>
 
         <div class="acoes-finais">
-            <button id="btn-exportar" class="btn-secundario">📥 EXPORTAR PDF LIMPO</button>
-            <button id="btn-salvar" class="btn-secundario">💾 GUARDAR NA BASE</button>
+            <button id="btn-exportar" class="btn-secundario">📥 EXPORTAR DOCUMENTO (PDF LIMPO)</button>
+            <button id="btn-salvar" class="btn-secundario">💾 ARQUIVAR NO SISTEMA</button>
         </div>
 
     </section>
 
 </main>
 
-<div id="print-area" class="only-print" style="display: none;">
+<div id="secao-impressao-isolada" class="only-print" style="display: none;">
     </div>
 
 <script src="script.js"></script>
