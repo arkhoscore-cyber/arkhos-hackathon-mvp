@@ -3,61 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARKHOS | Kernel de Governança Soberana</title>
+    <title>ARKHOS | Estação de Trabalho Jurídica Soberana</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="logo">ARKHOS</div>
-            <div class="status-panel">
-                <h3>Integridade do Sistema</h3>
-                <div class="quadrant" id="q-metal">
-                    <span class="dot"></span> 🔩 METAL <small>(Kernel)</small>
-                    <div class="progress-bar"><div class="fill"></div></div>
+
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <h1>ARKHOS</h1>
+                <span class="version">v2.0 - KERNEL SOBERANO</span>
+            </div>
+            <div id="radar-vigilia">
+                <div class="scanner"></div>
+                <p>VIGÍLIA TRIBUNAL: <span class="status-on">ATIVO</span></p>
+                <small id="radar-msg">Monitorando Precedentes...</small>
+            </div>
+        </div>
+    </header>
+
+    <main id="app-container">
+
+        <section class="mode-selector">
+            <button id="btn-fast-track" class="btn-mode active" onclick="switchMode('fast')">PISTA RÁPIDA (PRO)</button>
+            <button id="btn-genesis-assist" class="btn-mode" onclick="switchMode('genesis')">ASSISTENTE GÊNESIS (GUIADO)</button>
+        </section>
+
+        <section class="input-area">
+            
+            <div id="panel-fast" class="input-panel">
+                <div class="row">
+                    <div class="field">
+                        <label>Jurisdição / Natureza</label>
+                        <select id="case-nature">
+                            <option value="criminal">Criminal (Liberdade/Anos)</option>
+                            <option value="trabalhista">Trabalhista (R$/Verbas)</option>
+                            <option value="civel">Cível (R$/Danos)</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="quadrant" id="q-legiao">
-                    <span class="dot"></span> 🧬 LEGIÃO <small>(Rede)</small>
-                    <div class="progress-bar"><div class="fill"></div></div>
-                </div>
-                <div class="quadrant" id="q-estado">
-                    <span class="dot"></span> 🏛️ ESTADO <small>(Ética)</small>
-                    <div class="progress-bar"><div class="fill"></div></div>
-                </div>
-                <div class="quadrant" id="q-logos">
-                    <span class="dot"></span> ⚖️ LOGOS <small>(Lógica)</small>
-                    <div class="progress-bar"><div class="fill"></div></div>
+                <label>Relato Estruturado dos Fatos</label>
+                <textarea id="pro-input" placeholder="Digite ou cole os fatos aqui para análise axiomática..."></textarea>
+                <div class="upload-area">
+                    <input type="file" id="file-docs" multiple>
+                    <label for="file-docs">📂 VINCULAR EVIDÊNCIAS (EIXO DE ESTADO)</label>
                 </div>
             </div>
-            <div class="technical-logs" id="logs">
-                <p>> Sistema iniciado...</p>
-                <p>> Aguardando entrada de dados...</p>
-            </div>
-        </aside>
 
-        <main class="main-content">
-            <header>
-                <h1>Montador de Caso Assistido</h1>
-                <p>Construa seu caso com a blindagem do Quadrilátero Axiomático.</p>
-            </header>
-
-            <section class="input-area">
-                <textarea id="caseInput" placeholder="Descreva os fatos, datas e evidências do caso aqui..."></textarea>
-                <div class="assistant-feedback" id="assistantMessage">
-                    Aguardando descrição para iniciar análise de eixos...
+            <div id="panel-genesis" class="input-panel hidden">
+                <div id="chat-flow">
+                    <div class="msg bot">Olá. Sou o ARKHOS. Descreva o que aconteceu de forma simples, sem termos técnicos.</div>
                 </div>
-            </section>
+                <div class="chat-input-wrap">
+                    <input type="text" id="chat-user-msg" placeholder="Diga-me o que houve...">
+                    <button id="btn-send-chat">ENVIAR</button>
+                </div>
+            </div>
 
-            <section class="action-panel">
-                <button id="btnGenerate" disabled>GERAR SELO GÊNESIS 2.0</button>
-            </section>
+        </section>
 
-            <section id="resultArea" class="result-area hidden">
-                <h2>Relatório de Estruturação Arkhos</h2>
-                <div id="finalSummary"></div>
-            </section>
-        </main>
-    </div>
+        <section class="integrity-monitor">
+            <h3>AUDITORIA DE INTEGRIDADE EM TEMPO REAL</h3>
+            <div class="quadrilatero-grid">
+                <div class="eixo" id="eixo-metal">
+                    <label>METAL (Lógica)</label>
+                    <div class="bar"><div class="fill" style="width: 0%"></div></div>
+                </div>
+                <div class="eixo" id="eixo-legiao">
+                    <label>LEGIÃO (Pessoas)</label>
+                    <div class="bar"><div class="fill" style="width: 0%"></div></div>
+                </div>
+                <div class="eixo" id="eixo-estado">
+                    <label>ESTADO (Provas)</label>
+                    <div class="bar"><div class="fill" style="width: 0%"></div></div>
+                </div>
+                <div class="eixo" id="eixo-logos">
+                    <label>LOGOS (Direito)</label>
+                    <div class="bar"><div class="fill" style="width: 0%"></div></div>
+                </div>
+            </div>
+            <div id="confidence-score">CONFIANÇA DO CASO: <span>0%</span></div>
+        </section>
+
+        <button id="btn-main-action" class="btn-primary">AUDITAR E GERAR DOSSIÊ</button>
+
+        <section id="output-area" class="hidden">
+            
+            <div id="missions-box" class="output-card">
+                <h3>📋 MISSÕES DE REFORÇO (PARA O CLIENTE)</h3>
+                <ul id="mission-list">
+                    </ul>
+            </div>
+
+            <div id="dossie-box" class="output-card">
+                <div class="dossie-header">
+                    <h2>DOSSIÊ DE ESTRATÉGIA JURÍDICA</h2>
+                    <div id="selo-genesis" class="unverified">AGUARDANDO INTEGRIDADE</div>
+                </div>
+                
+                <div id="metrics-display" class="metrics-grid">
+                    <div class="m-card">
+                        <small>Métrica de Perda</small>
+                        <strong id="val-perda">--</strong>
+                    </div>
+                    <div class="m-card">
+                        <small>Margem de Erro</small>
+                        <strong id="val-erro">± 0%</strong>
+                    </div>
+                </div>
+
+                <div id="legal-text-output" class="document-paper">
+                    </div>
+
+                <div class="actions">
+                    <button class="btn-export" onclick="window.print()">📥 EXPORTAR PARA PROTOCOLO (PDF)</button>
+                    <button class="btn-export secondary">💾 SALVAR NA BASE INTELIGENTE</button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
     <script src="script.js"></script>
 </body>
-</html>
+            </html>
+            
