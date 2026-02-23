@@ -1,9 +1,40 @@
 /* =========================================================
-   ARKHOS v3.5 - MOTOR LÓGICO COM MEMÓRIA E SANDBOXING
+   ARKHOS v3.5 - MOTOR FINAL COM UI DE IDIOMA
    ========================================================= */
 
-// 1. OBJETO DE ESTADO E PERSISTÊNCIA
+const i18n = {
+    pt: {
+        labelInputPro: "INSTRUÇÃO TÉCNICA DA MINUTA (PRO)",
+        labelInputGui: "RELATO DOS FATOS (ESTRUTURADO)",
+        metricaViabilidade: "MÉTRICA DE VIABILIDADE",
+        metricaRisco: "MARGEM DE RISCO TÉCNICO",
+        metricaPena: "RISCO DE PENA / CUSTÓDIA",
+        btnGerar: "GERAR MINUTA E PROTOCOLAR",
+        btnExportar: "📥 EXPORTAR DOCUMENTO (PDF)",
+        acervoVazio: "Acervo probatório vazio...",
+        placeholderCanvas: "Aguardando instrução para compilar o documento.",
+        autenticidade: "AUTENTICIDADE: REGISTRADA",
+        protocolo: "PROTOCOLO",
+        emissao: "MODO DE EMISSÃO"
+    },
+    en: {
+        labelInputPro: "TECHNICAL DRAFT INSTRUCTION (PRO)",
+        labelInputGui: "FACTUAL REPORT (STRUCTURAL)",
+        metricaViabilidade: "VIABILITY SCORE",
+        metricaRisco: "TECHNICAL RISK MARGIN",
+        metricaPena: "SENTENCING / CUSTODY RISK",
+        btnGerar: "GENERATE AND PROTOCOL DRAFT",
+        btnExportar: "📥 EXPORT DOCUMENT (PDF)",
+        acervoVazio: "Evidence vault empty...",
+        placeholderCanvas: "Waiting for instructions to compile document.",
+        autenticidade: "AUTHENTICITY: REGISTERED",
+        protocolo: "PROTOCOL ID",
+        emissao: "ISSUANCE MODE"
+    }
+};
+
 let sistema = {
+    idioma: localStorage.getItem('arkhos_lang') || 'pt',
     contextoAtivo: 'direto',
     dados: {
         direto: { texto: "", arquivos: [], area: "civil", minutaHTML: "" },
@@ -11,196 +42,166 @@ let sistema = {
     }
 };
 
-// 2. INICIALIZAÇÃO COM CARREGAMENTO DE MEMÓRIA
 document.addEventListener('DOMContentLoaded', () => {
-    // Tenta recuperar dados salvos anteriormente
     const memoria = localStorage.getItem('arkhos_v35_data');
-    if (memoria) {
-        sistema.dados = JSON.parse(memoria);
-    }
+    if (memoria) sistema.dados = JSON.parse(memoria);
     
     configurarListeners();
-    carregarContextoUI(); // Inicia a interface com o que está na memória
+    aplicarIdioma(); 
+    carregarContextoUI();
 });
 
 function configurarListeners() {
-    const inputTexto = document.getElementById('cmd-input');
-    const inputArquivo = document.getElementById('file-soberano');
-    const seletorArea = document.getElementById('area-direito');
-
-    // Monitoramento de Texto
-    inputTexto.addEventListener('input', () => {
-        sistema.dados[sistema.contextoAtivo].texto = inputTexto.value;
+    document.getElementById('cmd-input').addEventListener('input', (e) => {
+        sistema.dados[sistema.contextoAtivo].texto = e.target.value;
         salvarMemoria();
         executarAuditoria();
     });
 
-    // Monitoramento de Área do Direito
-    seletorArea.addEventListener('change', () => {
-        sistema.dados[sistema.contextoAtivo].area = seletorArea.value;
+    document.getElementById('area-direito').addEventListener('change', (e) => {
+        sistema.dados[sistema.contextoAtivo].area = e.target.value;
         salvarMemoria();
         atualizarLabelsMetricas();
         executarAuditoria();
     });
 
-    // Monitoramento de Arquivos (Acervo)
-    inputArquivo.addEventListener('change', (e) => {
-        // Nota: Objetos File não podem ser salvos no localStorage diretamente (limitação de segurança).
-        // Eles persistem nesta sessão. Para persistência permanente de PDFs, seria necessário um servidor.
+    document.getElementById('file-soberano').addEventListener('change', (e) => {
         const novosArquivos = Array.from(e.target.files);
-        const acervoAtual = sistema.dados[sistema.contextoAtivo].arquivos;
-
         novosArquivos.forEach(file => {
-            if (!acervoAtual.some(f => f.name === file.name)) {
-                acervoAtual.push({ name: file.name, size: file.size });
+            if (!sistema.dados[sistema.contextoAtivo].arquivos.some(f => f.name === file.name)) {
+                sistema.dados[sistema.contextoAtivo].arquivos.push({ name: file.name, size: file.size });
             }
         });
         atualizarInterfaceArquivos();
         executarAuditoria();
     });
 
-    // Botões de Navegação (Separador de Modos)
     document.getElementById('btn-pista-direta').onclick = () => trocarContexto('direto');
     document.getElementById('btn-pista-guiada').onclick = () => trocarContexto('guiado');
-
-    // Botões de Execução e PDF
     document.getElementById('btn-executar').onclick = gerarMinutaFinal;
     document.getElementById('btn-exportar').onclick = exportarPDFLimpo;
 }
 
-// 3. LÓGICA DE SEPARAÇÃO (SANDBOXING)
-function trocarContexto(novoContexto) {
-    if (sistema.contextoAtivo === novoContexto) return;
-
-    // A. Salva o que está na tela no contexto que está saindo
-    sistema.dados[sistema.contextoAtivo].texto = document.getElementById('cmd-input').value;
-    sistema.dados[sistema.contextoAtivo].area = document.getElementById('area-direito').value;
-
-    // B. Muda a chave
-    sistema.contextoAtivo = novoContexto;
-
-    // C. Carrega a UI com os dados do NOVO contexto
+// FUNÇÃO DE TROCA DE IDIOMA (CONECTADA AOS BOTÕES)
+function mudarIdioma(sigla) {
+    sistema.idioma = sigla;
+    localStorage.setItem('arkhos_lang', sigla);
+    aplicarIdioma();
     carregarContextoUI();
 }
 
-function carregarContextoUI() {
-    const d = sistema.dados[sistema.contextoAtivo];
-    
-    // Atualiza Inputs
-    document.getElementById('cmd-input').value = d.texto;
-    document.getElementById('area-direito').value = d.area;
-    
-    // Atualiza Visual do Canvas (O que já foi gerado antes)
-    if (d.minutaHTML) {
-        document.getElementById('output-canvas').innerHTML = d.minutaHTML;
-    } else {
-        document.getElementById('output-canvas').innerHTML = `
-            <div class="placeholder-msg">
-                <span class="icon">📄</span>
-                <p>Aguardando nova instrução para este modo.</p>
-            </div>`;
-    }
+function aplicarIdioma() {
+    const t = i18n[sistema.idioma];
+    document.getElementById('btn-executar').innerText = t.btnGerar;
+    document.getElementById('btn-exportar').innerText = t.btnExportar;
+    document.getElementById('label-metrica-2').innerText = t.metricaRisco;
 
-    // Atualiza Botões e Labels
-    document.getElementById('btn-pista-direta').classList.toggle('ativo', sistema.contextoAtivo === 'direto');
-    document.getElementById('btn-pista-guiada').classList.toggle('ativo', sistema.contextoAtivo === 'guiado');
-    
-    document.getElementById('label-input').innerText = sistema.contextoAtivo === 'direto' 
-        ? 'INSTRUÇÃO TÉCNICA DA MINUTA (PRO)' 
-        : 'RELATO DOS FATOS (ESTRUTURADO)';
-
-    atualizarInterfaceArquivos();
-    atualizarLabelsMetricas();
-    executarAuditoria();
+    // Atualiza estados dos botões de idioma
+    document.getElementById('btn-lang-pt').classList.toggle('active', sistema.idioma === 'pt');
+    document.getElementById('btn-lang-en').classList.toggle('active', sistema.idioma === 'en');
 }
 
-// 4. MEMÓRIA LOCAL
-function salvarMemoria() {
-    localStorage.setItem('arkhos_v35_data', JSON.stringify(sistema.dados));
-}
-
-// 5. MOTOR DE AUDITORIA
 function executarAuditoria() {
     const contexto = sistema.dados[sistema.contextoAtivo];
     const texto = contexto.texto || "";
     const arquivosCount = contexto.arquivos.length;
 
-    // Cálculos Proporcionais
     let metal = Math.min(texto.length / 10, 100); 
     let estado = Math.min(arquivosCount * 33, 100); 
     let legiao = (texto.length > 50) ? 70 : 10;
     let logos = (texto.length > 30 && arquivosCount > 0) ? 90 : 20;
 
-    // UI Feedback
     document.querySelector('#e-metal .fill').style.width = metal + '%';
     document.querySelector('#e-estado .fill').style.width = estado + '%';
     document.querySelector('#e-legiao .fill').style.width = legiao + '%';
     document.querySelector('#e-logos .fill').style.width = logos + '%';
 
-    const risco = 100 - ((metal + estado + legiao + logos) / 4);
+    const scoreMedio = (metal + estado + legiao + logos) / 4;
+    const risco = 100 - scoreMedio;
+    const expectativaBase = scoreMedio * 1200;
+
+    // ATUALIZAÇÃO DAS MÉTRICAS NA TELA
     document.getElementById('val-erro').innerText = risco.toFixed(0) + '%';
+    const campoExpectativa = document.getElementById('val-expectativa');
     
-    const btnGerar = document.getElementById('btn-executar');
-    btnGerar.disabled = (texto.length < 10);
+    if (texto.length < 5) {
+        campoExpectativa.innerText = "--";
+    } else {
+        campoExpectativa.innerText = 'R$ ' + expectativaBase.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    }
+    
+    document.getElementById('btn-executar').disabled = (texto.length < 10);
 }
 
-// 6. GERAÇÃO E EXPORTAÇÃO (PDF LIMPO)
 function gerarMinutaFinal() {
     const contexto = sistema.dados[sistema.contextoAtivo];
-    const canvas = document.getElementById('output-canvas');
+    const t = i18n[sistema.idioma];
     const protocoloID = Math.random().toString(36).substr(2, 9).toUpperCase();
 
+    const titulo = sistema.idioma === 'pt' ? `MINUTA TÉCNICA: ${contexto.area.toUpperCase()}` : `LEGAL DRAFT: ${contexto.area.toUpperCase()}`;
+    const detalheLabel = sistema.idioma === 'pt' ? "DETALHAMENTO" : "LEGAL ANALYSIS";
+
     const template = `
-        <div class="minuta-final" style="color: black !important;">
-            <h2 style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 10px;">MINUTA TÉCNICA: ${contexto.area.toUpperCase()}</h2>
-            <p><strong>PROTOCOLO:</strong> ${protocoloID}</p>
-            <p><strong>MODO DE EMISSÃO:</strong> ${sistema.contextoAtivo.toUpperCase()}</p>
+        <div class="minuta-final" style="color: black !important; font-family: serif; padding: 40px;">
+            <h2 style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 10px;">${titulo}</h2>
+            <p><strong>${t.protocolo}:</strong> ${protocoloID}</p>
+            <p><strong>${t.emissao}:</strong> ${sistema.contextoAtivo.toUpperCase()}</p>
             <hr>
-            <p style="margin-top: 20px;"><strong>DETALHAMENTO:</strong></p>
+            <p style="margin-top:20px;"><strong>${detalheLabel}:</strong></p>
             <p style="text-align: justify; line-height: 1.6;">${contexto.texto}</p>
-            <p style="margin-top: 20px;"><strong>LASTRO DE PROVAS:</strong> ${contexto.arquivos.length} item(ns) analisado(s).</p>
+            <p style="margin-top: 30px; font-size: 0.8rem; text-align: center;">Documento gerado por ARKHOS v3.5 - Inteligência de Governança</p>
         </div>
     `;
 
     contexto.minutaHTML = template;
-    canvas.innerHTML = template;
-    salvarMemoria();
-    
-    // Alerta de Auditoria
+    document.getElementById('output-canvas').innerHTML = template;
+    document.getElementById('selo-audit').innerText = t.autenticidade;
     document.getElementById('selo-audit').className = "selo selo-on";
-    document.getElementById('selo-audit').innerText = "AUTENTICIDADE: REGISTRADA";
+    salvarMemoria();
 }
 
-function exportarPDFLimpo() {
-    const canvas = document.getElementById('output-canvas');
-    const camara = document.getElementById('secao-impressao-isolada');
+function trocarContexto(novo) {
+    sistema.contextoAtivo = novo;
+    carregarContextoUI();
+}
 
-    if (canvas.innerHTML.includes('placeholder-msg')) {
-        alert("Primeiro, clique em 'GERAR MINUTA'.");
-        return;
+function carregarContextoUI() {
+    const d = sistema.dados[sistema.contextoAtivo];
+    const t = i18n[sistema.idioma];
+    
+    document.getElementById('cmd-input').value = d.texto;
+    document.getElementById('area-direito').value = d.area;
+    document.getElementById('label-input').innerText = sistema.contextoAtivo === 'direto' ? t.labelInputPro : t.labelInputGui;
+
+    if (!d.minutaHTML) {
+        document.getElementById('output-canvas').innerHTML = `<div class="placeholder-msg"><p>${t.placeholderCanvas}</p></div>`;
+    } else {
+        document.getElementById('output-canvas').innerHTML = d.minutaHTML;
     }
 
-    // Alimenta a câmara de impressão e dispara
-    camara.innerHTML = canvas.innerHTML;
-    window.print();
-}
+    document.getElementById('btn-pista-direta').classList.toggle('ativo', sistema.contextoAtivo === 'direto');
+    document.getElementById('btn-pista-guiada').classList.toggle('ativo', sistema.contextoAtivo === 'guiado');
 
-// 7. FUNÇÕES DE APOIO
-function atualizarInterfaceArquivos() {
-    const display = document.getElementById('file-display-area');
-    const arquivos = sistema.dados[sistema.contextoAtivo].arquivos;
-    display.innerHTML = arquivos.length === 0 ? '<p class="txt-vazio">Acervo vazio...</p>' : 
-        arquivos.map((f, i) => `<div style="font-size:11px;">📄 ${f.name} <b onclick="removerArquivo(${i})" style="color:red;cursor:pointer">✖</b></div>`).join('');
-}
-
-function removerArquivo(i) {
-    sistema.dados[sistema.contextoAtivo].arquivos.splice(i, 1);
+    atualizarLabelsMetricas();
     atualizarInterfaceArquivos();
     executarAuditoria();
 }
 
 function atualizarLabelsMetricas() {
     const area = sistema.dados[sistema.contextoAtivo].area;
-    document.getElementById('label-metrica-1').innerText = area === 'penal' ? "RISCO DE PENA" : "MÉTRICA DE VIABILIDADE";
+    const t = i18n[sistema.idioma];
+    document.getElementById('label-metrica-1').innerText = area === 'penal' ? t.metricaPena : t.metricaViabilidade;
 }
+
+function atualizarInterfaceArquivos() {
+    const t = i18n[sistema.idioma];
+    const display = document.getElementById('file-display-area');
+    const arquivos = sistema.dados[sistema.contextoAtivo].arquivos;
+    display.innerHTML = arquivos.length === 0 ? `<p class="txt-vazio">${t.acervoVazio}</p>` : 
+        arquivos.map((f, i) => `<div style="font-size:11px; margin-bottom: 5px;">📄 ${f.name} <b onclick="removerArquivo(${i})" style="color:red;cursor:pointer;margin-left:10px;">✖</b></div>`).join('');
+}
+
+function salvarMemoria() { localStorage.setItem('arkhos_v35_data', JSON.stringify(sistema.dados)); }
+function removerArquivo(i) { sistema.dados[sistema.contextoAtivo].arquivos.splice(i, 1); atualizarInterfaceArquivos(); executarAuditoria(); }
+function exportarPDFLimpo() { document.getElementById('secao-impressao-isolada').innerHTML = document.getElementById('output-canvas').innerHTML; window.print(); }
    
