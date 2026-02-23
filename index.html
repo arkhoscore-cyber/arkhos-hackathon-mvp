@@ -4,82 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARKHOS | Estação Soberana</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ESTILO EMBUTIDO PARA GARANTIR O CARREGAMENTO */
+        :root { --bg: #0a0a0a; --painel: #141414; --dourado: #D4AF37; --azul: #00d4ff; --texto: #eee; }
+        body { background: var(--bg); color: var(--texto); font-family: sans-serif; margin: 0; padding: 0; }
+        
+        .header-container { text-align: center; padding: 20px; border-bottom: 1px solid #333; background: #000; }
+        .logo-central h1 { color: var(--dourado) !important; letter-spacing: 5px; margin: 0; font-size: 2rem; }
+        .symbol { color: var(--dourado); font-size: 1.5rem; }
+        
+        #app-container { max-width: 500px; margin: auto; padding: 15px; }
+        .input-panel { background: var(--painel); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; }
+        
+        textarea, select, input { 
+            width: 100%; background: #000; color: #fff; border: 1px solid #444; 
+            padding: 12px; box-sizing: border-box; border-radius: 4px; margin-top: 8px;
+        }
+
+        .bar { background: #222; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
+        .fill { background: var(--azul); height: 100%; width: 0%; transition: 0.5s; box-shadow: 0 0 10px var(--azul); }
+
+        .btn-primary { 
+            width: 100%; padding: 18px; background: var(--azul); border: none; 
+            font-weight: bold; cursor: pointer; color: #000; text-transform: uppercase; border-radius: 4px;
+        }
+
+        .lista-doc-arkhos { list-style: none; padding: 0; margin-top: 10px; }
+        .lista-doc-arkhos li { 
+            background: #1a1a1a; padding: 10px; margin-bottom: 5px; 
+            border-left: 3px solid var(--dourado); font-size: 0.8rem; display: flex; justify-content: space-between;
+        }
+
+        .apenas-pdf { display: none; }
+        .hidden { display: none; }
+
+        @media print {
+            .interface-web { display: none !important; }
+            .apenas-pdf { display: block !important; color: black !important; background: white !important; padding: 40px; }
+            body { background: white !important; }
+        }
+    </style>
 </head>
 <body>
     <div class="interface-web">
-        <header>
-            <div class="header-container">
-                <div class="logo-central">
-                    <span class="symbol">♈</span>
-                    <h1>ARKHOS</h1>
-                    <span class="symbol">∞</span>
-                </div>
-                <div id="radar-vigilia">
-                    <p>MONITORAMENTO REGIONAL DE PRECEDENTES: <span class="status-on">ATIVO</span></p>
-                    <div class="scanner"></div>
-                </div>
+        <header class="header-container">
+            <div class="logo-central">
+                <span class="symbol">♈</span>
+                <h1>ARKHOS</h1>
+                <span class="symbol">∞</span>
             </div>
         </header>
 
         <main id="app-container">
-            <section class="mode-selector">
-                <button id="btn-fast-track" class="btn-mode active" onclick="switchMode('fast')">PISTA RÁPIDA (PRO)</button>
-                <button id="btn-genesis-assist" class="btn-mode" onclick="switchMode('genesis')">ASSISTENTE GÊNESIS</button>
-            </section>
-
-            <section class="input-area">
-                <div id="panel-fast" class="input-panel">
-                    <label>Natureza da Ação</label>
-                    <select id="case-nature">
-                        <option value="trabalhista">Trabalhista</option>
-                        <option value="criminal">Criminal</option>
-                        <option value="civel">Cível</option>
-                    </select>
-                    <textarea id="pro-input" placeholder="Relate os fatos..."></textarea>
-                </div>
-
-                <div id="panel-genesis" class="input-panel hidden">
-                    <div id="chat-flow">
-                        <div class="msg bot"><b>ARKHOS:</b> Descreva sua situação abaixo.</div>
-                    </div>
-                    <div class="chat-controls">
-                        <input type="text" id="chat-user-msg" placeholder="Diga o que houve...">
-                        <button id="btn-send-chat">ENVIAR</button>
-                    </div>
-                </div>
-
-                <div class="upload-section">
-                    <label for="file-docs" class="upload-label">
-                        <span>📎 APORTAR EVIDÊNCIAS</span>
-                        <input type="file" id="file-docs" multiple>
-                    </label>
-                    <div id="file-display-area"></div>
-                </div>
-            </section>
-
-            <div class="integrity-monitor">
-                <div class="quadrilatero-grid">
-                    <div class="eixo" id="eixo-metal"><label>METAL</label><div class="bar"><div class="fill"></div></div></div>
-                    <div class="eixo" id="eixo-estado"><label>ESTADO</label><div class="bar"><div class="fill"></div></div></div>
-                    <div class="eixo" id="eixo-legiao"><label>LEGIÃO</label><div class="bar"><div class="fill"></div></div></div>
-                    <div class="eixo" id="eixo-logos"><label>LOGOS</label><div class="bar"><div class="fill"></div></div></div>
-                </div>
-                <div id="confidence-score">CONFIANÇA: <span>0%</span></div>
+            <div class="input-panel">
+                <label>Natureza da Ação</label>
+                <select id="case-nature">
+                    <option value="trabalhista">Trabalhista (R$/Verbas)</option>
+                    <option value="criminal">Criminal (Liberdade)</option>
+                    <option value="civel">Cível (Danos)</option>
+                </select>
+                <textarea id="pro-input" placeholder="Descreva os fatos aqui..."></textarea>
             </div>
 
-            <button id="btn-main-action" class="btn-primary">AUDITAR CASO</button>
-
-            <div class="export-actions">
-                <button class="btn-exp" onclick="window.print()">📥 EXPORTAR PDF</button>
+            <div class="input-panel" style="border: 1px dashed var(--azul);">
+                <label for="file-docs" style="color: var(--azul); cursor: pointer; font-weight: bold;">
+                    📎 APORTAR EVIDÊNCIAS (EIXO DE ESTADO)
+                </label>
+                <input type="file" id="file-docs" multiple style="display: none;">
+                <div id="file-display-area"></div>
             </div>
+
+            <div class="input-panel">
+                <label>AUDITORIA DE INTEGRIDADE</label>
+                <div id="eixo-metal">METAL <div class="bar"><div class="fill"></div></div></div>
+                <div id="eixo-estado">ESTADO <div class="bar"><div class="fill"></div></div></div>
+                <div id="eixo-legiao">LEGIÃO <div class="bar"><div class="fill"></div></div></div>
+                <div id="eixo-logos">LOGOS <div class="bar"><div class="fill"></div></div></div>
+                <h3 id="confidence-score" style="text-align: center; margin-top: 15px;">CONFIANÇA: <span>0%</span></h3>
+            </div>
+
+            <button id="btn-main-action" class="btn-primary">AUDITAR E GERAR PROTOCOLO</button>
+            <button class="btn-primary" onclick="window.print()" style="background: #333; color: #fff; margin-top: 10px;">📥 EXPORTAR PDF</button>
         </main>
     </div>
 
-    <div id="area-impressao-soberana" class="apenas-pdf">
-        </div>
+    <div id="area-impressao-soberana" class="apenas-pdf"></div>
 
     <script src="script.js"></script>
 </body>
-    </html>
-    
+</html>
