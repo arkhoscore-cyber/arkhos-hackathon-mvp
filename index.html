@@ -10,11 +10,13 @@
     <header>
         <div class="header-container">
             <div class="logo-central">
-                <span class="symbol">♈</span> <h1>ARKHOS</h1>
-                <span class="symbol">∞</span> </div>
+                <span class="symbol">♈</span>
+                <h1>ARKHOS</h1>
+                <span class="symbol">∞</span>
+            </div>
             <div id="radar-vigilia">
-                <div class="scanner"></div>
                 <p>MONITORAMENTO REGIONAL DE PRECEDENTES: <span class="status-on">ATIVO</span></p>
+                <div class="scanner"></div>
             </div>
         </div>
     </header>
@@ -33,24 +35,27 @@
                     <option value="criminal">Criminal (Liberdade/Anos)</option>
                     <option value="civel">Cível (R$/Danos)</option>
                 </select>
-                <textarea id="pro-input" placeholder="Relate os fatos ou cole a estrutura do caso..."></textarea>
+                <textarea id="pro-input" placeholder="Relate os fatos aqui..."></textarea>
             </div>
 
             <div id="panel-genesis" class="input-panel hidden">
                 <div id="chat-flow">
-                    <div class="msg bot"><b>ARKHOS:</b> Olá. Sou seu assistente. Conte-me o que houve e anexe suas provas no botão de clips.</div>
+                    <div class="msg bot"><b>ARKHOS:</b> Descreva sua situação e anexe as provas abaixo.</div>
                 </div>
                 <div class="chat-controls">
-                    <input type="text" id="chat-user-msg" placeholder="Descreva sua situação...">
+                    <input type="text" id="chat-user-msg" placeholder="Diga o que houve...">
                     <button id="btn-send-chat">ENVIAR</button>
                 </div>
             </div>
 
             <div class="upload-section">
                 <label for="file-docs" class="upload-label">
-                    <span>📎 APORTAR PROVAS (EIXO DE ESTADO)</span>
-                    <input type="file" id="file-docs" multiple> </label>
-                <div id="file-list">Nenhum arquivo aportado.</div>
+                    <span>📎 APORTAR EVIDÊNCIAS (EIXO DE ESTADO)</span>
+                    <input type="file" id="file-docs" multiple>
+                </label>
+                <div id="file-display-area" class="file-list-style">
+                    <p id="file-status">Nenhum arquivo anexado.</p>
+                </div>
             </div>
         </section>
 
@@ -65,19 +70,25 @@
             <div id="confidence-score">ÍNDICE DE CONFIANÇA: <span>0%</span></div>
         </div>
 
-        <button id="btn-main-action" class="btn-primary">GERAR RELATÓRIO E ORIENTAÇÃO</button>
+        <button id="btn-main-action" class="btn-primary">AUDITAR E GERAR PROTOCOLO</button>
 
         <section id="output-area" class="hidden">
-            <div id="missions-box" class="output-card">
-                <h3>📋 MISSÕES DE REFORÇO</h3>
+            <div id="missions-box" class="output-card warning hidden">
+                <h3>📋 MISSÕES DE REFORÇO OBRIGATÓRIAS</h3>
                 <ul id="mission-list"></ul>
             </div>
+
             <div id="dossie-box" class="output-card">
                 <div class="metrics-grid">
-                    <div class="m-card"><small>Métrica</small><strong id="val-perda">--</strong></div>
-                    <div class="m-card"><small>Erro</small><strong id="val-erro">± 0%</strong></div>
+                    <div class="m-card"><small>Expectativa</small><strong id="val-perda">--</strong></div>
+                    <div class="m-card"><small>Margem de Risco</small><strong id="val-erro">0%</strong></div>
                 </div>
                 <div id="legal-text-output" class="document-paper"></div>
+                
+                <div class="export-actions">
+                    <button class="btn-exp" onclick="window.print()">📥 EXPORTAR PDF</button>
+                    <button class="btn-exp save" onclick="alert('Salvo na Base Soberana!')">💾 GUARDAR NO SISTEMA</button>
+                </div>
             </div>
         </section>
     </main>
