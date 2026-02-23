@@ -1,3 +1,6 @@
+// ARKHOS KERNEL v2.5 - SISTEMA DE ACUMULAÇÃO DE EVIDÊNCIAS
+let arquivosAcumulados = []; // Esta é a "Mente Soberana" que guarda tudo
+
 function switchMode(mode) {
     const panels = { fast: document.getElementById('panel-fast'), genesis: document.getElementById('panel-genesis') };
     const btns = { fast: document.getElementById('btn-fast-track'), genesis: document.getElementById('btn-genesis-assist') };
@@ -10,33 +13,52 @@ function switchMode(mode) {
     }
 }
 
-// LÓGICA DE LISTAGEM DE ARQUIVOS
-document.getElementById('file-docs').addEventListener('change', function() {
+// LÓGICA DE ACUMULAÇÃO DE ARQUIVOS (CORREÇÃO DEFINITIVA)
+document.getElementById('file-docs').addEventListener('change', function(e) {
     const display = document.getElementById('file-display-area');
-    const files = this.files;
+    const novosArquivos = Array.from(e.target.files);
     
-    if (files.length > 0) {
-        display.innerHTML = `<strong>${files.length} Documento(s) Prontos:</strong><ul style="text-align:left; font-size:0.8rem;">`;
-        for (let i = 0; i < files.length; i++) {
-            display.innerHTML += `<li>📄 ${files[i].name}</li>`;
+    // Adiciona os novos arquivos aos que já estavam lá
+    novosArquivos.forEach(file => {
+        // Evita duplicados pelo nome
+        if (!arquivosAcumulados.some(ar => ar.name === file.name)) {
+            arquivosAcumulados.push(file);
         }
-        display.innerHTML += `</ul>`;
-        executarAuditoria(); // Atualiza barras na hora
-    }
+    });
+
+    renderizarLista();
+    executarAuditoria();
 });
+
+function renderizarLista() {
+    const display = document.getElementById('file-display-area');
+    if (arquivosAcumulados.length > 0) {
+        display.innerHTML = `<strong>${arquivosAcumulados.length} Documento(s) na Mente Soberana:</strong><ul style="text-align:left; font-size:0.8rem; list-style:none; padding:10px;">`;
+        arquivosAcumulados.forEach((file, index) => {
+            display.innerHTML += `<li>📄 ${file.name} <span style="color:red; cursor:pointer; margin-left:10px;" onclick="removerArquivo(${index})">[remover]</span></li>`;
+        });
+        display.innerHTML += `</ul>`;
+    } else {
+        display.innerHTML = `<p id="file-status">Nenhum arquivo anexado.</p>`;
+    }
+}
+
+function removerArquivo(index) {
+    arquivosAcumulados.splice(index, 1);
+    renderizarLista();
+    executarAuditoria();
+}
 
 function executarAuditoria() {
     const nature = document.getElementById('case-nature').value;
     const proInput = document.getElementById('pro-input').value;
-    const files = document.getElementById('file-docs').files;
     
-    // Cálculos de Eixo
+    // Cálculos de Eixo baseados na variável global arquivosAcumulados
     let metal = Math.min(proInput.length / 8, 100);
-    let estado = Math.min(files.length * 25, 100); // 4 arquivos = 100%
+    let estado = Math.min(arquivosAcumulados.length * 20, 100); // 5 arquivos = 100%
     let legiao = proInput.toLowerCase().includes("testemunha") ? 85 : 30;
     let logos = 70;
 
-    // Atualiza Visual
     document.querySelector('#eixo-metal .fill').style.width = metal + '%';
     document.querySelector('#eixo-estado .fill').style.width = estado + '%';
     document.querySelector('#eixo-legiao .fill').style.width = legiao + '%';
@@ -47,35 +69,27 @@ function executarAuditoria() {
 
     document.querySelector('#confidence-score span').innerText = score.toFixed(0) + '%';
     document.getElementById('val-erro').innerText = risco.toFixed(0) + '%';
-    document.getElementById('val-perda').innerText = nature === 'criminal' ? "Calculando Pena..." : "R$ " + (score * 500).toLocaleString();
+    document.getElementById('val-perda').innerText = nature === 'criminal' ? "Risco de Reclusão" : "R$ " + (score * 800).toLocaleString();
 
-    // MISSÕES
+    // Protocolo e Missões
     const missionBox = document.getElementById('missions-box');
     const missionList = document.getElementById('mission-list');
     missionList.innerHTML = "";
-    let alertar = false;
-
-    if (estado < 50) {
-        alertar = true;
-        missionList.innerHTML += "<li>🎯 <b>URGENTE:</b> Você aportou poucas provas. O juiz extinguirá o processo por falta de lastro. Anexe mais documentos.</li>";
-    }
-    if (metal < 40) {
-        alertar = true;
-        missionList.innerHTML += "<li>🎯 <b>DETALHAMENTO:</b> O relato está muito curto. Descreva datas, horários e nomes.</li>";
+    
+    if (estado < 60) {
+        missionBox.classList.remove('hidden');
+        missionList.innerHTML += "<li>🎯 <b>MISSÃO:</b> O Eixo de Estado precisa de mais lastro. Continue aportando provas.</li>";
+    } else {
+        missionBox.classList.add('hidden');
     }
 
-    if (alertar) { missionBox.classList.remove('hidden'); } else { missionBox.classList.add('hidden'); }
-
-    // GERAÇÃO DO PROTOCOLO
     document.getElementById('legal-text-output').innerHTML = `
-        <h2 style="text-align:center">PROTOCOLO DE EXPORTAÇÃO JURÍDICA</h2>
-        <p><b>DATA:</b> ${new Date().toLocaleDateString()}</p>
-        <p><b>STATUS:</b> ${score > 70 ? 'APROVADO PARA PROTOCOLO' : 'REVISÃO NECESSÁRIA'}</p>
+        <h2 style="text-align:center">PROTOCOLO SOBERANO DE EXPORTAÇÃO</h2>
+        <p><b>AUDITORIA ARKHOS v2.5</b></p>
         <hr>
-        <p><b>DISPOSITIVO:</b> Conforme analisado, o caso apresenta um risco de ${risco.toFixed(0)}%. 
-        A viabilidade depende do cumprimento das missões listadas no dossiê.</p>
-        <p><b>FATOS REGISTRADOS:</b><br>${proInput || "Sem texto."}</p>
-        <p><b>EVIDÊNCIAS VINCULADAS:</b> ${files.length} arquivo(s).</p>
+        <p><b>ARQUIVOS VINCULADOS NA MENTE SOBERANA:</b> ${arquivosAcumulados.length}</p>
+        <p><b>PARECER:</b> O caso foi processado com ${score.toFixed(0)}% de integridade. A margem de erro (risco) é de ${risco.toFixed(0)}%.</p>
+        <p><b>RELATO:</b><br>${proInput || "Aguardando entrada..."}</p>
     `;
     
     document.getElementById('output-area').classList.remove('hidden');
@@ -86,7 +100,7 @@ document.getElementById('btn-main-action').addEventListener('click', executarAud
 document.getElementById('btn-send-chat').addEventListener('click', () => {
     const chatMsg = document.getElementById('chat-user-msg');
     if (chatMsg.value) {
-        document.getElementById('chat-flow').innerHTML += `<div class="msg user">${chatMsg.value}</div>`;
+        document.getElementById('chat-flow').innerHTML += `<div class="msg user"><b>Você:</b> ${chatMsg.value}</div>`;
         document.getElementById('pro-input').value += "\n" + chatMsg.value;
         chatMsg.value = "";
         executarAuditoria();
