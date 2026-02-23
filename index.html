@@ -15,6 +15,13 @@
             <h1>ARKHOS <span class="v-tag">v3.5</span></h1>
             <small class="subtitle">ESTAÇÃO DE CONFORMIDADE E MINUTAGEM TÉCNICA</small>
         </div>
+
+        <div class="lang-switcher">
+            <button onclick="mudarIdioma('pt')" id="btn-lang-pt" class="lang-btn active">PT</button>
+            <span class="divider">|</span>
+            <button onclick="mudarIdioma('en')" id="btn-lang-en" class="lang-btn">EN</button>
+        </div>
+
         <div id="vigilia-status">
             <div class="pulse-icon"></div>
             <span>NÚCLEO DE AUDITORIA: <b id="status-core" class="status-on">OPERACIONAL</b></span>
@@ -49,7 +56,7 @@
             
             <div class="upload-area">
                 <label for="file-soberano" class="btn-anexo">
-                    <span>📎 APORTAR LASTRO DOCUMENTAL (ACERVO)</span>
+                    <span id="label-anexo">📎 APORTAR LASTRO DOCUMENTAL (ACERVO)</span>
                     <input type="file" id="file-soberano" multiple style="display:none;">
                 </label>
                 <div id="file-display-area" class="lista-arquivos">
@@ -105,7 +112,7 @@
         <div id="output-canvas" class="canvas-documento">
             <div class="placeholder-msg">
                 <span class="icon">📄</span>
-                <p>Aguardando instrução técnica e acervo probatório para compilar o documento.</p>
+                <p id="txt-placeholder">Aguardando instrução técnica e acervo probatório para compilar o documento.</p>
             </div>
         </div>
 
@@ -118,9 +125,9 @@
 
 </main>
 
-<div id="secao-impressao-isolada" class="only-print" style="display: none;">
-    </div>
+<div id="secao-impressao-isolada" class="only-print"></div>
 
 <script src="script.js"></script>
 </body>
-</html>
+                </html>
+                
