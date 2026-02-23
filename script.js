@@ -1,22 +1,26 @@
 /* =========================================================
-   ARKHOS v3.5 - KERNEL DE GOVERNANÇA JURÍDICA
-   ARQUIVO: script.js
+   ARKHOS v3.5 - MOTOR LÓGICO COM MEMÓRIA E SANDBOXING
    ========================================================= */
 
-// 1. ESTADO GLOBAL (SANDBOXING)
-// Mantém dados independentes para cada modo de operação
+// 1. OBJETO DE ESTADO E PERSISTÊNCIA
 let sistema = {
-    contextoAtivo: 'direto', // 'direto' ou 'guiado'
+    contextoAtivo: 'direto',
     dados: {
-        direto: { texto: "", arquivos: [], area: "civil" },
-        guiado: { texto: "", arquivos: [], area: "civil" }
+        direto: { texto: "", arquivos: [], area: "civil", minutaHTML: "" },
+        guiado: { texto: "", arquivos: [], area: "civil", minutaHTML: "" }
     }
 };
 
-// 2. INICIALIZAÇÃO
+// 2. INICIALIZAÇÃO COM CARREGAMENTO DE MEMÓRIA
 document.addEventListener('DOMContentLoaded', () => {
+    // Tenta recuperar dados salvos anteriormente
+    const memoria = localStorage.getItem('arkhos_v35_data');
+    if (memoria) {
+        sistema.dados = JSON.parse(memoria);
+    }
+    
     configurarListeners();
-    executarAuditoria(); // Reset inicial
+    carregarContextoUI(); // Inicia a interface com o que está na memória
 });
 
 function configurarListeners() {
@@ -24,226 +28,179 @@ function configurarListeners() {
     const inputArquivo = document.getElementById('file-soberano');
     const seletorArea = document.getElementById('area-direito');
 
-    // Monitoramento em tempo real
+    // Monitoramento de Texto
     inputTexto.addEventListener('input', () => {
         sistema.dados[sistema.contextoAtivo].texto = inputTexto.value;
+        salvarMemoria();
         executarAuditoria();
     });
 
+    // Monitoramento de Área do Direito
     seletorArea.addEventListener('change', () => {
         sistema.dados[sistema.contextoAtivo].area = seletorArea.value;
+        salvarMemoria();
         atualizarLabelsMetricas();
         executarAuditoria();
     });
 
+    // Monitoramento de Arquivos (Acervo)
     inputArquivo.addEventListener('change', (e) => {
+        // Nota: Objetos File não podem ser salvos no localStorage diretamente (limitação de segurança).
+        // Eles persistem nesta sessão. Para persistência permanente de PDFs, seria necessário um servidor.
         const novosArquivos = Array.from(e.target.files);
         const acervoAtual = sistema.dados[sistema.contextoAtivo].arquivos;
 
         novosArquivos.forEach(file => {
-            if (!acervoAtual.some(f => f.name === file.name && f.size === file.size)) {
-                acervoAtual.push(file);
+            if (!acervoAtual.some(f => f.name === file.name)) {
+                acervoAtual.push({ name: file.name, size: file.size });
             }
         });
         atualizarInterfaceArquivos();
         executarAuditoria();
     });
 
-    // Botões de Troca de Contexto
+    // Botões de Navegação (Separador de Modos)
     document.getElementById('btn-pista-direta').onclick = () => trocarContexto('direto');
     document.getElementById('btn-pista-guiada').onclick = () => trocarContexto('guiado');
 
-    // Botões de Ação Final
+    // Botões de Execução e PDF
     document.getElementById('btn-executar').onclick = gerarMinutaFinal;
     document.getElementById('btn-exportar').onclick = exportarPDFLimpo;
 }
 
-// 3. LÓGICA DE SANDBOXING (SEPARAÇÃO DE CONTEXTO)
+// 3. LÓGICA DE SEPARAÇÃO (SANDBOXING)
 function trocarContexto(novoContexto) {
-    // Salva o estado atual antes de trocar
+    if (sistema.contextoAtivo === novoContexto) return;
+
+    // A. Salva o que está na tela no contexto que está saindo
     sistema.dados[sistema.contextoAtivo].texto = document.getElementById('cmd-input').value;
     sistema.dados[sistema.contextoAtivo].area = document.getElementById('area-direito').value;
 
-    // Altera o contexto ativo
+    // B. Muda a chave
     sistema.contextoAtivo = novoContexto;
 
-    // Atualiza a UI para o novo contexto
-    const d = sistema.dados[novoContexto];
+    // C. Carrega a UI com os dados do NOVO contexto
+    carregarContextoUI();
+}
+
+function carregarContextoUI() {
+    const d = sistema.dados[sistema.contextoAtivo];
+    
+    // Atualiza Inputs
     document.getElementById('cmd-input').value = d.texto;
     document.getElementById('area-direito').value = d.area;
     
-    // Atualiza classes dos botões
-    document.getElementById('btn-pista-direta').classList.toggle('ativo', novoContexto === 'direto');
-    document.getElementById('btn-pista-guiada').classList.toggle('ativo', novoContexto === 'guiado');
+    // Atualiza Visual do Canvas (O que já foi gerado antes)
+    if (d.minutaHTML) {
+        document.getElementById('output-canvas').innerHTML = d.minutaHTML;
+    } else {
+        document.getElementById('output-canvas').innerHTML = `
+            <div class="placeholder-msg">
+                <span class="icon">📄</span>
+                <p>Aguardando nova instrução para este modo.</p>
+            </div>`;
+    }
+
+    // Atualiza Botões e Labels
+    document.getElementById('btn-pista-direta').classList.toggle('ativo', sistema.contextoAtivo === 'direto');
+    document.getElementById('btn-pista-guiada').classList.toggle('ativo', sistema.contextoAtivo === 'guiado');
     
-    // Atualiza Labels técnicos
-    document.getElementById('label-input').innerText = novoContexto === 'direto' 
-        ? 'INSTRUÇÃO TÉCNICA DA MINUTA' 
-        : 'RELATO DOS FATOS (CONSTRUÇÃO)';
+    document.getElementById('label-input').innerText = sistema.contextoAtivo === 'direto' 
+        ? 'INSTRUÇÃO TÉCNICA DA MINUTA (PRO)' 
+        : 'RELATO DOS FATOS (ESTRUTURADO)';
 
     atualizarInterfaceArquivos();
     atualizarLabelsMetricas();
     executarAuditoria();
 }
 
-// 4. MOTOR DE AUDITORIA E CONFORMIDADE (QUADRILÁTERO)
+// 4. MEMÓRIA LOCAL
+function salvarMemoria() {
+    localStorage.setItem('arkhos_v35_data', JSON.stringify(sistema.dados));
+}
+
+// 5. MOTOR DE AUDITORIA
 function executarAuditoria() {
     const contexto = sistema.dados[sistema.contextoAtivo];
-    const area = contexto.area;
-    const texto = contexto.texto;
+    const texto = contexto.texto || "";
     const arquivosCount = contexto.arquivos.length;
 
-    // Cálculo dos Eixos (Lógica Dinâmica)
-    let metal = Math.min(texto.length / 20, 100); 
-    let estado = Math.min(arquivosCount * 25, 100); 
-    let legiao = texto.length > 100 ? 80 : 20;
-    let logos = (texto.length > 50 && arquivosCount > 0) ? 90 : 30;
+    // Cálculos Proporcionais
+    let metal = Math.min(texto.length / 10, 100); 
+    let estado = Math.min(arquivosCount * 33, 100); 
+    let legiao = (texto.length > 50) ? 70 : 10;
+    let logos = (texto.length > 30 && arquivosCount > 0) ? 90 : 20;
 
-    // Calibragem por Área (Ex: Penal é mais rigoroso em Provas)
-    if (area === 'penal' && arquivosCount < 2) estado *= 0.5;
-    if (area === 'trabalhista' && texto.includes('verbas')) logos = 100;
-
-    // Atualiza Barras Visualmente
+    // UI Feedback
     document.querySelector('#e-metal .fill').style.width = metal + '%';
     document.querySelector('#e-estado .fill').style.width = estado + '%';
     document.querySelector('#e-legiao .fill').style.width = legiao + '%';
     document.querySelector('#e-logos .fill').style.width = logos + '%';
 
-    // Cálculo de Risco e Viabilidade
-    const scoreMedio = (metal + estado + legiao + logos) / 4;
-    const risco = Math.max(0, 100 - scoreMedio);
-    
+    const risco = 100 - ((metal + estado + legiao + logos) / 4);
     document.getElementById('val-erro').innerText = risco.toFixed(0) + '%';
     
-    // Métrica Financeira/Técnica por Área
-    let valorBase = scoreMedio * 1500;
-    if (area === 'trabalhista') valorBase *= 1.2;
-    if (area === 'tributario') valorBase *= 2.5;
-    
-    document.getElementById('val-expectativa').innerText = (risco > 90) ? "R$ 0,00" : 'R$ ' + valorBase.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-
-    // Governança (Botão de Gerar)
     const btnGerar = document.getElementById('btn-executar');
-    const seloCert = document.getElementById('selo-cert');
-    
-    if (scoreMedio > 40 && texto.length > 15) {
-        seloCert.innerText = "CERT: APROVADO";
-        seloCert.className = "selo selo-on";
-        btnGerar.disabled = false;
-    } else {
-        seloCert.innerText = "CERT: BLOQUEADO";
-        seloCert.className = "selo selo-off";
-        btnGerar.disabled = true;
-    }
+    btnGerar.disabled = (texto.length < 10);
 }
 
-// 5. GERAÇÃO DE DOCUMENTO (CANVAS)
+// 6. GERAÇÃO E EXPORTAÇÃO (PDF LIMPO)
 function gerarMinutaFinal() {
     const contexto = sistema.dados[sistema.contextoAtivo];
     const canvas = document.getElementById('output-canvas');
-    const auditSelo = document.getElementById('selo-audit');
-    
     const protocoloID = Math.random().toString(36).substr(2, 9).toUpperCase();
-    const dataAtual = new Date().toLocaleDateString('pt-BR');
 
-    // Template Profissional de Minuta
-    const htmlMinuta = `
-        <div class="minuta-final">
-            <h2 style="text-align:center; text-decoration:underline; text-transform:uppercase;">Minuta de Parecer Técnico-Jurídico</h2>
-            <p style="text-align:center; font-size: 10pt;">ID DE AUTENTICIDADE: ${protocoloID} | EMISSÃO: ${dataAtual}</p>
-            <br>
-            <p><strong>ÁREA DE COMPETÊNCIA:</strong> DIREITO ${contexto.area.toUpperCase()}</p>
-            <hr style="border: 0; border-top: 1px solid #000;">
-            <br>
-            <p><strong>1. RELATÓRIO E FUNDAMENTAÇÃO</strong></p>
-            <p style="text-align:justify;">Trata-se de análise técnica baseada nas instruções fornecidas e no acervo probatório anexado, composto por ${contexto.arquivos.length} documento(s). Após auditoria de conformidade, identificou-se o seguinte teor:</p>
-            <p style="padding: 15px; border-left: 2px solid #ccc; font-style: italic;">"${contexto.texto}"</p>
-            
-            <p><strong>2. ANÁLISE DE RISCO E VIABILIDADE</strong></p>
-            <p>Considerando a legislação vigente e os precedentes da área de <strong>Direito ${contexto.area}</strong>, a presente tese apresenta uma margem de risco técnico calculada em ${document.getElementById('val-erro').innerText}.</p>
-            
-            <p><strong>3. CONCLUSÃO</strong></p>
-            <p style="text-align:justify;">O sistema ARKHOS v3.5 certifica que a minuta está em conformidade com os requisitos mínimos de integridade lógica e documental para prosseguimento processual.</p>
-            <br><br><br>
-            <div style="text-align:center;">
-                <p>________________________________________________</p>
-                <p style="font-size: 9pt;">ASSINATURA DIGITAL DO SISTEMA - NÚCLEO ARKHOS</p>
-            </div>
+    const template = `
+        <div class="minuta-final" style="color: black !important;">
+            <h2 style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 10px;">MINUTA TÉCNICA: ${contexto.area.toUpperCase()}</h2>
+            <p><strong>PROTOCOLO:</strong> ${protocoloID}</p>
+            <p><strong>MODO DE EMISSÃO:</strong> ${sistema.contextoAtivo.toUpperCase()}</p>
+            <hr>
+            <p style="margin-top: 20px;"><strong>DETALHAMENTO:</strong></p>
+            <p style="text-align: justify; line-height: 1.6;">${contexto.texto}</p>
+            <p style="margin-top: 20px;"><strong>LASTRO DE PROVAS:</strong> ${contexto.arquivos.length} item(ns) analisado(s).</p>
         </div>
     `;
 
-    canvas.innerHTML = htmlMinuta;
-    auditSelo.innerText = "AUDIT: REGISTRADO";
-    auditSelo.className = "selo selo-on";
+    contexto.minutaHTML = template;
+    canvas.innerHTML = template;
+    salvarMemoria();
     
-    // Scroll suave para o resultado
-    canvas.scrollIntoView({ behavior: 'smooth' });
+    // Alerta de Auditoria
+    document.getElementById('selo-audit').className = "selo selo-on";
+    document.getElementById('selo-audit').innerText = "AUTENTICIDADE: REGISTRADA";
 }
 
-// 6. EXPORTAÇÃO LIMPA (C05 - ANTI-GRADE)
 function exportarPDFLimpo() {
-    const conteudoDocumento = document.getElementById('output-canvas').innerHTML;
-    const camaraPrint = document.getElementById('secao-impressao-isolada');
+    const canvas = document.getElementById('output-canvas');
+    const camara = document.getElementById('secao-impressao-isolada');
 
-    if (!conteudoDocumento || conteudoDocumento.includes('Aguardando instrução')) {
-        alert("Gere a minuta antes de exportar.");
+    if (canvas.innerHTML.includes('placeholder-msg')) {
+        alert("Primeiro, clique em 'GERAR MINUTA'.");
         return;
     }
 
-    // Injeta apenas o conteúdo técnico na câmara branca
-    camaraPrint.innerHTML = conteudoDocumento;
-    
-    // Dispara o comando de impressão do navegador
+    // Alimenta a câmara de impressão e dispara
+    camara.innerHTML = canvas.innerHTML;
     window.print();
 }
 
-// 7. UTILITÁRIOS DE INTERFACE
+// 7. FUNÇÕES DE APOIO
 function atualizarInterfaceArquivos() {
     const display = document.getElementById('file-display-area');
     const arquivos = sistema.dados[sistema.contextoAtivo].arquivos;
-
-    if (arquivos.length === 0) {
-        display.innerHTML = '<p class="txt-vazio">Acervo probatório vazio...</p>';
-        return;
-    }
-
-    let html = '<ul style="list-style:none; padding:0;">';
-    arquivos.forEach((file, index) => {
-        html += `<li style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <span>📄 ${file.name.substring(0, 25)}...</span>
-                    <b style="color:var(--danger); cursor:pointer;" onclick="removerArquivo(${index})">✖</b>
-                 </li>`;
-    });
-    html += '</ul>';
-    display.innerHTML = html;
+    display.innerHTML = arquivos.length === 0 ? '<p class="txt-vazio">Acervo vazio...</p>' : 
+        arquivos.map((f, i) => `<div style="font-size:11px;">📄 ${f.name} <b onclick="removerArquivo(${i})" style="color:red;cursor:pointer">✖</b></div>`).join('');
 }
 
-function removerArquivo(index) {
-    sistema.dados[sistema.contextoAtivo].arquivos.splice(index, 1);
+function removerArquivo(i) {
+    sistema.dados[sistema.contextoAtivo].arquivos.splice(i, 1);
     atualizarInterfaceArquivos();
     executarAuditoria();
 }
 
 function atualizarLabelsMetricas() {
     const area = sistema.dados[sistema.contextoAtivo].area;
-    const label1 = document.getElementById('label-metrica-1');
-    const label2 = document.getElementById('label-metrica-2');
-
-    switch(area) {
-        case 'penal':
-            label1.innerText = "RISCO DE CUSTÓDIA / PENA";
-            label2.innerText = "MARGEM DE ABSOLVIÇÃO";
-            break;
-        case 'trabalhista':
-            label1.innerText = "ESTIMATIVA DE PASSIVO/PROVENTO";
-            label2.innerText = "RISCO DE SUCUMBÊNCIA";
-            break;
-        case 'tributario':
-            label1.innerText = "RECUPERAÇÃO TRIBUTÁRIA ESTIMADA";
-            label2.innerText = "RISCO DE GLOSA FISCAL";
-            break;
-        default:
-            label1.innerText = "MÉTRICA DE VIABILIDADE (QUANTUM)";
-            label2.innerText = "RISCO DE IMPROCEDÊNCIA";
-    }
-                      }
+    document.getElementById('label-metrica-1').innerText = area === 'penal' ? "RISCO DE PENA" : "MÉTRICA DE VIABILIDADE";
+}
+   
