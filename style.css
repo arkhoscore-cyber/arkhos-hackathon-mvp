@@ -1,49 +1,299 @@
-/* DESIGN SOBERANO v3.0 */
+/* ⟐ ARKHOS v3.5 - CONTRATO VISUAL SOBERANO */
+
 :root {
     --bg: #0a0a0a;
-    --painel: #141414;
-    --dourado: #D4AF37;
-    --azul: #00d4ff;
-    --texto: #eee;
+    --card: #141414;
+    --gold: #D4AF37;
+    --blue: #00d4ff;
+    --text-main: #e0e0e0;
+    --text-dim: #888;
+    --border: #222;
+    --paper: #ffffff;
+    --danger: #ff4b4b;
+    --success: #00ff88;
 }
 
-body { background: var(--bg); color: var(--texto); font-family: sans-serif; margin: 0; }
+* { box-sizing: border-box; }
 
-/* VISUAL DA INTERFACE */
-.header-container { text-align: center; padding: 20px; border-bottom: 1px solid #333; }
-.logo-central h1 { color: var(--dourado) !important; letter-spacing: 5px; margin: 0; }
-.symbol { color: var(--dourado); font-size: 1.5rem; }
-.scanner { width: 100%; height: 2px; background: var(--azul); margin: 10px 0; }
+body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Evita scroll no body, mantém nas colunas */
+}
 
-#app-container { max-width: 600px; margin: auto; padding: 20px; }
-.input-panel { background: var(--painel); padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-textarea, input { width: 100%; background: #000; color: #fff; border: 1px solid #333; padding: 10px; box-sizing: border-box; }
+/* HEADER & RADAR */
+header {
+    background: #000;
+    padding: 15px 30px;
+    border-bottom: 1px solid var(--gold);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
 
-.bar { background: #222; height: 10px; border-radius: 5px; margin-top: 5px; }
-.fill { background: var(--azul); height: 100%; width: 0%; transition: 0.5s; }
+.logo-area h1 {
+    color: var(--gold);
+    margin: 0;
+    letter-spacing: 5px;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
 
-.btn-primary { width: 100%; padding: 15px; background: var(--azul); border: none; font-weight: bold; cursor: pointer; }
-.btn-exp { width: 100%; padding: 15px; background: #333; color: white; border: none; margin-top: 10px; cursor: pointer; }
+.v-tag { font-size: 0.6rem; opacity: 0.6; margin-left: 5px; vertical-align: middle; }
+.subtitle { color: var(--text-dim); font-size: 0.65rem; letter-spacing: 1px; display: block; margin-top: 2px; }
 
-.hidden { display: none; }
+#vigilia-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+}
 
-/* ============================================================
-   LÓGICA DE EXTRAÇÃO (O QUE RESOLVE SEU PROBLEMA)
-   ============================================================ */
-.apenas-pdf { display: none; } /* Esconde na tela normal */
+.pulse-icon {
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--success);
+    animation: pulse 2.5s infinite;
+}
 
+@keyframes pulse {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.5; }
+}
+
+/* BANCADA DE TRABALHO (GRID) */
+.bancada-container {
+    display: grid;
+    grid-template-columns: 450px 1fr;
+    flex: 1;
+    overflow: hidden;
+}
+
+.col-comando {
+    background: #0d0d0d;
+    border-right: 1px solid var(--border);
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    overflow-y: auto;
+}
+
+/* SELETORES E CARDS */
+.seletor-pista {
+    display: flex;
+    gap: 5px;
+    background: #000;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.btn-pista {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 10px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-pista.ativo {
+    background: var(--card);
+    color: var(--blue);
+    box-shadow: inset 0 -2px 0 var(--blue);
+}
+
+.card-comando {
+    background: var(--card);
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.card-comando label {
+    display: block;
+    color: var(--gold);
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+textarea {
+    width: 100%;
+    height: 180px;
+    background: #000;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    resize: none;
+    line-height: 1.5;
+}
+
+textarea:focus { border-color: var(--blue); outline: none; }
+
+/* MENTE SOBERANA (UPLOAD) */
+.upload-area { margin-top: 15px; }
+.btn-anexo {
+    display: block;
+    border: 1px dashed #444;
+    padding: 12px;
+    text-align: center;
+    color: var(--blue);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-anexo:hover { background: rgba(0, 212, 255, 0.05); border-color: var(--blue); }
+
+.lista-arquivos {
+    margin-top: 10px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+/* QUADRILÁTERO */
+.monitor-integridade h3 {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 15px;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.grid-eixos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.eixo label { display: block; font-size: 0.65rem; margin-bottom: 5px; color: var(--text-dim); }
+.bar { background: #1a1a1a; height: 5px; border-radius: 3px; overflow: hidden; }
+.fill { background: var(--blue); height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+
+.selos-validacao {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.selo {
+    font-size: 0.65rem;
+    padding: 5px 10px;
+    border: 1px solid #333;
+    font-weight: bold;
+}
+
+.selo-off { color: #555; }
+.selo-on { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
+
+/* BOTÕES */
+.btn-main {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 18px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-main:hover:not(:disabled) { background: var(--gold); color: #000; }
+.btn-main:disabled { border-color: #333; color: #333; cursor: not-allowed; }
+
+/* COLUNA RESULTADO */
+.col-resultado {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    background: #111;
+    overflow-y: auto;
+}
+
+.dashboard-lcu { display: flex; gap: 20px; }
+.metric-card {
+    background: var(--card);
+    padding: 20px;
+    flex: 1;
+    border-left: 3px solid var(--gold);
+}
+
+.metric-card.warning { border-left-color: var(--danger); }
+.metric-card small { display: block; font-size: 0.65rem; color: var(--text-dim); margin-bottom: 8px; }
+.metric-card strong { font-size: 1.5rem; color: var(--gold); }
+
+/* CANVAS (PAPEL) */
+.canvas-documento {
+    background: var(--paper);
+    color: #1a1a1a;
+    min-height: 800px;
+    padding: 60px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    font-family: 'Georgia', serif;
+    line-height: 1.6;
+    position: relative;
+}
+
+.placeholder-msg {
+    text-align: center;
+    margin-top: 150px;
+    color: #ccc;
+}
+
+.placeholder-msg .icon { font-size: 3rem; display: block; margin-bottom: 10px; opacity: 0.3; }
+
+.acoes-finais { display: flex; gap: 15px; }
+.btn-secundario {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: var(--text-main);
+    padding: 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-secundario:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ⟐ RESET DE IMPRESSÃO (C05) */
 @media print {
-    /* Esconde a interface inteira */
-    .interface-web { display: none !important; }
-
-    /* Mostra apenas a área de impressão */
-    .apenas-pdf { 
+    .no-print { display: none !important; }
+    .only-print { 
         display: block !important; 
-        color: black !important; 
-        background: white !important;
-        padding: 40px;
-        font-family: serif;
+        background: white !important; 
+        color: black !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
-
     body { background: white !important; }
+    .canvas-documento { 
+        box-shadow: none !important; 
+        padding: 0 !important; 
+        width: 100% !important;
+        display: block !important;
+    }
 }
+
+/* Termux/Mobile Adjustments */
+@media (max-width: 900px) {
+    .bancada-container { grid-template-columns: 1fr; overflow-y: auto; }
+    .col-comando { border-right: none; height: auto; overflow: visible; }
+    body { overflow-y: auto; height: auto; }
+    }
