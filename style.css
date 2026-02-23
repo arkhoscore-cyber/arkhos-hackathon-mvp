@@ -1,58 +1,70 @@
-/* ⟐ ARKHOS v3.5 - CONTRATO VISUAL SOBERANO */
+/* =========================================================
+   ARKHOS v3.5 - ESTAÇÃO DE CONFORMIDADE
+   ARQUIVO: style.css
+   ========================================================= */
 
 :root {
-    --bg: #0a0a0a;
-    --card: #141414;
+    --bg-base: #0a0a0a;
+    --bg-surface: #141414;
+    --bg-panel: #1a1a1a;
     --gold: #D4AF37;
-    --blue: #00d4ff;
+    --blue-tech: #00d4ff;
     --text-main: #e0e0e0;
-    --text-dim: #888;
-    --border: #222;
-    --paper: #ffffff;
+    --text-muted: #888888;
+    --border-color: #2a2a2a;
     --danger: #ff4b4b;
     --success: #00ff88;
+    --paper-white: #ffffff;
+    --text-ink: #000000;
 }
 
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
 body {
-    background-color: var(--bg);
+    background-color: var(--bg-base);
     color: var(--text-main);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    margin: 0;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Evita scroll no body, mantém nas colunas */
+    overflow: hidden; /* Trava o scroll geral, mantém só nas colunas */
 }
 
-/* HEADER & RADAR */
+/* =========================================
+   1. CABEÇALHO (HEADER)
+   ========================================= */
 header {
-    background: #000;
+    background-color: #000000;
     padding: 15px 30px;
-    border-bottom: 1px solid var(--gold);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 100;
 }
 
 .logo-area h1 {
     color: var(--gold);
-    margin: 0;
-    letter-spacing: 5px;
-    font-size: 1.5rem;
-    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: 4px;
+    display: inline-block;
 }
 
-.v-tag { font-size: 0.6rem; opacity: 0.6; margin-left: 5px; vertical-align: middle; }
-.subtitle { color: var(--text-dim); font-size: 0.65rem; letter-spacing: 1px; display: block; margin-top: 2px; }
+.symbol { font-size: 1.2rem; margin-right: 8px; }
+.v-tag { font-size: 0.6rem; opacity: 0.6; vertical-align: top; }
+.subtitle { display: block; color: var(--text-muted); font-size: 0.65rem; letter-spacing: 1px; margin-top: 2px; }
 
 #vigilia-status {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 0.7rem;
+    gap: 10px;
+    font-size: 0.75rem;
     letter-spacing: 1px;
 }
 
@@ -62,7 +74,7 @@ header {
     background: var(--success);
     border-radius: 50%;
     box-shadow: 0 0 10px var(--success);
-    animation: pulse 2.5s infinite;
+    animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
@@ -71,7 +83,9 @@ header {
     100% { transform: scale(0.9); opacity: 0.5; }
 }
 
-/* BANCADA DE TRABALHO (GRID) */
+/* =========================================
+   2. ESTRUTURA DA BANCADA (GRID)
+   ========================================= */
 .bancada-container {
     display: grid;
     grid-template-columns: 450px 1fr;
@@ -80,8 +94,17 @@ header {
 }
 
 .col-comando {
-    background: #0d0d0d;
-    border-right: 1px solid var(--border);
+    background-color: var(--bg-base);
+    border-right: 1px solid var(--border-color);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.col-resultado {
+    background-color: #0f0f0f;
     padding: 30px;
     display: flex;
     flex-direction: column;
@@ -89,21 +112,23 @@ header {
     overflow-y: auto;
 }
 
-/* SELETORES E CARDS */
+/* =========================================
+   3. CONTROLES E INPUTS
+   ========================================= */
 .seletor-pista {
     display: flex;
-    gap: 5px;
     background: #000;
-    padding: 5px;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
+    padding: 4px;
 }
 
 .btn-pista {
     flex: 1;
     background: transparent;
     border: none;
-    color: var(--text-dim);
-    padding: 10px;
+    color: var(--text-muted);
+    padding: 12px;
     font-size: 0.7rem;
     font-weight: bold;
     cursor: pointer;
@@ -111,66 +136,89 @@ header {
 }
 
 .btn-pista.ativo {
-    background: var(--card);
-    color: var(--blue);
-    box-shadow: inset 0 -2px 0 var(--blue);
+    background: var(--bg-surface);
+    color: var(--blue-tech);
+    border-bottom: 2px solid var(--blue-tech);
 }
 
 .card-comando {
-    background: var(--card);
+    background: var(--bg-surface);
     padding: 20px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .card-comando label {
-    display: block;
     color: var(--gold);
     font-size: 0.7rem;
     font-weight: bold;
-    margin-bottom: 15px;
     letter-spacing: 1px;
 }
 
+/* Novo Elemento: Seletor de Competência */
+.select-tecnico {
+    width: 100%;
+    background: #000;
+    color: var(--text-main);
+    border: 1px solid #333;
+    padding: 10px;
+    font-size: 0.8rem;
+    outline: none;
+    font-family: inherit;
+}
+.select-tecnico:focus { border-color: var(--blue-tech); }
+
 textarea {
     width: 100%;
-    height: 180px;
+    height: 140px;
     background: #000;
     border: 1px solid #333;
     color: #fff;
     padding: 15px;
     font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     resize: none;
     line-height: 1.5;
 }
+textarea:focus { border-color: var(--blue-tech); outline: none; }
 
-textarea:focus { border-color: var(--blue); outline: none; }
-
-/* MENTE SOBERANA (UPLOAD) */
-.upload-area { margin-top: 15px; }
+/* Acervo Probatório */
 .btn-anexo {
     display: block;
     border: 1px dashed #444;
     padding: 12px;
     text-align: center;
-    color: var(--blue);
+    color: var(--text-muted);
     font-size: 0.75rem;
     cursor: pointer;
     transition: 0.3s;
+    background: #0a0a0a;
 }
-.btn-anexo:hover { background: rgba(0, 212, 255, 0.05); border-color: var(--blue); }
+.btn-anexo:hover { color: var(--blue-tech); border-color: var(--blue-tech); }
 
 .lista-arquivos {
     margin-top: 10px;
     font-size: 0.75rem;
-    color: var(--text-dim);
+    color: var(--text-muted);
+    max-height: 80px;
+    overflow-y: auto;
 }
 
-/* QUADRILÁTERO */
+/* =========================================
+   4. MONITOR DE CONFORMIDADE
+   ========================================= */
+.monitor-integridade {
+    background: #000;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
 .monitor-integridade h3 {
-    font-size: 0.75rem;
-    color: var(--text-dim);
+    font-size: 0.7rem;
+    color: var(--text-muted);
     margin-bottom: 15px;
     text-align: center;
     letter-spacing: 2px;
@@ -182,118 +230,131 @@ textarea:focus { border-color: var(--blue); outline: none; }
     gap: 15px;
 }
 
-.eixo label { display: block; font-size: 0.65rem; margin-bottom: 5px; color: var(--text-dim); }
-.bar { background: #1a1a1a; height: 5px; border-radius: 3px; overflow: hidden; }
-.fill { background: var(--blue); height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+.eixo label { display: block; font-size: 0.65rem; margin-bottom: 5px; color: var(--text-muted); }
+.bar { background: var(--border-color); height: 4px; border-radius: 2px; overflow: hidden; }
+.fill { background: var(--blue-tech); height: 100%; width: 0%; transition: width 0.5s ease; }
 
-.selos-validacao {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 25px;
-}
-
-.selo {
-    font-size: 0.65rem;
-    padding: 5px 10px;
-    border: 1px solid #333;
-    font-weight: bold;
-}
-
+.selos-validacao { display: flex; justify-content: space-between; margin-top: 20px; }
+.selo { font-size: 0.65rem; padding: 6px 12px; border: 1px solid #333; font-weight: bold; }
 .selo-off { color: #555; }
-.selo-on { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
+.selo-on { border-color: var(--gold); color: var(--gold); background: rgba(212, 175, 55, 0.05); }
 
-/* BOTÕES */
+/* =========================================
+   5. BOTÕES DE AÇÃO
+   ========================================= */
 .btn-main {
     background: transparent;
     border: 1px solid var(--gold);
     color: var(--gold);
     padding: 18px;
     font-weight: bold;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     cursor: pointer;
     transition: 0.3s;
+    text-align: center;
 }
-
 .btn-main:hover:not(:disabled) { background: var(--gold); color: #000; }
 .btn-main:disabled { border-color: #333; color: #333; cursor: not-allowed; }
-
-/* COLUNA RESULTADO */
-.col-resultado {
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    background: #111;
-    overflow-y: auto;
-}
-
-.dashboard-lcu { display: flex; gap: 20px; }
-.metric-card {
-    background: var(--card);
-    padding: 20px;
-    flex: 1;
-    border-left: 3px solid var(--gold);
-}
-
-.metric-card.warning { border-left-color: var(--danger); }
-.metric-card small { display: block; font-size: 0.65rem; color: var(--text-dim); margin-bottom: 8px; }
-.metric-card strong { font-size: 1.5rem; color: var(--gold); }
-
-/* CANVAS (PAPEL) */
-.canvas-documento {
-    background: var(--paper);
-    color: #1a1a1a;
-    min-height: 800px;
-    padding: 60px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    font-family: 'Georgia', serif;
-    line-height: 1.6;
-    position: relative;
-}
-
-.placeholder-msg {
-    text-align: center;
-    margin-top: 150px;
-    color: #ccc;
-}
-
-.placeholder-msg .icon { font-size: 3rem; display: block; margin-bottom: 10px; opacity: 0.3; }
 
 .acoes-finais { display: flex; gap: 15px; }
 .btn-secundario {
     flex: 1;
-    background: #1a1a1a;
+    background: var(--bg-panel);
     border: 1px solid #333;
     color: var(--text-main);
     padding: 12px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    font-weight: bold;
     cursor: pointer;
     transition: 0.3s;
 }
-.btn-secundario:hover { border-color: var(--gold); color: var(--gold); }
+.btn-secundario:hover { border-color: var(--text-main); }
 
-/* ⟐ RESET DE IMPRESSÃO (C05) */
+/* =========================================
+   6. RESULTADOS E MÉTRICAS
+   ========================================= */
+.dashboard-lcu { display: flex; gap: 20px; }
+.metric-card {
+    background: var(--bg-surface);
+    padding: 20px;
+    flex: 1;
+    border-left: 3px solid var(--gold);
+}
+.metric-card.warning { border-left-color: var(--danger); }
+.metric-card small { display: block; font-size: 0.65rem; color: var(--text-muted); margin-bottom: 8px; font-weight: bold; }
+.metric-card strong { font-size: 1.5rem; color: var(--gold); }
+.metric-card.warning strong { color: var(--danger); }
+
+/* Canvas de Revisão na Tela (Não é a impressão, é a visualização) */
+.canvas-documento {
+    background: var(--paper-white);
+    color: var(--text-ink);
+    min-height: 600px;
+    padding: 50px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12pt;
+    line-height: 1.6;
+    border-radius: 4px;
+    overflow-y: auto;
+}
+
+.placeholder-msg { text-align: center; margin-top: 150px; color: #999; }
+.placeholder-msg .icon { font-size: 2.5rem; display: block; margin-bottom: 10px; opacity: 0.5; }
+
+/* =========================================
+   7. CÂMARA DE IMPRESSÃO (NÚCLEO DO C05)
+   ========================================= */
+
+/* Na tela, a câmara de impressão NÃO existe */
+.only-print { display: none; }
+
+/* REGRAS DE IMPRESSÃO (O Nocaute Visual) */
 @media print {
-    .no-print { display: none !important; }
-    .only-print { 
-        display: block !important; 
-        background: white !important; 
+    /* 1. Remove margens da página do navegador */
+    @page { margin: 2cm; }
+
+    /* 2. Força o fundo branco e texto preto na raiz */
+    body, html {
+        background-color: white !important;
         color: black !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
     }
-    body { background: white !important; }
-    .canvas-documento { 
-        box-shadow: none !important; 
-        padding: 0 !important; 
+
+    /* 3. DESLIGA TODA A INTERFACE (Header e Main inteiros) */
+    .no-print { 
+        display: none !important; 
+    }
+
+    /* 4. LIGA A CÂMARA BLINDADA (Somente o texto vai sair) */
+    .only-print, #secao-impressao-isolada { 
+        display: block !important; 
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
         width: 100% !important;
-        display: block !important;
+        background: white !important;
+        color: black !important;
+        font-family: 'Arial', sans-serif !important;
+        font-size: 12pt !important;
+        line-height: 1.6 !important;
+        text-align: justify !important;
+    }
+
+    /* 5. Reseta qualquer sombra ou borda acidental */
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+        border-radius: 0 !important;
     }
 }
 
-/* Termux/Mobile Adjustments */
+/* =========================================
+   8. RESPONSIVIDADE (Mobile/Termux)
+   ========================================= */
 @media (max-width: 900px) {
     .bancada-container { grid-template-columns: 1fr; overflow-y: auto; }
-    .col-comando { border-right: none; height: auto; overflow: visible; }
+    .col-comando { border-right: none; height: auto; }
     body { overflow-y: auto; height: auto; }
-    }
+       }
+                    
