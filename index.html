@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARKHOS | MVP Jurídico Unificado</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="arkhos-container">
+        <header class="cabecalho">
+            <h1>⟐ ARKHOS ⟐</h1>
+            <p>Sistema de Inteligência Jurídica Governada</p>
+            <span class="status-badge">STATUS: MODO OFFLINE (MVP LOCAL)</span>
+        </header>
+
+        <main>
+            <section class="painel-modulos">
+                <h2>Módulos de Simulação Governada</h2>
+                <div class="botoes-modulos">
+                    <button id="btn-penal" onclick="carregarModulo('penal')">Penal (Art. 157)</button>
+                    <button id="btn-trabalhista" onclick="carregarModulo('trabalhista')">Trabalhista (Egresso)</button>
+                    <button id="btn-consumidor" onclick="carregarModulo('consumidor')">Consumidor (Fraude)</button>
+                </div>
+            </section>
+
+            <section class="painel-analise" id="area-analise">
+                <p class="instrucao-inicial">Selecione um módulo acima para carregar as premissas jurídicas.</p>
+            </section>
+
+            <section class="painel-livre">
+                <h2>Descoberta Legal (Acesso a Fontes Públicas)</h2>
+                <p class="subtexto">Conexão: Planalto | STJ | STF | Diário Oficial</p>
+                <textarea id="caso-livre" rows="4" placeholder="Descreva um caso não tabelado aqui para análise externa..."></textarea>
+                <button class="btn-secundario" onclick="simularModoLivre()">Processar Caso Personalizado</button>
+            </section>
+
+            <section id="painel-resultado" class="escondido">
+                <div class="cabecalho-resultado">
+                    <h3>Certificação de Risco e Impacto</h3>
+                </div>
+                <div class="corpo-resultado">
+                    <p><strong>Fundamentação (Regra Operacional):</strong> <br><span id="texto-fundamentacao">--</span></p>
+                    <div class="impacto-box">
+                        <p><strong>Decisão/Impacto:</strong> <span id="texto-decisao" class="destaque">--</span></p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
