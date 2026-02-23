@@ -1,111 +1,84 @@
-/* ARKHOS CORE DESIGN v2.6 */
+/* ARKHOS SOBERANO - CSS INTEGRAL CORRIGIDO */
+
 :root {
-    --bg-soberano: #0a0a0a;
-    --painel-dark: #141414;
-    --dourado-nobre: #D4AF37;
-    --azul-arkhos: #00d4ff;
+    --bg: #0a0a0a;
+    --painel: #141414;
+    --dourado: #D4AF37;
+    --azul: #00d4ff;
     --borda: #333;
-    --texto: #eeeeee;
+    --texto: #eee;
 }
 
+/* 1. RESET E BASE */
 body {
-    background-color: var(--bg-soberano);
+    background-color: var(--bg);
     color: var(--texto);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
 }
 
-/* CABEÇALHO COM IDENTIDADE DOURADA */
+/* 2. CABEÇALHO DOURADO (Sincronizado com o seu pedido) */
 .header-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 30px;
+    padding: 20px;
     border-bottom: 1px solid var(--borda);
-    background: linear-gradient(to bottom, #111, #0a0a0a);
+    background: #000;
 }
 
 .logo-central {
     display: flex;
     align-items: center;
-    gap: 25px;
+    gap: 15px;
 }
 
 .logo-central h1 {
-    font-size: 2.8rem;
-    letter-spacing: 10px;
+    font-size: 2.2rem;
+    letter-spacing: 5px;
     margin: 0;
-    color: var(--dourado-nobre) !important;
-    text-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+    color: var(--dourado) !important; /* FORÇA O DOURADO */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
 .symbol {
-    font-size: 2.2rem;
-    color: var(--dourado-nobre) !important;
+    font-size: 1.8rem;
+    color: var(--dourado);
 }
 
-#radar-vigilia {
-    margin-top: 15px;
-    text-align: center;
-    font-size: 0.75rem;
-    color: #666;
-    letter-spacing: 2px;
-}
-
-.scanner {
-    width: 250px;
-    height: 1px;
-    background: var(--azul-arkhos);
-    margin: 8px auto;
-    box-shadow: 0 0 10px var(--azul-arkhos);
-    animation: scanLine 2.5s infinite ease-in-out;
-}
-
-@keyframes scanLine {
-    0%, 100% { opacity: 0.2; width: 150px; }
-    50% { opacity: 1; width: 250px; }
-}
-
-/* CONTAINER PRINCIPAL */
+/* 3. ÁREA DO APLICATIVO */
 #app-container {
-    max-width: 950px;
-    margin: 20px auto;
-    padding: 20px;
+    max-width: 600px; /* Ajustado para Celular */
+    margin: 0 auto;
+    padding: 15px;
 }
 
-/* SELEÇÃO DE PISTAS */
 .mode-selector {
     display: flex;
-    gap: 15px;
-    margin-bottom: 25px;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 .btn-mode {
     flex: 1;
-    padding: 18px;
-    background: var(--painel-dark);
+    padding: 12px;
+    background: var(--painel);
     border: 1px solid var(--borda);
     color: #888;
-    font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
-    text-transform: uppercase;
+    font-weight: bold;
 }
 
 .btn-mode.active {
-    border-color: var(--azul-arkhos);
-    color: var(--azul-arkhos);
-    box-shadow: inset 0 0 10px rgba(0, 212, 255, 0.1);
+    border-color: var(--azul);
+    color: var(--azul);
 }
 
-/* ÁREA DE ENTRADA */
 .input-panel {
-    background: var(--painel-dark);
-    padding: 25px;
-    border-radius: 4px;
-    border: 1px solid var(--borda);
+    background: var(--painel);
+    padding: 15px;
+    border-radius: 8px;
     margin-bottom: 15px;
 }
 
@@ -114,184 +87,132 @@ textarea, input[type="text"], select {
     background: #000;
     color: #fff;
     border: 1px solid var(--borda);
-    padding: 15px;
+    padding: 12px;
     margin-top: 10px;
     box-sizing: border-box;
-    font-size: 1rem;
 }
 
-textarea { height: 180px; resize: none; }
-
-/* SEÇÃO DE UPLOAD E MENTE SOBERANA */
+/* 4. MENTE SOBERANA (LISTA DE ARQUIVOS) */
 .upload-section {
-    background: #0d0d0d;
-    padding: 20px;
-    border-radius: 4px;
+    background: #111;
+    padding: 15px;
     border: 1px dashed #444;
-    margin-bottom: 25px;
     text-align: center;
-}
-
-.upload-label {
-    cursor: pointer;
-    color: var(--azul-arkhos);
-    font-weight: bold;
-    display: block;
-}
-
-#file-docs { display: none; }
-
-#file-display-area {
-    margin-top: 15px;
-    font-size: 0.85rem;
-    color: #aaa;
+    margin-bottom: 20px;
 }
 
 .lista-doc-arkhos {
     list-style: none;
     padding: 0;
-    margin: 10px auto;
     text-align: left;
-    max-width: 400px;
+    margin-top: 10px;
 }
 
 .lista-doc-arkhos li {
     background: #1a1a1a;
-    padding: 8px 12px;
+    padding: 8px;
     margin-bottom: 5px;
-    border-left: 3px solid var(--dourado-nobre);
+    border-left: 3px solid var(--dourado);
+    font-size: 0.8rem;
     display: flex;
     justify-content: space-between;
 }
 
 .btn-remove { color: #ff4444; cursor: pointer; font-weight: bold; }
 
-/* MONITOR DE INTEGRIDADE (BARRAS) */
+/* 5. MONITOR DE INTEGRIDADE */
 .integrity-monitor {
     background: #000;
-    padding: 25px;
+    padding: 15px;
     border: 1px solid var(--borda);
-    margin: 30px 0;
+    margin-bottom: 20px;
 }
-
-.quadrilatero-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.eixo label { font-size: 0.7rem; letter-spacing: 2px; color: #888; }
 
 .bar {
-    background: #1a1a1a;
+    background: #222;
     height: 10px;
     border-radius: 5px;
-    margin-top: 8px;
-    overflow: hidden;
+    margin: 8px 0;
 }
 
 .fill {
-    background: var(--azul-arkhos);
+    background: var(--azul);
     height: 100%;
     width: 0%;
-    transition: width 0.8s ease-out;
-    box-shadow: 0 0 10px var(--azul-arkhos);
+    transition: 0.5s;
+    box-shadow: 0 0 8px var(--azul);
 }
 
-#confidence-score {
-    text-align: center;
-    margin-top: 25px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    letter-spacing: 3px;
-}
-
-#confidence-score span { color: var(--azul-arkhos); }
-
-/* BOTÕES DE AÇÃO */
 .btn-primary {
     width: 100%;
-    padding: 22px;
-    background: var(--azul-arkhos);
+    padding: 18px;
+    background: var(--azul);
     border: none;
-    color: #000;
     font-weight: bold;
-    font-size: 1.2rem;
     cursor: pointer;
-    text-transform: uppercase;
-    transition: 0.3s;
+    font-size: 1rem;
 }
 
-.btn-primary:hover { background: #00b8e6; }
-
-/* RELATÓRIO E EXPORTAÇÃO */
-.output-card {
-    background: var(--painel-dark);
-    padding: 30px;
-    margin-top: 25px;
-    border: 1px solid var(--borda);
+/* 6. ÁREA DE MISSÕES (ESTILO ALERTA) */
+.output-card.warning {
+    border: 1px solid #ff4444;
+    background: #221111;
+    padding: 15px;
+    margin-top: 15px;
 }
 
+/* 7. PAPEL DA EXPORTAÇÃO (O QUE VAI PARA O PDF) */
 .document-paper {
     background: #fff;
     color: #000;
-    padding: 50px;
-    margin-top: 30px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    padding: 30px;
+    margin-top: 20px;
+    font-family: serif;
+    display: block; /* Garante que apareça */
 }
 
 .export-actions {
     display: flex;
-    gap: 15px;
-    margin-top: 20px;
+    gap: 10px;
+    margin-top: 15px;
 }
 
 .btn-exp {
     flex: 1;
-    padding: 15px;
-    background: transparent;
-    border: 1px solid var(--azul-arkhos);
-    color: var(--azul-arkhos);
+    padding: 12px;
+    background: #333;
+    color: white;
+    border: none;
     cursor: pointer;
-    font-weight: bold;
 }
 
-.btn-exp.save {
-    background: var(--azul-arkhos);
-    color: #000;
-}
-
-/* UTILITÁRIOS */
 .hidden { display: none; }
 
 /* ============================================================
-   LÓGICA DE EXTRAÇÃO PURA (PARA O PDF/IMPRESSÃO)
+   8. LÓGICA DE EXTRAÇÃO PURA (MÁGICA DO PDF)
    ============================================================ */
 @media print {
-    /* Esconde a interface de guerra para deixar só o papel */
+    /* ESCONDE TUDO QUE É INTERFACE */
+    body { background: white !important; }
+    
     header, .mode-selector, .input-area, .integrity-monitor, 
-    #btn-main-action, .export-actions, .btn-remove, #missions-box {
+    .btn-primary, .export-actions, .upload-section, .btn-remove {
         display: none !important;
     }
 
-    body { background: white !important; color: black !important; }
+    /* MOSTRA APENAS O DOCUMENTO */
+    #app-container { width: 100%; margin: 0; padding: 0; }
+    #output-area, .document-paper { display: block !important; }
     
-    #app-container { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-    
-    .output-card { border: none !important; background: white !important; padding: 0 !important; }
-
     .document-paper {
-        display: block !important;
-        box-shadow: none !important;
-        padding: 20px !important;
         border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
     }
 
-    /* Adiciona o Timbre Dourado no PDF mesmo que o navegador tente esconder */
+    /* FORÇA O TÍTULO DOURADO NO PDF */
     .relatorio-oficial h1 {
-        color: var(--dourado-nobre) !important;
-        -webkit-print-color-adjust: exact; 
-        print-color-adjust: exact;
+        color: var(--dourado) !important;
+        -webkit-print-color-adjust: exact;
     }
 }
