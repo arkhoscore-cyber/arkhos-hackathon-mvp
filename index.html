@@ -3,177 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARKHOS v3.5 — Auditoria Jurídica</title>
-    <style>
-        :root {
-            --bg: #0a0a0a;
-            --gold: #D4AF37;
-            --blue: #00d4ff;
-            --text: #e0e0e0;
-            --card: #151515;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            overflow-x: hidden;
-        }
-
-        /* UI SOBERANA (C01) */
-        header { border-bottom: 2px solid var(--gold); padding: 20px; text-align: center; }
-        h1 { color: var(--gold); margin: 0; letter-spacing: 2px; }
-
-        .container { padding: 20px; max-width: 1200px; margin: auto; }
-
-        /* QUADRILÁTERO (C02) */
-        .quadrilatero {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .eixo {
-            background: var(--card);
-            border-left: 4px solid var(--blue);
-            padding: 15px;
-            border-radius: 4px;
-        }
-        .barra-container {
-            background: #333;
-            height: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        .barra {
-            height: 100%;
-            background: var(--blue);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-
-        .controles {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        button {
-            background: transparent;
-            border: 1px solid var(--gold);
-            color: var(--gold);
-            padding: 10px 20px;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
-        button:hover { background: var(--gold); color: black; }
-
-        /* MENTE SOBERANA */
-        #lista-arquivos { font-size: 0.9em; color: var(--blue); margin-top: 10px; }
-
-        /* PDF LIMPO (C05) */
-        #relatorio-print { display: none; color: black; background: white; padding: 40px; }
-
-        @media print {
-            body { background: white !important; }
-            .no-print { display: none !important; }
-            #relatorio-print { display: block !important; width: 100%; }
-            * { -webkit-print-color-adjust: exact; }
-        }
-    </style>
+    <title>ARKHOS v3.5 | Bancada de Execução Jurídica</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="no-print">
-    <header>
-        <h1>ARKHOS v3.5</h1>
-        <small>SCANNER DE VIABILIDADE JURÍDICA</small>
-    </header>
-
-    <div class="container">
-        <div class="controles">
-            <input type="file" id="inputArquivos" multiple style="display:none" onchange="acumularArquivos(this)">
-            <button onclick="document.getElementById('inputArquivos').click()">+ ANEXAR (MENTE SOBERANA)</button>
-            <button onclick="executarAuditoria()">EXECUTAR AUDITORIA</button>
-            <button onclick="exportarDossie()">EXPORTAR DOSSIÊ (PDF)</button>
-            <button onclick="switchMode()">ALTERNAR MODO</button>
+<header class="no-print">
+    <div class="header-container">
+        <div class="logo-area">
+            <span class="symbol">♈</span>
+            <h1>ARKHOS <span class="v-tag">v3.5</span></h1>
+            <small class="subtitle">SISTEMA DE INTELIGÊNCIA JURÍDICA GOVERNADA</small>
         </div>
-
-        <div id="lista-arquivos">Arquivos na Mente: 0</div>
-
-        <div class="quadrilatero">
-            <div class="eixo">METAL <div class="barra-container"><div id="bar-metal" class="barra"></div></div></div>
-            <div class="eixo">ESTADO <div class="barra-container"><div id="bar-estado" class="barra"></div></div></div>
-            <div class="eixo">LEGIÃO <div class="barra-container"><div id="bar-legiao" class="barra"></div></div></div>
-            <div class="eixo">LOGOS <div class="barra-container"><div id="bar-logos" class="barra"></div></div></div>
+        <div id="vigilia-status">
+            <div class="pulse-icon"></div>
+            <span>NÚCLEO DE GOVERNANÇA: <b id="status-core" class="status-on">ATIVO</b></span>
         </div>
-
-        <div id="status-auditoria" style="color: var(--gold); font-family: monospace;">Aguardando processamento...</div>
     </div>
-</div>
+</header>
 
-<div id="relatorio-print">
-    <h1 style="border-bottom: 2px solid #000;">Dossiê de Auditoria Arkhos</h1>
-    <div id="conteudo-dossie">
-        </div>
-</div>
-
-<script>
-    // C03: LISTA MENTE SOBERANA
-    let listaMenteSoberana = [];
-    let currentMode = 'Pista Rápida';
-
-    function acumularArquivos(input) {
-        for (let file of input.files) {
-            listaMenteSoberana.push(file);
-        }
-        document.getElementById('lista-arquivos').innerText = `Arquivos na Mente: ${listaMenteSoberana.length} (${listaMenteSoberana.map(f => f.name).join(', ')})`;
-    }
-
-    function switchMode() {
-        currentMode = (currentMode === 'Pista Rápida') ? 'Assistente Gênesis' : 'Pista Rápida';
-        alert("Modo alterado para: " + currentMode);
-    }
-
-    function executarAuditoria() {
-        if(listaMenteSoberana.length === 0) {
-            alert("Mente Soberana vazia. Anexe arquivos primeiro.");
-            return;
-        }
-
-        // C04/C1: Score Determinístico
-        const score = Math.min(100, listaMenteSoberana.length * 25);
+<main class="bancada-container no-print">
+    
+    <section class="col-comando">
         
-        document.getElementById('bar-metal').style.width = score + '%';
-        document.getElementById('bar-estado').style.width = (score * 0.8) + '%';
-        document.getElementById('bar-legiao').style.width = (score * 0.6) + '%';
-        document.getElementById('bar-logos').style.width = (score * 0.9) + '%';
+        <div class="seletor-pista">
+            <button id="btn-pista-direta" class="btn-pista ativo">MODO DIRETO (ORDEM)</button>
+            <button id="btn-pista-guiada" class="btn-pista">MODO GUIADO (ESTRUTURAL)</button>
+        </div>
 
-        document.getElementById('status-auditoria').innerText = `Auditoria Concluída: Score ${score}/100`;
+        <div class="card-comando">
+            <label for="cmd-input">TERMINAL DE ORDEM / RELATO</label>
+            <textarea id="cmd-input" placeholder="Ex: 'Elabore uma petição inicial de danos morais baseada nas provas em anexo' ou inicie o relato dos fatos..."></textarea>
+            
+            <div class="upload-area">
+                <label for="file-soberano" class="btn-anexo">
+                    <span>📎 APORTAR EVIDÊNCIAS (MENTE SOBERANA)</span>
+                    <input type="file" id="file-soberano" multiple style="display:none;">
+                </label>
+                <div id="file-display-area" class="lista-arquivos">
+                    <p class="txt-vazio">Mente Soberana vazia. Aguardando base de prova...</p>
+                </div>
+            </div>
+        </div>
 
-        // Preparar Relatório para PDF
-        document.getElementById('conteudo-dossie').innerHTML = `
-            <h3>Resultado da Análise</h3>
-            <p><strong>Modo:</strong> ${currentMode}</p>
-            <p><strong>Total de Arquivos:</strong> ${listaMenteSoberana.length}</p>
-            <p><strong>Score Global:</strong> ${score}</p>
-            <hr>
-            <p>Relatório gerado em: ${new Date().toLocaleString()}</p>
-        `;
-    }
+        <div class="monitor-integridade">
+            <h3>MONITOR DE CONFORMIDADE</h3>
+            <div class="grid-eixos">
+                <div class="eixo" id="e-metal">
+                    <label>METAL (Lógica)</label>
+                    <div class="bar"><div class="fill" style="width: 0%;"></div></div>
+                </div>
+                <div class="eixo" id="e-estado">
+                    <label>ESTADO (Provas)</label>
+                    <div class="bar"><div class="fill" style="width: 0%;"></div></div>
+                </div>
+                <div class="eixo" id="e-legiao">
+                    <label>LEGIÃO (Contexto)</label>
+                    <div class="bar"><div class="fill" style="width: 0%;"></div></div>
+                </div>
+                <div class="eixo" id="e-logos">
+                    <label>LOGOS (Direito)</label>
+                    <div class="bar"><div class="fill" style="width: 0%;"></div></div>
+                </div>
+            </div>
+            
+            <div class="selos-validacao">
+                <span id="selo-cert" class="selo selo-off">CERT: BLOQUEADO</span>
+                <span id="selo-ledger" class="selo selo-off">LEDGER: PENDENTE</span>
+            </div>
+        </div>
 
-    function exportarDossie() {
-        if(document.getElementById('conteudo-dossie').innerHTML === "") {
-            alert("Execute a auditoria antes de exportar.");
-            return;
-        }
-        window.print();
-    }
-</script>
+        <button id="btn-executar" class="btn-main" disabled>EXECUTAR ORDEM SOBERANA</button>
+        
+    </section>
 
+    <section class="col-resultado">
+        
+        <div class="dashboard-lcu">
+            <div class="metric-card">
+                <small>EXPECTATIVA (LCU)</small>
+                <strong id="val-expectativa">R$ 0,00</strong>
+            </div>
+            <div class="metric-card warning">
+                <small>MARGEM DE RISCO</small>
+                <strong id="val-erro">100%</strong>
+            </div>
+        </div>
+
+        <div id="output-canvas" class="canvas-documento">
+            <div class="placeholder-msg">
+                <span class="icon">⚖️</span>
+                <p>O Sistema de Inteligência aguarda sua ordem e base de provas.</p>
+            </div>
+        </div>
+
+        <div class="acoes-finais">
+            <button id="btn-exportar" class="btn-secundario">📥 EXPORTAR PDF LIMPO</button>
+            <button id="btn-salvar" class="btn-secundario">💾 GUARDAR NA BASE</button>
+        </div>
+
+    </section>
+
+</main>
+
+<div id="print-area" class="only-print" style="display: none;">
+    </div>
+
+<script src="script.js"></script>
 </body>
 </html>
