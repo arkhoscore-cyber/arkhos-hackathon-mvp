@@ -3,163 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARKHOS | Estação Soberana</title>
+    <title>ARKHOS v3.5 — Auditoria Jurídica</title>
     <style>
-        :root { --bg: #0a0a0a; --painel: #141414; --dourado: #D4AF37; --azul: #00d4ff; --texto: #eee; }
-        body { background: var(--bg); color: var(--texto); font-family: sans-serif; margin: 0; padding: 0; }
-        
-        /* HEADER DOURADO */
-        .header-container { text-align: center; padding: 20px; border-bottom: 2px solid var(--azul); background: #000; }
-        .logo-central h1 { color: var(--dourado); letter-spacing: 5px; margin: 5px 0; font-size: 2.2rem; text-shadow: 0 0 10px rgba(212,175,55,0.5); }
-        .symbol-gold { color: var(--dourado); font-size: 1.5rem; display: block; margin: 5px; }
-        .vigilia { font-size: 0.8rem; color: #aaa; letter-spacing: 2px; }
-
-        /* APP CONTAINER */
-        #app-container { max-width: 500px; margin: auto; padding: 15px; }
-        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 10px; background: var(--painel); border: 1px solid #333; color: #888; font-size: 0.7rem; cursor: pointer; }
-        .tab.active { border-color: var(--azul); color: var(--azul); }
-
-        .input-panel { background: var(--painel); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333; }
-        label { font-size: 0.8rem; color: var(--azul); display: block; margin-bottom: 5px; }
-        
-        textarea, select, input { 
-            width: 100%; background: #000; color: #fff; border: 1px solid #444; 
-            padding: 12px; box-sizing: border-box; border-radius: 4px; margin-top: 5px; font-size: 1rem;
+        :root {
+            --bg: #0a0a0a;
+            --gold: #D4AF37;
+            --blue: #00d4ff;
+            --text: #e0e0e0;
+            --card: #151515;
         }
 
-        /* BARRAS DE INTEGRIDADE */
-        .eixo { margin-bottom: 10px; }
-        .eixo label { color: #888; font-size: 0.7rem; }
-        .bar { background: #222; height: 12px; border-radius: 6px; margin-top: 4px; overflow: hidden; border: 1px solid #333; }
-        .fill { background: var(--azul); height: 100%; width: 0%; transition: 0.8s ease-in-out; box-shadow: 0 0 10px var(--azul); }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
 
-        /* BOTÕES */
-        .btn-main { width: 100%; padding: 18px; background: var(--azul); border: none; font-weight: bold; cursor: pointer; color: #000; text-transform: uppercase; border-radius: 4px; margin-top: 10px; font-size: 1rem; }
-        .btn-exp { width: 100%; padding: 15px; background: #222; color: #fff; border: 1px solid #444; margin-top: 10px; cursor: pointer; border-radius: 4px; }
+        /* UI SOBERANA (C01) */
+        header { border-bottom: 2px solid var(--gold); padding: 20px; text-align: center; }
+        h1 { color: var(--gold); margin: 0; letter-spacing: 2px; }
 
-        /* LISTA DE ARQUIVOS */
-        #file-display-area ul { list-style: none; padding: 0; margin-top: 10px; }
-        #file-display-area li { background: #1a1a1a; padding: 8px; border-left: 3px solid var(--dourado); margin-bottom: 5px; font-size: 0.8rem; display: flex; justify-content: space-between; }
-        .remove-btn { color: #ff4444; cursor: pointer; }
+        .container { padding: 20px; max-width: 1200px; margin: auto; }
 
-        /* REGRAS DE IMPRESSÃO - A EXTRAÇÃO LIMPA */
-        #area-impressao { display: none; }
+        /* QUADRILÁTERO (C02) */
+        .quadrilatero {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .eixo {
+            background: var(--card);
+            border-left: 4px solid var(--blue);
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .barra-container {
+            background: #333;
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .barra {
+            height: 100%;
+            background: var(--blue);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .controles {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 10px 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        button:hover { background: var(--gold); color: black; }
+
+        /* MENTE SOBERANA */
+        #lista-arquivos { font-size: 0.9em; color: var(--blue); margin-top: 10px; }
+
+        /* PDF LIMPO (C05) */
+        #relatorio-print { display: none; color: black; background: white; padding: 40px; }
+
         @media print {
-            .interface-web { display: none !important; }
-            #area-impressao { display: block !important; color: black !important; background: white !important; padding: 40px; font-family: serif; }
             body { background: white !important; }
-            .print-header { border-bottom: 2px solid #D4AF37; text-align: center; padding-bottom: 20px; }
-            .print-logo { color: #D4AF37; font-size: 28pt; font-weight: bold; }
+            .no-print { display: none !important; }
+            #relatorio-print { display: block !important; width: 100%; }
+            * { -webkit-print-color-adjust: exact; }
         }
     </style>
 </head>
 <body>
-    <div class="interface-web">
-        <header class="header-container">
-            <span class="symbol-gold">♈</span>
-            <div class="logo-central"><h1>ARKHOS</h1></div>
-            <span class="symbol-gold">∞</span>
-            <div class="vigilia">MONITORAMENTO REGIONAL DE PRECEDENTES: <span style="color: #0f0;">ATIVO</span></div>
-        </header>
 
-        <main id="app-container">
-            <div class="tabs">
-                <div class="tab active">PISTA RÁPIDA (PRO)</div>
-                <div class="tab">ASSISTENTE GÊNESIS</div>
-            </div>
+<div class="no-print">
+    <header>
+        <h1>ARKHOS v3.5</h1>
+        <small>SCANNER DE VIABILIDADE JURÍDICA</small>
+    </header>
 
-            <div class="input-panel">
-                <label>Natureza da Ação</label>
-                <select id="case-nature">
-                    <option value="trabalhista">Trabalhista (R$/Verbas)</option>
-                    <option value="criminal">Criminal (Liberdade)</option>
-                    <option value="civel">Cível (Danos)</option>
-                </select>
-                <textarea id="pro-input" placeholder="Relate os fatos aqui..."></textarea>
-            </div>
+    <div class="container">
+        <div class="controles">
+            <input type="file" id="inputArquivos" multiple style="display:none" onchange="acumularArquivos(this)">
+            <button onclick="document.getElementById('inputArquivos').click()">+ ANEXAR (MENTE SOBERANA)</button>
+            <button onclick="executarAuditoria()">EXECUTAR AUDITORIA</button>
+            <button onclick="exportarDossie()">EXPORTAR DOSSIÊ (PDF)</button>
+            <button onclick="switchMode()">ALTERNAR MODO</button>
+        </div>
 
-            <div class="input-panel">
-                <label for="file-docs" style="cursor: pointer;">📎 APORTAR EVIDÊNCIAS (EIXO DE ESTADO)</label>
-                <input type="file" id="file-docs" multiple style="display: none;">
-                <div id="file-display-area"></div>
-            </div>
+        <div id="lista-arquivos">Arquivos na Mente: 0</div>
 
-            <div class="input-panel">
-                <div class="eixo"><label>METAL</label><div class="bar"><div id="bar-metal" class="fill"></div></div></div>
-                <div class="eixo"><label>ESTADO</label><div class="bar"><div id="bar-estado" class="fill"></div></div></div>
-                <div class="eixo"><label>LEGIÃO</label><div class="bar"><div id="bar-legiao" class="fill"></div></div></div>
-                <div class="eixo"><label>LOGOS</label><div class="bar"><div id="bar-logos" class="fill"></div></div></div>
-                <h3 style="text-align: center; margin-top: 15px;">CONFIANÇA: <span id="val-score" style="color: var(--azul);">0%</span></h3>
-            </div>
+        <div class="quadrilatero">
+            <div class="eixo">METAL <div class="barra-container"><div id="bar-metal" class="barra"></div></div></div>
+            <div class="eixo">ESTADO <div class="barra-container"><div id="bar-estado" class="barra"></div></div></div>
+            <div class="eixo">LEGIÃO <div class="barra-container"><div id="bar-legiao" class="barra"></div></div></div>
+            <div class="eixo">LOGOS <div class="barra-container"><div id="bar-logos" class="barra"></div></div></div>
+        </div>
 
-            <button class="btn-main" onclick="auditar()">AUDITAR E GERAR PROTOCOLO</button>
-            <button class="btn-exp" onclick="window.print()">📥 EXPORTAR PDF</button>
-        </main>
+        <div id="status-auditoria" style="color: var(--gold); font-family: monospace;">Aguardando processamento...</div>
     </div>
+</div>
 
-    <div id="area-impressao"></div>
+<div id="relatorio-print">
+    <h1 style="border-bottom: 2px solid #000;">Dossiê de Auditoria Arkhos</h1>
+    <div id="conteudo-dossie">
+        </div>
+</div>
 
-    <script>
-        let menteSoberana = [];
+<script>
+    // C03: LISTA MENTE SOBERANA
+    let listaMenteSoberana = [];
+    let currentMode = 'Pista Rápida';
 
-        // Lógica de arquivos (Acumulador)
-        document.getElementById('file-docs').addEventListener('change', function(e) {
-            const novos = Array.from(e.target.files);
-            novos.forEach(f => {
-                if(!menteSoberana.some(m => m.name === f.name)) menteSoberana.push(f);
-            });
-            renderizarArquivos();
-            auditar();
-        });
+    function acumularArquivos(input) {
+        for (let file of input.files) {
+            listaMenteSoberana.push(file);
+        }
+        document.getElementById('lista-arquivos').innerText = `Arquivos na Mente: ${listaMenteSoberana.length} (${listaMenteSoberana.map(f => f.name).join(', ')})`;
+    }
 
-        function renderizarArquivos() {
-            const area = document.getElementById('file-display-area');
-            area.innerHTML = menteSoberana.length > 0 ? '<ul>' + menteSoberana.map((f, i) => 
-                `<li>📄 ${f.name} <span class="remove-btn" onclick="remover(${i})">✖</span></li>`).join('') + '</ul>' : '';
+    function switchMode() {
+        currentMode = (currentMode === 'Pista Rápida') ? 'Assistente Gênesis' : 'Pista Rápida';
+        alert("Modo alterado para: " + currentMode);
+    }
+
+    function executarAuditoria() {
+        if(listaMenteSoberana.length === 0) {
+            alert("Mente Soberana vazia. Anexe arquivos primeiro.");
+            return;
         }
 
-        function remover(i) {
-            menteSoberana.splice(i, 1);
-            renderizarArquivos();
-            auditar();
+        // C04/C1: Score Determinístico
+        const score = Math.min(100, listaMenteSoberana.length * 25);
+        
+        document.getElementById('bar-metal').style.width = score + '%';
+        document.getElementById('bar-estado').style.width = (score * 0.8) + '%';
+        document.getElementById('bar-legiao').style.width = (score * 0.6) + '%';
+        document.getElementById('bar-logos').style.width = (score * 0.9) + '%';
+
+        document.getElementById('status-auditoria').innerText = `Auditoria Concluída: Score ${score}/100`;
+
+        // Preparar Relatório para PDF
+        document.getElementById('conteudo-dossie').innerHTML = `
+            <h3>Resultado da Análise</h3>
+            <p><strong>Modo:</strong> ${currentMode}</p>
+            <p><strong>Total de Arquivos:</strong> ${listaMenteSoberana.length}</p>
+            <p><strong>Score Global:</strong> ${score}</p>
+            <hr>
+            <p>Relatório gerado em: ${new Date().toLocaleString()}</p>
+        `;
+    }
+
+    function exportarDossie() {
+        if(document.getElementById('conteudo-dossie').innerHTML === "") {
+            alert("Execute a auditoria antes de exportar.");
+            return;
         }
+        window.print();
+    }
+</script>
 
-        function auditar() {
-            const texto = document.getElementById('pro-input').value;
-            const nature = document.getElementById('case-nature').value;
-
-            // Cálculos
-            let m = Math.min(texto.length / 5, 100);
-            let e = Math.min(menteSoberana.length * 25, 100);
-            let l = texto.toLowerCase().includes('testemunha') ? 80 : 30;
-            let lo = 70;
-
-            // Atualiza Barras
-            document.getElementById('bar-metal').style.width = m + '%';
-            document.getElementById('bar-estado').style.width = e + '%';
-            document.getElementById('bar-legiao').style.width = l + '%';
-            document.getElementById('bar-logos').style.width = lo + '%';
-
-            let score = (m + e + l + lo) / 4;
-            document.getElementById('val-score').innerText = score.toFixed(0) + '%';
-
-            // Prepara Impressão
-            document.getElementById('area-impressao').innerHTML = `
-                <div class="print-header">
-                    <div class="print-logo">♈ ARKHOS ∞</div>
-                    <h3>PROTOCOLO DE EXTRAÇÃO SOBERANA</h3>
-                </div>
-                <p><b>DATA:</b> ${new Date().toLocaleDateString()}</p>
-                <p><b>NATUREZA:</b> ${nature.toUpperCase()}</p>
-                <p><b>CONFIANÇA SISTÊMICA:</b> ${score.toFixed(0)}%</p>
-                <hr>
-                <h4>RELATO DOS FATOS:</h4>
-                <p>${texto || 'Nenhum relato informado.'}</p>
-                <h4>EVIDÊNCIAS (EIXO DE ESTADO):</h4>
-                <ul>${menteSoberana.map(f => `<li>${f.name}</li>`).join('')}</ul>
-            `;
-        }
-    </script>
 </body>
 </html>
