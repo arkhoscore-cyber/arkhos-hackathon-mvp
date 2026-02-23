@@ -1,54 +1,63 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARKHOS | MVP Jurídico Unificado</title>
+    <title>ARKHOS | Kernel de Governança Soberana</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="arkhos-container">
-        <header class="cabecalho">
-            <h1>⟐ ARKHOS ⟐</h1>
-            <p>Sistema de Inteligência Jurídica Governada</p>
-            <span class="status-badge">STATUS: MODO OFFLINE (MVP LOCAL)</span>
-        </header>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">ARKHOS</div>
+            <div class="status-panel">
+                <h3>Integridade do Sistema</h3>
+                <div class="quadrant" id="q-metal">
+                    <span class="dot"></span> 🔩 METAL <small>(Kernel)</small>
+                    <div class="progress-bar"><div class="fill"></div></div>
+                </div>
+                <div class="quadrant" id="q-legiao">
+                    <span class="dot"></span> 🧬 LEGIÃO <small>(Rede)</small>
+                    <div class="progress-bar"><div class="fill"></div></div>
+                </div>
+                <div class="quadrant" id="q-estado">
+                    <span class="dot"></span> 🏛️ ESTADO <small>(Ética)</small>
+                    <div class="progress-bar"><div class="fill"></div></div>
+                </div>
+                <div class="quadrant" id="q-logos">
+                    <span class="dot"></span> ⚖️ LOGOS <small>(Lógica)</small>
+                    <div class="progress-bar"><div class="fill"></div></div>
+                </div>
+            </div>
+            <div class="technical-logs" id="logs">
+                <p>> Sistema iniciado...</p>
+                <p>> Aguardando entrada de dados...</p>
+            </div>
+        </aside>
 
-        <main>
-            <section class="painel-modulos">
-                <h2>Módulos de Simulação Governada</h2>
-                <div class="botoes-modulos">
-                    <button id="btn-penal" onclick="carregarModulo('penal')">Penal (Art. 157)</button>
-                    <button id="btn-trabalhista" onclick="carregarModulo('trabalhista')">Trabalhista (Egresso)</button>
-                    <button id="btn-consumidor" onclick="carregarModulo('consumidor')">Consumidor (Fraude)</button>
+        <main class="main-content">
+            <header>
+                <h1>Montador de Caso Assistido</h1>
+                <p>Construa seu caso com a blindagem do Quadrilátero Axiomático.</p>
+            </header>
+
+            <section class="input-area">
+                <textarea id="caseInput" placeholder="Descreva os fatos, datas e evidências do caso aqui..."></textarea>
+                <div class="assistant-feedback" id="assistantMessage">
+                    Aguardando descrição para iniciar análise de eixos...
                 </div>
             </section>
 
-            <section class="painel-analise" id="area-analise">
-                <p class="instrucao-inicial">Selecione um módulo acima para carregar as premissas jurídicas.</p>
+            <section class="action-panel">
+                <button id="btnGenerate" disabled>GERAR SELO GÊNESIS 2.0</button>
             </section>
 
-            <section class="painel-livre">
-                <h2>Descoberta Legal (Acesso a Fontes Públicas)</h2>
-                <p class="subtexto">Conexão: Planalto | STJ | STF | Diário Oficial</p>
-                <textarea id="caso-livre" rows="4" placeholder="Descreva um caso não tabelado aqui para análise externa..."></textarea>
-                <button class="btn-secundario" onclick="simularModoLivre()">Processar Caso Personalizado</button>
-            </section>
-
-            <section id="painel-resultado" class="escondido">
-                <div class="cabecalho-resultado">
-                    <h3>Certificação de Risco e Impacto</h3>
-                </div>
-                <div class="corpo-resultado">
-                    <p><strong>Fundamentação (Regra Operacional):</strong> <br><span id="texto-fundamentacao">--</span></p>
-                    <div class="impacto-box">
-                        <p><strong>Decisão/Impacto:</strong> <span id="texto-decisao" class="destaque">--</span></p>
-                    </div>
-                </div>
+            <section id="resultArea" class="result-area hidden">
+                <h2>Relatório de Estruturação Arkhos</h2>
+                <div id="finalSummary"></div>
             </section>
         </main>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
