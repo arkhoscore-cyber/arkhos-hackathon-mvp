@@ -1,724 +1,244 @@
-/* =========================================================
-   ARKHOS UI — STYLE (Cabine + Portas do Motor)
-   Objetivo:
-   1) Visual elite (Dark Industrial: Preto + Ouro + Azul Tech)
-   2) Responsivo correto (mobile = body scroll / desktop = cockpit)
-   3) Chat mode (bolhas + input sticky)
-   4) Telemetria do motor (CONNECTING/OPERATIONAL/OFFLINE/DEGRADED)
-   5) Print C05 (PDF limpo)
-   ========================================================= */
-
-/* =========================
-   0) TOKENS (Design System)
-   ========================= */
-:root {
-  --bg-base: #0a0a0a;
-  --bg-surface: #141414;
-  --bg-panel: #1a1a1a;
-  --bg-deep: #000000;
-
-  --gold: #D4AF37;
-  --blue-tech: #00d4ff;
-
-  --text-main: #e0e0e0;
-  --text-muted: #888888;
-
-  --border-color: #2a2a2a;
-
-  --danger: #ff4b4b;
-  --success: #00ff88;
-  --warn: #ffcc00;
-
-  --paper-white: #ffffff;
-  --text-ink: #000000;
-
-  --radius: 8px;
-  --radius-sm: 6px;
-
-  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --shadow-inset: inset 0 0 100px rgba(0, 0, 0, 0.06);
-
-  --font-ui: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  --font-doc: "Times New Roman", Times, serif;
+:root{
+  --bg:#0b0b0b;
+  --panel:#141414;
+  --border:#262626;
+  --gold:#D4AF37;
+  --blue:#00d4ff;
+  --text:#e6e6e6;
+  --muted:#888;
 }
 
-/* =========================
-   1) RESET / BASE
-   ========================= */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
+/* RESET */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,Segoe UI,Roboto,Arial;
+  min-height:100vh;
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
 
-body {
-  background-color: var(--bg-base);
-  color: var(--text-main);
-  font-family: var(--font-ui);
-  /* Desktop: cockpit com header + main ocupando viewport */
-  min-height: 100vh;
+/* HEADER */
+header{
+  background:#000;
+  border-bottom:1px solid var(--border);
+  padding:12px 18px;
+}
+.header-container{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.logo-area h1{
+  color:var(--gold);
+  letter-spacing:3px;
+}
+.subtitle{font-size:.65rem;color:var(--muted)}
+
+.motor-status{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  border:1px solid var(--border);
+  padding:6px 10px;
+  border-radius:20px;
+  font-size:.75rem;
+}
+.badge{border:1px solid var(--border);padding:3px 8px;border-radius:20px}
+.badge-health[data-health="OPERATIONAL"]{color:#0f0;border-color:#0f0}
+.badge-health[data-health="OFFLINE"]{color:#f33;border-color:#f33}
+
+.lang-switcher button{
+  background:none;
+  border:none;
+  color:#666;
+  font-weight:700;
+}
+.lang-switcher .active{color:var(--gold)}
+
+/* LAYOUT */
+.bancada-container{
+  display:grid;
+  grid-template-columns:420px 1fr;
+  min-height:calc(100vh - 60px);
 }
 
-/* Links / focus */
-button, input, select, textarea { font: inherit; }
-button { cursor: pointer; }
-:focus-visible { outline: 2px solid rgba(0, 212, 255, 0.55); outline-offset: 2px; }
-
-/* Helpers */
-.muted { color: var(--text-muted); }
-.badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 999px; font-size: 0.7rem; letter-spacing: 0.5px; background: rgba(0,0,0,0.4); }
-.only-print { display: none; }
-.no-print { display: block; }
-
-/* =========================
-   2) HEADER (Marca + Telemetria + Idioma)
-   ========================= */
-header {
-  background-color: var(--bg-deep);
-  padding: 14px 22px;
-  border-bottom: 1px solid var(--border-color);
+/* COLUNA ESQ */
+.col-comando{
+  border-right:1px solid var(--border);
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  overflow-y:auto;
 }
 
-.header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 18px;
+/* COLUNA DIR */
+.col-resultado{
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  overflow-y:auto;
 }
 
-/* Logo central com símbolos */
-.logo-area {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
+/* TABS */
+.seletor-pista{
+  display:flex;
+  border:1px solid var(--border);
+  border-radius:6px;
+  overflow:hidden;
 }
-.logo-area .symbol {
-  font-size: 1.1rem;
-  opacity: 0.95;
+.btn-pista{
+  flex:1;
+  background:#000;
+  border:none;
+  color:#777;
+  padding:10px;
+  font-weight:700;
 }
-.logo-area h1 {
-  color: var(--gold);
-  font-size: 1.35rem;
-  letter-spacing: 4px;
-  display: inline-block;
-}
-.subtitle {
-  display: block;
-  width: 100%;
-  color: var(--text-muted);
-  font-size: 0.65rem;
-  letter-spacing: 1px;
-  margin-top: 2px;
+.btn-pista.ativo{
+  background:var(--panel);
+  color:var(--blue);
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+/* CARD */
+.card-comando{
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 
-/* Telemetria */
-.motor-status {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  background: rgba(0,0,0,0.35);
+/* INPUTS */
+label{font-size:.7rem;color:var(--muted)}
+textarea{
+  background:#000;
+  border:1px solid #333;
+  color:#fff;
+  padding:10px;
+  min-height:120px;
+}
+select{
+  background:#000;
+  border:1px solid #333;
+  color:#fff;
+  padding:8px;
 }
 
-.pulse-icon {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--blue-tech);
-  box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.0);
-  animation: pulse 1.4s infinite;
+/* UPLOAD */
+.btn-anexo{
+  border:1px dashed var(--gold);
+  padding:10px;
+  text-align:center;
+  color:var(--gold);
 }
-@keyframes pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.35); }
-  70%  { box-shadow: 0 0 0 10px rgba(0, 212, 255, 0.0); }
-  100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.0); }
+.lista-arquivos{
+  border:1px solid var(--border);
+  padding:8px;
+  font-size:.8rem;
+  max-height:120px;
+  overflow:auto;
 }
+.txt-vazio{color:var(--muted)}
 
-.motor-lines { display: flex; flex-direction: column; gap: 4px; }
-.motor-line { display: flex; align-items: baseline; gap: 8px; font-size: 0.72rem; }
-.motor-label { color: var(--text-muted); letter-spacing: 0.6px; }
-#status-core { letter-spacing: 0.7px; }
-
-.motor-badges { display: flex; flex-wrap: wrap; gap: 6px; }
-
-/* Health badge color coding (reflete motor / portas) */
-.badge-health[data-health="CONNECTING"] { border-color: rgba(0, 212, 255, 0.55); color: var(--blue-tech); }
-.badge-health[data-health="OPERATIONAL"] { border-color: rgba(0, 255, 136, 0.45); color: var(--success); }
-.badge-health[data-health="OFFLINE"] { border-color: rgba(255, 75, 75, 0.55); color: var(--danger); }
-.badge-health[data-health="DEGRADED"] { border-color: rgba(255, 204, 0, 0.55); color: var(--warn); }
-
-/* Runtime badge */
-.badge-runtime[data-runtime="LOCAL_SIMULADOR"] { border-color: rgba(212, 175, 55, 0.35); color: var(--gold); }
-.badge-runtime[data-runtime="REMOTO_GOVERNADO"] { border-color: rgba(0, 212, 255, 0.45); color: var(--blue-tech); }
-
-/* Seletor de idioma */
-.lang-switcher {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #000;
-  padding: 6px 14px;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
+/* BOTÃO */
+.btn-main{
+  border:1px solid var(--gold);
+  color:var(--gold);
+  padding:12px;
+  background:none;
 }
-.lang-btn {
-  background: transparent;
-  border: none;
-  color: #444;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  transition: 0.25s;
+.btn-main:hover:not(:disabled){
+  background:var(--gold);
+  color:#000;
 }
-.lang-btn.active { color: var(--gold); text-shadow: 0 0 10px rgba(212, 175, 55, 0.35); }
-.divider { color: #222; font-size: 0.7rem; }
+.btn-main:disabled{opacity:.4}
 
-/* =========================
-   3) MAIN LAYOUT (Cockpit)
-   ========================= */
-.bancada-container {
-  /* Desktop cockpit: duas colunas */
-  display: grid;
-  grid-template-columns: 450px 1fr;
-  gap: 0;
-  min-height: calc(100vh - 70px); /* header height aproximada */
+/* CANVAS */
+.canvas-documento{
+  background:#fff;
+  color:#000;
+  padding:20px;
+  min-height:400px;
+  overflow:auto;
 }
 
-/* Colunas */
-.col-comando {
-  background-color: var(--bg-base);
-  border-right: 1px solid var(--border-color);
-  padding: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-
-  /* Desktop: scroll interno OK */
-  overflow-y: auto;
-  max-height: calc(100vh - 70px);
+/* CHAT */
+.card-chat{
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.chat-messages{
+  border:1px solid var(--border);
+  padding:8px;
+  min-height:200px;
+  max-height:350px;
+  overflow:auto;
+}
+.msg{
+  padding:6px 10px;
+  border-radius:10px;
+  margin-bottom:6px;
+  max-width:90%;
+}
+.msg.user{
+  background:rgba(0,212,255,.1);
+  margin-left:auto;
+}
+.msg.assistant{
+  background:rgba(212,175,55,.1);
+}
+.chat-input-wrap{
+  display:flex;
+  gap:8px;
+}
+.chat-input{
+  flex:1;
+  background:#000;
+  border:1px solid #333;
+  color:#fff;
+  padding:8px;
+}
+.chat-send{
+  border:1px solid var(--blue);
+  color:var(--blue);
+  background:none;
+  padding:8px 12px;
 }
 
-.col-resultado {
-  background-color: #0f0f0f;
-  padding: 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-
-  /* Desktop: scroll interno OK */
-  overflow-y: auto;
-  max-height: calc(100vh - 70px);
+/* MÉTRICAS */
+.dashboard-lcu{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.metric-card{
+  border:1px solid var(--border);
+  padding:10px;
+  flex:1;
+  min-width:160px;
 }
 
-/* =========================
-   4) MODO / TABS
-   ========================= */
-.seletor-pista {
-  display: flex;
-  background: #000;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 4px;
-  gap: 4px;
-}
-
-.btn-pista {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  padding: 12px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.6px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: 0.22s;
-}
-.btn-pista:hover { background: rgba(255,255,255,0.03); }
-
-.btn-pista.ativo {
-  background: var(--bg-surface);
-  color: var(--blue-tech);
-  border: 1px solid rgba(0, 212, 255, 0.15);
-  box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.08) inset;
-}
-
-/* Panel mode wrappers */
-.panel-mode { display: flex; flex-direction: column; gap: 18px; }
-
-/* =========================
-   5) CARD / INPUTS / UPLOAD
-   ========================= */
-.card-comando {
-  background: var(--bg-surface);
-  padding: 18px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: var(--shadow-soft);
-}
-
-label {
-  font-size: 0.68rem;
-  letter-spacing: 0.8px;
-  color: var(--text-muted);
-  font-weight: 800;
-}
-
-.select-tecnico {
-  width: 100%;
-  background: #000;
-  color: var(--text-main);
-  border: 1px solid #333;
-  padding: 10px 12px;
-  font-size: 0.82rem;
-  border-radius: 6px;
-}
-
-textarea {
-  width: 100%;
-  min-height: 140px;
-  background: #000;
-  border: 1px solid #333;
-  color: #fff;
-  padding: 14px;
-  font-family: var(--font-mono);
-  font-size: 0.86rem;
-  resize: vertical;
-  border-radius: 6px;
-}
-
-/* Upload */
-.upload-area { display: flex; flex-direction: column; gap: 10px; }
-.btn-anexo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: transparent;
-  border: 1px dashed rgba(212, 175, 55, 0.55);
-  color: var(--gold);
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  transition: 0.25s;
-}
-.btn-anexo:hover { background: rgba(212, 175, 55, 0.06); }
-
-.lista-arquivos {
-  background: rgba(0,0,0,0.35);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  max-height: 160px;
-  overflow-y: auto;
-  font-size: 0.82rem;
-}
-.txt-vazio { color: var(--text-muted); }
-
-/* =========================
-   6) MONITOR (Quadrilátero por sinais)
-   ========================= */
-.monitor-integridade {
-  background: #000;
-  padding: 16px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-}
-
-.monitor-integridade h3 {
-  font-size: 0.78rem;
-  letter-spacing: 1px;
-  color: var(--gold);
-  margin-bottom: 12px;
-}
-
-.grid-eixos {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.eixo label {
-  display: block;
-  font-size: 0.62rem;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
-.bar {
-  background: #222;
-  height: 5px;
-  border-radius: 999px;
-  overflow: hidden;
-}
-.fill {
-  background: var(--blue-tech);
-  height: 100%;
-  width: 0%;
-  transition: width 0.55s ease;
-}
-
-/* Selos */
-.selos-validacao {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-.selo {
-  font-size: 0.68rem;
-  padding: 6px 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  background: rgba(255,255,255,0.03);
-}
-.selo-off { color: var(--text-muted); }
-.selo-on { color: var(--success); border-color: rgba(0, 255, 136, 0.35); }
-
-/* =========================
-   7) BOTÕES
-   ========================= */
-.btn-main {
-  background: transparent;
-  border: 1px solid var(--gold);
-  color: var(--gold);
-  padding: 16px;
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  border-radius: var(--radius-sm);
-  transition: 0.25s;
-}
-.btn-main:hover:not(:disabled) { background: var(--gold); color: #000; }
-.btn-main:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.btn-secundario {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  transition: 0.2s;
-}
-.btn-secundario:hover { border-color: rgba(0, 212, 255, 0.25); background: rgba(0, 212, 255, 0.04); }
-
-.acoes-finais { display: flex; gap: 12px; flex-wrap: wrap; }
-
-/* =========================
-   8) RESULTADOS (Dashboard + Canvas + Rastreio)
-   ========================= */
-.dashboard-lcu {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.metric-card {
-  background: var(--bg-surface);
-  padding: 16px;
-  flex: 1;
-  min-width: 220px;
-  border-left: 3px solid var(--gold);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-soft);
-}
-.metric-card.warning { border-left-color: var(--danger); }
-
-.metric-card small {
-  display: block;
-  color: var(--text-muted);
-  font-size: 0.68rem;
-  letter-spacing: 0.8px;
-  font-weight: 800;
-}
-.metric-card strong {
-  display: block;
-  font-size: 1.5rem;
-  color: var(--gold);
-  margin-top: 8px;
-  letter-spacing: 1px;
-}
-
-/* Canvas do documento */
-.canvas-documento {
-  background: var(--paper-white);
-  color: var(--text-ink);
-  min-height: 520px;
-  padding: 52px;
-  font-family: var(--font-doc);
-  border-radius: 3px;
-  box-shadow: var(--shadow-inset);
-  overflow: auto;
-}
-
-/* Placeholder no canvas */
-.placeholder-msg {
-  display: grid;
-  place-items: center;
-  gap: 10px;
-  padding: 40px 20px;
-  text-align: center;
-  color: #666;
-}
-.placeholder-msg .icon { font-size: 1.6rem; }
-
-/* Rastreabilidade */
-.painel-rastreio {
-  background: rgba(0,0,0,0.35);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-}
-
-.painel-rastreio summary {
-  cursor: pointer;
-  list-style: none;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 6px 4px;
-  color: var(--text-main);
-  font-weight: 900;
-  letter-spacing: 0.6px;
-}
-.painel-rastreio summary::-webkit-details-marker { display: none; }
-.painel-rastreio .hint { color: var(--text-muted); font-weight: 600; font-size: 0.75rem; }
-
-.rastreio-grid {
-  margin-top: 12px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.rastreio-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-}
-.rastreio-card-wide { grid-column: 1 / -1; }
-
-.rastreio-card h4 {
-  font-size: 0.75rem;
-  color: var(--blue-tech);
-  letter-spacing: 0.8px;
-  margin-bottom: 8px;
-}
-.rastreio-body {
-  font-size: 0.82rem;
-  line-height: 1.4;
-  color: var(--text-main);
-}
-.rastreio-body ul { padding-left: 18px; }
-.rastreio-body li { margin: 6px 0; }
-.rastreio-body .muted { color: var(--text-muted); }
-
-/* =========================
-   9) CHAT (Assistente Jurídico)
-   ========================= */
-.card-chat {
-  background: var(--bg-surface);
-  padding: 16px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.chat-top { display: flex; flex-direction: column; gap: 10px; }
-
-.chat-title {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-#chat-title { color: var(--gold); letter-spacing: 1px; }
-
-.chat-badge {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  padding: 4px 10px;
-  background: rgba(0,0,0,0.35);
-}
-
-.chat-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.chip-action {
-  background: rgba(0, 212, 255, 0.06);
-  border: 1px solid rgba(0, 212, 255, 0.22);
-  color: var(--blue-tech);
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  transition: 0.2s;
-}
-.chip-action:hover { background: rgba(0, 212, 255, 0.12); }
-
-/* Mensagens */
-.chat-messages {
-  background: rgba(0,0,0,0.35);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  min-height: 240px;
-  max-height: 420px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.chat-empty { color: var(--text-muted); font-size: 0.85rem; line-height: 1.35; }
-
-.msg {
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 10px 12px;
-  max-width: 92%;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.18);
-}
-.msg .msg-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 6px;
-  font-size: 0.68rem;
-  color: var(--text-muted);
-}
-.msg .msg-body { font-size: 0.9rem; line-height: 1.35; white-space: pre-wrap; }
-
-.msg.user {
-  margin-left: auto;
-  background: rgba(0, 212, 255, 0.08);
-  border-color: rgba(0, 212, 255, 0.22);
-}
-.msg.assistant {
-  margin-right: auto;
-  background: rgba(212, 175, 55, 0.06);
-  border-color: rgba(212, 175, 55, 0.22);
-}
-.msg.system {
-  margin: 0 auto;
-  background: rgba(255,255,255,0.03);
-}
-
-/* Input sticky */
-.chat-input-wrap {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  gap: 10px;
-  padding-top: 10px;
-  background: linear-gradient(to top, rgba(20,20,20,0.98), rgba(20,20,20,0.6));
-}
-
-.chat-input {
-  flex: 1;
-  background: #000;
-  border: 1px solid #333;
-  border-radius: 10px;
-  padding: 12px 12px;
-  color: var(--text-main);
-}
-.chat-send {
-  background: transparent;
-  border: 1px solid var(--blue-tech);
-  color: var(--blue-tech);
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-weight: 900;
-  letter-spacing: 0.6px;
-  transition: 0.2s;
-}
-.chat-send:hover { background: rgba(0, 212, 255, 0.10); }
-
-/* Hint do acervo no chat */
-.chat-acervo-hint { color: var(--text-muted); font-size: 0.78rem; }
-
-/* =========================
-   10) RESPONSIVO (conserta “duas telas”)
-   - Desktop: cockpit com scroll interno
-   - Mobile: body scroll natural, sem travas
-   ========================= */
-@media (max-width: 900px) {
-  /* Mobile: fluxo natural, nada de cockpit travado */
-  .bancada-container {
-    grid-template-columns: 1fr;
-    min-height: auto;
+/* RESPONSIVO */
+@media(max-width:900px){
+  .bancada-container{
+    grid-template-columns:1fr;
   }
-
-  /* IMPORTANTE: mobile = body scroll */
-  body {
-    min-height: 100%;
-  }
-
-  /* Remove scroll interno em mobile (evita “duas telas”) */
-  .col-comando, .col-resultado {
-    max-height: none;
-    overflow: visible;
-    padding: 18px;
-  }
-
-  .col-comando { border-right: none; border-bottom: 1px solid var(--border-color); }
-  header { padding: 12px 14px; }
-  .header-container { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .header-right { width: 100%; justify-content: space-between; flex-wrap: wrap; }
-
-  /* Canvas mais compacto no mobile */
-  .canvas-documento {
-    padding: 18px;
-    min-height: 360px;
-  }
-
-  /* Chat: altura mais amigável */
-  .chat-messages {
-    max-height: 360px;
-  }
-
-  .rastreio-grid { grid-template-columns: 1fr; }
+  .col-comando{border-right:none;border-bottom:1px solid var(--border)}
 }
 
-/* =========================
-   11) PRINT (C05) — PDF LIMPO
-   ========================= */
-@media print {
-  .no-print { display: none !important; }
-  .only-print { display: block !important; }
-
-  html, body {
-    background: white !important;
-    color: black !important;
-    height: auto !important;
-    min-height: auto !important;
-  }
-
-  #secao-impressao-isolada {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    color: black !important;
-    background: white !important;
-  }
-}
-```0
+/* PRINT */
+@media print{
+  .no-print{display:none}
+  body{background:#fff;color:#000}
+                 }
