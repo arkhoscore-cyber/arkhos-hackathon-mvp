@@ -533,8 +533,6 @@
     const cr = el.certResumo();
     const lr = el.ledgerResumo();
     const er = el.evidenciasResumo();
-
-    if (cr) cr.textContent = `CERT=${certScore}/100 | STATUS=${status}\n${motivo}`;
     if (lr) lr.textContent = (Array.isArray(ledger) ? ledger : []).map(x => `- ${x.etapa}: ${x.detalhe}`).join('\n') || t('aguardando');
     if (er) er.textContent = (Array.isArray(evidencias) ? evidencias : []).map(x => `- ${x.tipo}: ${x.nome} (${x.meta})`).join('\n') || t('aguardando');
   }
@@ -619,8 +617,9 @@
     if (ph) ph.textContent = state.draftHtml ? '' : t('aguardandoDoc');
   }
 
-  /* === CUT_HERE === */
- // =============== C7) PRINT / EXPORT (copy to only-print) ===============
+  /* === CUT_1 === */
+  
+    // =============== C7) PRINT / EXPORT (copy to only-print) ===============
   function copyToPrintSection() {
     const out = el.out();
     const printArea = el.printOnly();
@@ -953,7 +952,8 @@
     toast(t('alertLimpo'));
   }
 
-  // =============== C11) HEALTH/RUNTIME + generate flow ===============
+  /* === CUT_2 === */
+ // =============== C11) HEALTH/RUNTIME + generate flow ===============
   function setHealthBadge(text) {
     const b = el.badgeHealth();
     if (!b) return;
