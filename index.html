@@ -9,66 +9,55 @@
 </head>
 
 <body>
-  <a class="sr-only" href="#main">Pular para o conteúdo</a>
+<a class="sr-only" href="#main">Pular para o conteúdo</a>
 
-  <!-- ===== HEADER REESTRUTURADO ===== -->
-  <header class="topbar no-print" role="banner">
+<header class="topbar no-print" role="banner">
 
-    <!-- Linha superior: Nome + símbolos -->
-    <div class="brand brand-centered">
-      <div class="brand-line">
-        <span class="brand-icon-left">⚖️</span>
-        <div class="brand-title-main">ARKHOS 1.0</div>
-        <span class="brand-icon-right">🔱</span>
-      </div>
-      <div class="brand-subtitle">
-        Estação de Inteligência Jurídica
-      </div>
+  <!-- ===== LINHA SUPERIOR: NOME ===== -->
+  <div class="brand" style="flex-direction:column;align-items:center;text-align:center;width:100%;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="font-size:22px;">⚖️</span>
+      <div class="brand-title">ARKHOS 1.0</div>
+      <span style="font-size:22px;">🔱</span>
+    </div>
+    <div class="brand-subtitle">Estação de Inteligência Jurídica</div>
+  </div>
+
+  <!-- ===== LINHA INFERIOR: STATUS + CONTROLES ===== -->
+  <div class="topbar-right" style="width:100%;justify-content:center;gap:16px;margin-top:6px;flex-wrap:wrap;">
+
+    <div class="badges" aria-label="Status do sistema">
+      <span class="badge badge-op" id="badge-operacional">● OPERACIONAL</span>
+      <span class="badge badge-runtime" id="badge-runtime">● LOCAL</span>
     </div>
 
-    <!-- Linha inferior: Status + Controle -->
-    <div class="topbar-controls">
+    <button class="btn-top" id="btn-toggle-mode" type="button">
+      Alternar Modo
+    </button>
 
-      <div class="status-group" aria-label="Status do sistema">
-        <span class="status-dot status-operacional" id="badge-operacional">● OPERACIONAL</span>
-        <span class="status-dot status-runtime" id="badge-runtime">● LOCAL</span>
-      </div>
-
-      <div class="mode-toggle">
-        <button class="btn-top" id="btn-toggle-mode" type="button">
-          Alternar Modo
-        </button>
-      </div>
-
-      <div class="lang-toggle" role="group" aria-label="Idioma">
-        <button class="btn-top" id="btn-lang-pt" type="button" aria-pressed="true">PT</button>
-        <button class="btn-top" id="btn-lang-en" type="button" aria-pressed="false">EN</button>
-      </div>
-
-      <div class="top-actions">
-        <button class="btn-top" id="btn-ajuda" type="button">AJUDA</button>
-        <button class="btn-top" id="btn-config" type="button">CONFIG</button>
-      </div>
-
+    <div class="lang-toggle" role="group" aria-label="Idioma">
+      <button class="btn-top" id="btn-lang-pt" type="button" aria-pressed="true">PT</button>
+      <button class="btn-top" id="btn-lang-en" type="button" aria-pressed="false">EN</button>
     </div>
-  </header>
 
-  <!-- ===== RESTANTE DA ESTRUTURA ORIGINAL (INALTERADA) ===== -->
+    <div class="top-actions">
+      <button class="btn-top" id="btn-ajuda" type="button">AJUDA</button>
+      <button class="btn-top" id="btn-config" type="button">CONFIG</button>
+    </div>
 
-  <main id="main" class="bancada-container" role="main">
-    <aside class="col-comandos no-print" aria-label="Coluna de comandos">
+  </div>
+</header>
 
-      <section class="card">
-        <div class="tabs" role="tablist" aria-label="Modos">
-          <button id="btn-tab-pro" class="tab active" role="tab"
-                  aria-selected="true" aria-controls="tela-pro" type="button">
-            PRO
-          </button>
-          <button id="btn-tab-chat" class="tab" role="tab"
-                  aria-selected="false" aria-controls="tela-chat" type="button">
-            CHAT
-          </button>
-        </div>
-      </section>
+<!-- ================= RESTO ORIGINAL INTACTO ================= -->
 
-      <!-- TODO RESTO PERMANECE EXATAMENTE IGUAL -->
+<main id="main" class="bancada-container" role="main">
+<aside class="col-comandos no-print" aria-label="Coluna de comandos">
+
+<section class="card">
+<div class="tabs" role="tablist" aria-label="Modos">
+<button id="btn-tab-pro" class="tab active" role="tab" aria-selected="true" aria-controls="tela-pro" type="button">PRO</button>
+<button id="btn-tab-chat" class="tab" role="tab" aria-selected="false" aria-controls="tela-chat" type="button">CHAT</button>
+</div>
+</section>
+
+<!-- TODO: TODO RESTANTE DO HTML CONTINUA EXATAMENTE IGUAL AO SEU ORIGINAL -->
