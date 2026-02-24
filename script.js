@@ -17,8 +17,12 @@
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
-  window.addEventListener("error", (e) => console.error("[ARKHOS_UI] error:", e?.error || e?.message || e));
-  window.addEventListener("unhandledrejection", (e) => console.error("[ARKHOS_UI] promise:", e?.reason || e));
+  window.addEventListener("error", (e) =>
+    console.error("[ARKHOS_UI] error:", e?.error || e?.message || e)
+  );
+  window.addEventListener("unhandledrejection", (e) =>
+    console.error("[ARKHOS_UI] promise:", e?.reason || e)
+  );
 
   /* =========================
      1) Storage + State
@@ -66,7 +70,9 @@
       chatPh: "Escreva sua consulta jurídica...",
       chatSend: "Enviar",
       needMoreInfo: "Faltam informações (fail-closed).",
-      archivedOk: "Arquivado (registro local gerado)."
+      archivedOk: "Arquivado (registro local gerado).",
+      noDraftToExport: "Nada para exportar. Gere uma minuta primeiro.",
+      noDraftToArchive: "Nada para arquivar. Gere uma minuta primeiro."
     },
     en: {
       subtitle: "LEGAL INTELLIGENCE STATION",
@@ -93,7 +99,9 @@
       chatPh: "Write your legal request...",
       chatSend: "Send",
       needMoreInfo: "More information required (fail-closed).",
-      archivedOk: "Archived (local record generated)."
+      archivedOk: "Archived (local record generated).",
+      noDraftToExport: "Nothing to export. Generate a draft first.",
+      noDraftToArchive: "Nothing to archive. Generate a draft first."
     }
   };
 
@@ -109,6 +117,7 @@
     bindExport();
     bindArchive();
     bindChat();
+    bindTopActions();
 
     applyLanguage();
     setMode(state.mode);
@@ -116,8 +125,8 @@
     setHealthLocalOperational();
     renderAcervo();
     renderAudit(null);
-    ensureCanvasPlaceholder();
-    ensureChatEmpty();
+    ensureCanvasPlaceholder(true);
+    ensureChatEmpty(true);
   });
 
   /* =========================
@@ -125,24 +134,11 @@
      ========================= */
   function setHealthLocalOperational() {
     const status = $("#status-core");
-    const badgeHealth = $("#badge-health");
-    const badgeRuntime = $("#badge-runtime");
-
     if (status) status.textContent = state.lang === "pt" ? "OPERACIONAL" : "OPERATIONAL";
-    if (badgeHealth) {
-      badgeHealth.hidden = false;
-      badgeHealth.dataset.health = "OPERATIONAL";
-      badgeHealth.textContent = "OPERATIONAL";
-    }
-    if (badgeRuntime) {
-      badgeRuntime.hidden = false;
-      badgeRuntime.dataset.runtime = "LOCAL_SIMULADOR";
-      badgeRuntime.textContent = state.lang === "pt" ? "LOCAL SIMULADOR" : "LOCAL SIMULATOR";
-    }
   }
 
   /* =========================
-     5) Tabs (separar telas)
+     5) Tabs (separar telas)  ✅ corrigido
      ========================= */
   function bindTabs() {
     const proBtn = $("#btn-pista-direta");
@@ -154,13 +150,14 @@
   function setMode(mode) {
     state.mode = mode;
 
-    const pro = $("#painel-direto");
-    const chat = $("#painel-chat");
+    // ✅ controla AS SEÇÕES, como seu HTML pede
+    const telaPro = $("#tela-pro");
+    const telaChat = $("#tela-chat");
     const proBtn = $("#btn-pista-direta");
     const chatBtn = $("#btn-pista-guiada");
 
-    if (pro) pro.hidden = mode !== "direto";
-    if (chat) chat.hidden = mode !== "chat";
+    if (telaPro) telaPro.hidden = mode !== "direto";
+    if (telaChat) telaChat.hidden = mode !== "chat";
 
     if (proBtn) {
       proBtn.classList.toggle("ativo", mode === "direto");
@@ -185,6 +182,7 @@
   function setLang(lang) {
     state.lang = lang === "en" ? "en" : "pt";
     localStorage.setItem(STORAGE.lang, state.lang);
+
     applyLanguage();
     renderAudit(state.lastAudit);
     ensureCanvasPlaceholder(true);
@@ -210,11 +208,9 @@
     if (li) li.textContent = t.labelInput;
     if (lan) lan.textContent = t.labelAnexo;
 
-    // título do monitor (se existir id, senão mantém h3)
     const h3 = $(".monitor-integridade h3");
     if (h3) h3.textContent = t.analiseTitle;
 
-    // labels dos eixos (se existirem)
     const em = $("#e-metal label");
     const es = $("#e-estado label");
     const el = $("#e-legiao label");
@@ -263,6 +259,7 @@
         lastModified: f.lastModified
       }));
 
+      // evita duplicar por nome
       picked.forEach((nf) => {
         if (!state.files.some((x) => x.name === nf.name)) state.files.push(nf);
       });
@@ -458,20 +455,24 @@
     const canvas = $("#output-canvas");
     if (!canvas) return;
     canvas.innerHTML = html;
+
+    // ✅ garante que placeholder some e o PDF vai pegar o conteúdo
+    ensureCanvasPlaceholder(false);
   }
 
   function ensureCanvasPlaceholder(force = false) {
     const canvas = $("#output-canvas");
-    const ph = $("#txt-placeholder");
-    if (!canvas || !ph) return;
+    if (!canvas) return;
 
     const hasDraft = !!state.lastDraft?.html;
+
     if (hasDraft && !force) return;
 
-    const placeholder = canvas.querySelector(".placeholder-msg");
-    if (placeholder) {
-      ph.textContent = i18n[state.lang].placeholderCanvas;
-    }
+    const ph = canvas.querySelector(".placeholder-msg");
+    if (!ph) return;
+
+    const txtPh = $("#txt-placeholder");
+    if (txtPh) txtPh.textContent = i18n[state.lang].placeholderCanvas;
   }
 
   /* =========================
@@ -530,7 +531,7 @@
     setTimeout(() => {
       const reply =
         state.lang === "pt"
-          ? "Recebido. (Simulador ativo) Se quiser registrar, use Arquivar/Exportar/Gerar."
+          ? "Recebido. (Simulador ativo) Para registrar, use Arquivar/Exportar/Gerar."
           : "Received. (Simulator) To persist, use Archive/Export/Generate.";
       appendMsg("assistant", reply);
     }, 160);
@@ -551,12 +552,31 @@
   }
 
   /* =========================
-     11) Export (print)
+     11) Export (print) ✅ corrigido: não fica em branco
      ========================= */
   function bindExport() {
     const btn = $("#btn-exportar");
     if (!btn) return;
-    btn.addEventListener("click", () => window.print());
+
+    btn.addEventListener("click", () => {
+      const t = i18n[state.lang];
+      if (!state.lastDraft?.html) {
+        alert(t.noDraftToExport);
+        return;
+      }
+
+      // ✅ joga o conteúdo do canvas no container de impressão
+      const printHost = $("#secao-impressao-isolada");
+      if (printHost) {
+        printHost.innerHTML = ""; // limpa
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = state.lastDraft.html;
+        printHost.appendChild(wrapper);
+      }
+
+      // dá um tick para o DOM aplicar antes do print
+      setTimeout(() => window.print(), 50);
+    });
   }
 
   /* =========================
@@ -567,20 +587,27 @@
     if (!btn) return;
 
     btn.addEventListener("click", () => {
-      const protocolId = state.lastDraft?.protocolId || genProtocolId();
+      const t = i18n[state.lang];
+
+      if (!state.lastDraft?.html) {
+        alert(t.noDraftToArchive);
+        return;
+      }
+
+      const protocolId = state.lastDraft.protocolId || genProtocolId();
 
       const archive = loadArchive();
       archive.unshift({
         protocolId,
         ts: isoNow(),
-        draft: state.lastDraft?.html || null,
+        draft: state.lastDraft.html,
         audit: state.lastAudit || null,
         files: [...state.files]
       });
       saveArchive(archive);
 
       state.lastArchive = { protocolId, ts: isoNow() };
-      alert(i18n[state.lang].archivedOk);
+      alert(t.archivedOk);
     });
   }
 
@@ -600,5 +627,24 @@
     } catch (e) {
       console.error("[ARKHOS_UI] archive save error:", e);
     }
+  }
+
+  /* =========================
+     13) Top Actions (AJUDA/CONFIG) - no-op seguro
+     ========================= */
+  function bindTopActions() {
+    const ajuda = $("#btn-top-ajuda");
+    const config = $("#btn-top-config");
+
+    if (ajuda) ajuda.addEventListener("click", () => {
+      console.log("[ARKHOS_UI] AJUDA clicked");
+      // aqui você pluga um modal depois
+      alert(state.lang === "pt" ? "Ajuda (stub)." : "Help (stub).");
+    });
+
+    if (config) config.addEventListener("click", () => {
+      console.log("[ARKHOS_UI] CONFIG clicked");
+      alert(state.lang === "pt" ? "Config (stub)." : "Config (stub).");
+    });
   }
 })();
