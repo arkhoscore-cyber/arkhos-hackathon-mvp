@@ -1,650 +1,536 @@
+/* ARKHOS_UI — script.js (offline-first, sem libs, LOCAL_SIMULADOR) */
 (() => {
-  "use strict";
+  'use strict';
 
-  /* =========================
-     0) Helpers + Guard
-     ========================= */
-  const $ = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const isoNow = () => new Date().toISOString();
-
-  const escapeHtml = (s) =>
-    String(s ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-
-  window.addEventListener("error", (e) =>
-    console.error("[ARKHOS_UI] error:", e?.error || e?.message || e)
-  );
-  window.addEventListener("unhandledrejection", (e) =>
-    console.error("[ARKHOS_UI] promise:", e?.reason || e)
-  );
-
-  /* =========================
-     1) Storage + State
-     ========================= */
-  const STORAGE = {
-    lang: "arkhos_lang_v1",
-    archive: "arkhos_archive_v1"
+  // =============== C1) STATE / STORAGE ===============
+  const LS = {
+    lang: 'arkhos_lang_v1',
+    tab: 'arkhos_tab_v1',
+    archive: 'arkhos_archive_v1',
+    session: 'arkhos_session_v1'
   };
+
+  const MAX_ARCHIVE = 50;
 
   const state = {
-    lang: localStorage.getItem(STORAGE.lang) || "pt",
-    mode: "direto", // direto | chat
-    files: [],      // {name,size,type,lastModified}
-    lastAudit: null,
-    lastDraft: null,
-    lastArchive: null
+    lang: 'pt',
+    tab: 'pro',
+    areaValue: 'civil',
+    files: [], // {id,name,size,type,lastModified}
+    draftHtml: '',
+    audit: null, // {scores:{metal,estado,legiao,logos}, certScore, status, motivo, evidencias:[], ledger:[]}
+    chat: [] // {role:'me'|'bot', text, ts}
   };
 
-  /* =========================
-     2) i18n (mínimo)
-     ========================= */
-  const i18n = {
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  // Safe get element; returns null (no throw)
+  const el = {
+    btnLangPt: () => $('#btn-lang-pt'),
+    btnLangEn: () => $('#btn-lang-en'),
+    btnAjuda: () => $('#btn-ajuda'),
+    btnConfig: () => $('#btn-config'),
+    modalAjuda: () => $('#modal-ajuda'),
+    modalConfig: () => $('#modal-config'),
+    btnAjudaFechar: () => $('#btn-ajuda-fechar'),
+    btnConfigFechar: () => $('#btn-config-fechar'),
+    btnLimparSessao: () => $('#btn-limpar-sessao'),
+    btnCompartilhar: () => $('#btn-compartilhar'),
+
+    btnTabPro: () => $('#btn-tab-pro'),
+    btnTabChat: () => $('#btn-tab-chat'),
+    telaPro: () => $('#tela-pro'),
+    telaChat: () => $('#tela-chat'),
+
+    area: () => $('#area-direito'),
+    cmd: () => $('#cmd-input'),
+    btnGerar: () => $('#btn-executar'),
+    btnExportar: () => $('#btn-exportar'),
+    btnArquivar: () => $('#btn-arquivar'),
+
+    fileInput: () => $('#file-soberano'),
+    btnLimparAnexos: () => $('#btn-limpar-anexos'),
+    tplFile: () => $('#tpl-file-item'),
+    listaArquivos: () => $('#lista-arquivos'),
+    filesEmpty: () => $('#files-empty'),
+
+    seloCert: () => $('#selo-cert'),
+    seloAuth: () => $('#selo-auth'),
+    barMetal: () => $('#bar-metal'),
+    barEstado: () => $('#bar-estado'),
+    barLegiao: () => $('#bar-legiao'),
+    barLogos: () => $('#bar-logos'),
+    vMetal: () => $('#v-metal'),
+    vEstado: () => $('#v-estado'),
+    vLegiao: () => $('#v-legiao'),
+    vLogos: () => $('#v-logos'),
+    auditMotivo: () => $('#audit-motivo'),
+
+    certResumo: () => $('#cert-resumo'),
+    ledgerResumo: () => $('#ledger-resumo'),
+    evidenciasResumo: () => $('#evidencias-resumo'),
+
+    out: () => $('#output-canvas'),
+    placeholder: () => $('#txt-placeholder'),
+    printOnly: () => $('#secao-impressao-isolada'),
+
+    listaArquivados: () => $('#lista-arquivados'),
+    archiveEmpty: () => $('#archive-empty'),
+    btnLimparArchive: () => $('#btn-limpar-archive'),
+
+    chatMessages: () => $('#chat-messages'),
+    chatInput: () => $('#chat-input'),
+    chatSend: () => $('#chat-send'),
+    chatArquivar: () => $('#chat-arquivar'),
+    chatLimpar: () => $('#chat-limpar'),
+  };
+
+  function nowTs() { return Date.now(); }
+
+  function safeJsonParse(str, fallback) {
+    try { return JSON.parse(str); } catch { return fallback; }
+  }
+
+  function loadLS(key, fallback) {
+    const raw = localStorage.getItem(key);
+    if (raw == null) return fallback;
+    return safeJsonParse(raw, fallback);
+  }
+
+  function saveLS(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  // =============== C2) i18n + ARIA PRESSED ===============
+  const I18N = {
     pt: {
-      subtitle: "ESTAÇÃO DE INTELIGÊNCIA JURÍDICA",
-      proTab: "MODO PROFISSIONAL (MINUTA)",
-      chatTab: "ASSISTENTE JURÍDICO (CHAT)",
-      labelArea: "COMPETÊNCIA / ÁREA DE ATUAÇÃO",
-      labelInput: "INSTRUÇÃO TÉCNICA DA MINUTA",
-      labelAnexo: "📎 APORTAR LASTRO DOCUMENTAL (ACERVO)",
-      analiseTitle: "ANÁLISE DE CONFORMIDADE PROCESSUAL",
-      eixoMetal: "LÓGICA (Estrutura)",
-      eixoEstado: "PROVAS (Acervo)",
-      eixoLegiao: "CONTEXTO (Jurisprudência)",
-      eixoLogos: "DIREITO (Fundamentação)",
-      btnGerar: "GERAR MINUTA E PROTOCOLAR",
-      placeholderCanvas: "Aguardando instrução técnica e acervo probatório para compilar o documento.",
-      acervoVazio: "Acervo probatório vazio. Aguardando documentos...",
-      certWait: "CERT: AGUARDANDO",
-      auditWait: "AUTENTICIDADE: PENDENTE",
-      metrica1: "MÉTRICA DE VIABILIDADE",
-      metrica2: "MARGEM DE RISCO TÉCNICO",
-      exportBtn: "📥 EXPORTAR DOCUMENTO (PDF LIMPO)",
-      salvarBtn: "💾 ARQUIVAR NO SISTEMA",
-      chatEmpty: "Digite sua consulta. O assistente vai conduzir as perguntas necessárias e apontar o que falta para “passar” no fail-closed.",
-      chatPh: "Escreva sua consulta jurídica...",
-      chatSend: "Enviar",
-      needMoreInfo: "Faltam informações (fail-closed).",
-      archivedOk: "Arquivado (registro local gerado).",
-      noDraftToExport: "Nada para exportar. Gere uma minuta primeiro.",
-      noDraftToArchive: "Nada para arquivar. Gere uma minuta primeiro."
+      proTitle: 'Modo Profissional',
+      chatTitle: 'Assistente Jurídico',
+      area: 'Área',
+      instrucao: 'Instrução',
+      instrucaoPh: 'Descreva o caso e o que você precisa (mín. 10 caracteres).',
+      gerar: 'GERAR MINUTA',
+      exportar: 'EXPORTAR PDF',
+      arquivar: 'ARQUIVAR SESSÃO',
+      failClosed: 'Fail-closed: informe uma instrução válida para habilitar a geração.',
+      acervo: 'Acervo Probatório',
+      removerTodos: 'REMOVER TODOS',
+      auditoria: 'Auditoria (Simulador)',
+      rastreio: 'Rastreabilidade',
+      aguardando: 'Aguardando…',
+      aguardandoGeracao: 'Aguardando geração para auditoria.',
+      documento: 'Documento',
+      aguardandoDoc: 'Aguardando geração…',
+      enviar: 'ENVIAR',
+      chatPh: 'Escreva sua mensagem…',
+      arquivarChat: 'ARQUIVAR CHAT',
+      limparChat: 'LIMPAR CHAT',
+      arquivados: 'Arquivados',
+      nenhumArquivado: 'Nenhum arquivado.',
+      nenhumArquivo: 'Nenhum arquivo anexado.',
+      ajuda: 'Ajuda',
+      config: 'Config',
+      limparSessao: 'LIMPAR SESSÃO',
+      compartilhar: 'COMPARTILHAR',
+      shareHint: '“Compartilhar” usa recursos nativos quando disponíveis (Android) ou fallback para copiar texto.',
+      alertArquivado: 'Arquivado.',
+      alertLimpo: 'Limpo.',
+      alertCopiado: 'Copiado para a área de transferência.',
+      exportFalha: 'Export falhou. Tente novamente.',
+      precisaGerar: 'Gere uma minuta antes de exportar.',
+      precisaInstrucao: 'Instrução insuficiente (mín. 10 caracteres).'
     },
     en: {
-      subtitle: "LEGAL INTELLIGENCE STATION",
-      proTab: "PROFESSIONAL MODE (DRAFT)",
-      chatTab: "LEGAL ASSISTANT (CHAT)",
-      labelArea: "JURISDICTION / FIELD",
-      labelInput: "TECHNICAL DRAFT INSTRUCTION",
-      labelAnexo: "📎 ATTACH EVIDENCE (VAULT)",
-      analiseTitle: "PROCEDURAL COMPLIANCE ANALYSIS",
-      eixoMetal: "LOGIC (Structure)",
-      eixoEstado: "EVIDENCE (Assets)",
-      eixoLegiao: "CONTEXT (Case Law)",
-      eixoLogos: "LAW (Legal Basis)",
-      btnGerar: "GENERATE AND PROTOCOL DRAFT",
-      placeholderCanvas: "Waiting for instructions and evidence to compile document.",
-      acervoVazio: "Evidence vault empty. Waiting for documents...",
-      certWait: "CERT: WAITING",
-      auditWait: "AUTHENTICITY: PENDING",
-      metrica1: "VIABILITY SCORE",
-      metrica2: "TECHNICAL RISK MARGIN",
-      exportBtn: "📥 EXPORT DOCUMENT (CLEAN PDF)",
-      salvarBtn: "💾 ARCHIVE IN SYSTEM",
-      chatEmpty: "Type your request. The assistant will ask what’s missing to pass fail-closed.",
-      chatPh: "Write your legal request...",
-      chatSend: "Send",
-      needMoreInfo: "More information required (fail-closed).",
-      archivedOk: "Archived (local record generated).",
-      noDraftToExport: "Nothing to export. Generate a draft first.",
-      noDraftToArchive: "Nothing to archive. Generate a draft first."
+      proTitle: 'Professional Mode',
+      chatTitle: 'Legal Assistant',
+      area: 'Area',
+      instrucao: 'Instruction',
+      instrucaoPh: 'Describe the case and what you need (min 10 characters).',
+      gerar: 'GENERATE DRAFT',
+      exportar: 'EXPORT PDF',
+      arquivar: 'ARCHIVE SESSION',
+      failClosed: 'Fail-closed: provide a valid instruction to enable generation.',
+      acervo: 'Evidence Collection',
+      removerTodos: 'REMOVE ALL',
+      auditoria: 'Audit (Simulator)',
+      rastreio: 'Traceability',
+      aguardando: 'Waiting…',
+      aguardandoGeracao: 'Waiting for generation to audit.',
+      documento: 'Document',
+      aguardandoDoc: 'Waiting for generation…',
+      enviar: 'SEND',
+      chatPh: 'Type your message…',
+      arquivarChat: 'ARCHIVE CHAT',
+      limparChat: 'CLEAR CHAT',
+      arquivados: 'Archived',
+      nenhumArquivado: 'No archives.',
+      nenhumArquivo: 'No files attached.',
+      ajuda: 'Help',
+      config: 'Config',
+      limparSessao: 'CLEAR SESSION',
+      compartilhar: 'SHARE',
+      shareHint: '“Share” uses native features when available (Android) or clipboard fallback.',
+      alertArquivado: 'Archived.',
+      alertLimpo: 'Cleared.',
+      alertCopiado: 'Copied to clipboard.',
+      exportFalha: 'Export failed. Try again.',
+      precisaGerar: 'Generate a draft before exporting.',
+      precisaInstrucao: 'Insufficient instruction (min 10 characters).'
     }
   };
 
-  /* =========================
-     3) Boot
-     ========================= */
-  document.addEventListener("DOMContentLoaded", () => {
-    bindTabs();
-    bindLanguage();
-    bindDirectInputs();
-    bindUpload();
-    bindGenerate();
-    bindExport();
-    bindArchive();
-    bindChat();
-    bindTopActions();
-
-    applyLanguage();
-    setMode(state.mode);
-
-    setHealthLocalOperational();
-    renderAcervo();
-    renderAudit(null);
-    ensureCanvasPlaceholder(true);
-    ensureChatEmpty(true);
-  });
-
-  /* =========================
-     4) Health (local)
-     ========================= */
-  function setHealthLocalOperational() {
-    const status = $("#status-core");
-    if (status) status.textContent = state.lang === "pt" ? "OPERACIONAL" : "OPERATIONAL";
+  function t(key) {
+    const pack = I18N[state.lang] || I18N.pt;
+    return pack[key] ?? I18N.pt[key] ?? key;
   }
 
-  /* =========================
-     5) Tabs (separar telas)  ✅ corrigido
-     ========================= */
-  function bindTabs() {
-    const proBtn = $("#btn-pista-direta");
-    const chatBtn = $("#btn-pista-guiada");
-    if (proBtn) proBtn.addEventListener("click", () => setMode("direto"));
-    if (chatBtn) chatBtn.addEventListener("click", () => setMode("chat"));
-  }
+  function applyI18n() {
+    document.documentElement.lang = state.lang === 'pt' ? 'pt-BR' : 'en';
 
-  function setMode(mode) {
-    state.mode = mode;
-
-    // ✅ controla AS SEÇÕES, como seu HTML pede
-    const telaPro = $("#tela-pro");
-    const telaChat = $("#tela-chat");
-    const proBtn = $("#btn-pista-direta");
-    const chatBtn = $("#btn-pista-guiada");
-
-    if (telaPro) telaPro.hidden = mode !== "direto";
-    if (telaChat) telaChat.hidden = mode !== "chat";
-
-    if (proBtn) {
-      proBtn.classList.toggle("ativo", mode === "direto");
-      proBtn.setAttribute("aria-selected", mode === "direto" ? "true" : "false");
+    // aria-pressed
+    const pt = el.btnLangPt();
+    const en = el.btnLangEn();
+    if (pt && en) {
+      pt.setAttribute('aria-pressed', String(state.lang === 'pt'));
+      en.setAttribute('aria-pressed', String(state.lang === 'en'));
+      pt.classList.toggle('active', state.lang === 'pt');
+      en.classList.toggle('active', state.lang === 'en');
     }
-    if (chatBtn) {
-      chatBtn.classList.toggle("ativo", mode === "chat");
-      chatBtn.setAttribute("aria-selected", mode === "chat" ? "true" : "false");
+
+    // Text nodes
+    const proTitle = $('#pro-title'); if (proTitle) proTitle.textContent = t('proTitle');
+    const chatTitle = $('#chat-title'); if (chatTitle) chatTitle.textContent = t('chatTitle');
+    const lblArea = $('#lbl-area'); if (lblArea) lblArea.textContent = t('area');
+    const lblInstr = $('#lbl-instrucao'); if (lblInstr) lblInstr.textContent = t('instrucao');
+    const cmd = el.cmd(); if (cmd) cmd.placeholder = t('instrucaoPh');
+
+    const btnGerar = el.btnGerar(); if (btnGerar) btnGerar.textContent = t('gerar');
+    const btnExportar = el.btnExportar(); if (btnExportar) btnExportar.textContent = t('exportar');
+    const btnArquivar = el.btnArquivar(); if (btnArquivar) btnArquivar.textContent = t('arquivar');
+    const hint = $('#hint-failclosed'); if (hint) hint.textContent = t('failClosed');
+
+    const ttlAcervo = $('#ttl-acervo'); if (ttlAcervo) ttlAcervo.textContent = t('acervo');
+    const btnLimparAnexos = el.btnLimparAnexos(); if (btnLimparAnexos) btnLimparAnexos.textContent = t('removerTodos');
+
+    const ttlAud = $('#ttl-auditoria'); if (ttlAud) ttlAud.textContent = t('auditoria');
+    const ttlRas = $('#ttl-rastreio'); if (ttlRas) ttlRas.textContent = t('rastreio');
+
+    const ttlCanvas = $('#ttl-canvas'); if (ttlCanvas) ttlCanvas.textContent = t('documento');
+    const placeholder = el.placeholder(); if (placeholder && !state.draftHtml) placeholder.textContent = t('aguardandoDoc');
+
+    const chatInput = el.chatInput(); if (chatInput) chatInput.placeholder = t('chatPh');
+    const chatSend = el.chatSend(); if (chatSend) chatSend.textContent = t('enviar');
+
+    const chatArquivar = el.chatArquivar(); if (chatArquivar) chatArquivar.textContent = t('arquivarChat');
+    const chatLimpar = el.chatLimpar(); if (chatLimpar) chatLimpar.textContent = t('limparChat');
+
+    const ttlArquivados = $('#ttl-arquivados'); if (ttlArquivados) ttlArquivados.textContent = t('arquivados');
+    const archiveEmpty = el.archiveEmpty(); if (archiveEmpty) archiveEmpty.textContent = t('nenhumArquivado');
+
+    const filesEmpty = el.filesEmpty(); if (filesEmpty) filesEmpty.textContent = t('nenhumArquivo');
+
+    const btnAjuda = el.btnAjuda(); if (btnAjuda) btnAjuda.textContent = t('ajuda').toUpperCase();
+    const btnConfig = el.btnConfig(); if (btnConfig) btnConfig.textContent = t('config').toUpperCase();
+
+    const modalAjTitle = $('#modal-ajuda-title'); if (modalAjTitle) modalAjTitle.textContent = t('ajuda');
+    const modalCfgTitle = $('#modal-config-title'); if (modalCfgTitle) modalCfgTitle.textContent = t('config');
+    const btnLimparSessao = el.btnLimparSessao(); if (btnLimparSessao) btnLimparSessao.textContent = t('limparSessao');
+    const btnCompartilhar = el.btnCompartilhar(); if (btnCompartilhar) btnCompartilhar.textContent = t('compartilhar');
+    const cfgHint = $('#config-hint'); if (cfgHint) cfgHint.textContent = t('shareHint');
+
+    // Audit fallback texts
+    const auditMotivo = el.auditMotivo();
+    if (auditMotivo && (!state.audit || !state.audit.motivo)) auditMotivo.textContent = t('aguardandoGeracao');
+
+    // Trace placeholders if empty
+    if (!state.audit) {
+      const cr = el.certResumo(); if (cr) cr.textContent = t('aguardando');
+      const lr = el.ledgerResumo(); if (lr) lr.textContent = t('aguardando');
+      const er = el.evidenciasResumo(); if (er) er.textContent = t('aguardando');
     }
   }
 
-  /* =========================
-     6) Language
-     ========================= */
-  function bindLanguage() {
-    const pt = $("#btn-lang-pt");
-    const en = $("#btn-lang-en");
-    if (pt) pt.addEventListener("click", () => setLang("pt"));
-    if (en) en.addEventListener("click", () => setLang("en"));
+  // =============== C3) TABS ===============
+  function setTab(tab) {
+    state.tab = tab === 'chat' ? 'chat' : 'pro';
+    saveLS(LS.tab, state.tab);
+
+    const btnPro = el.btnTabPro();
+    const btnChat = el.btnTabChat();
+    const telaPro = el.telaPro();
+    const telaChat = el.telaChat();
+
+    if (btnPro && btnChat) {
+      btnPro.classList.toggle('active', state.tab === 'pro');
+      btnChat.classList.toggle('active', state.tab === 'chat');
+      btnPro.setAttribute('aria-selected', String(state.tab === 'pro'));
+      btnChat.setAttribute('aria-selected', String(state.tab === 'chat'));
+    }
+    if (telaPro && telaChat) {
+      telaPro.classList.toggle('hidden', state.tab !== 'pro');
+      telaChat.classList.toggle('hidden', state.tab !== 'chat');
+    }
   }
 
-  function setLang(lang) {
-    state.lang = lang === "en" ? "en" : "pt";
-    localStorage.setItem(STORAGE.lang, state.lang);
-
-    applyLanguage();
-    renderAudit(state.lastAudit);
-    ensureCanvasPlaceholder(true);
-    ensureChatEmpty(true);
-    setHealthLocalOperational();
-  }
-
-  function applyLanguage() {
-    const t = i18n[state.lang];
-
-    const subtitle = $("#subtitle") || $(".subtitle");
-    if (subtitle) subtitle.textContent = t.subtitle;
-
-    const proBtn = $("#btn-pista-direta");
-    const chatBtn = $("#btn-pista-guiada");
-    if (proBtn) proBtn.textContent = t.proTab;
-    if (chatBtn) chatBtn.textContent = t.chatTab;
-
-    const la = $("#label-area");
-    const li = $("#label-input");
-    const lan = $("#label-anexo");
-    if (la) la.textContent = t.labelArea;
-    if (li) li.textContent = t.labelInput;
-    if (lan) lan.textContent = t.labelAnexo;
-
-    const h3 = $(".monitor-integridade h3");
-    if (h3) h3.textContent = t.analiseTitle;
-
-    const em = $("#e-metal label");
-    const es = $("#e-estado label");
-    const el = $("#e-legiao label");
-    const eo = $("#e-logos label");
-    if (em) em.textContent = t.eixoMetal;
-    if (es) es.textContent = t.eixoEstado;
-    if (el) el.textContent = t.eixoLegiao;
-    if (eo) eo.textContent = t.eixoLogos;
-
-    const btn = $("#btn-executar");
-    if (btn) btn.textContent = t.btnGerar;
-
-    const m1 = $("#label-metrica-1");
-    const m2 = $("#label-metrica-2");
-    if (m1) m1.textContent = t.metrica1;
-    if (m2) m2.textContent = t.metrica2;
-
-    const bx = $("#btn-exportar");
-    const bs = $("#btn-salvar");
-    if (bx) bx.textContent = t.exportBtn;
-    if (bs) bs.textContent = t.salvarBtn;
-
-    const chatInput = $("#chat-input");
-    if (chatInput) chatInput.placeholder = t.chatPh;
-    const chatSend = $("#chat-send");
-    if (chatSend) chatSend.textContent = t.chatSend;
-
-    const ptBtn = $("#btn-lang-pt");
-    const enBtn = $("#btn-lang-en");
-    if (ptBtn) ptBtn.classList.toggle("active", state.lang === "pt");
-    if (enBtn) enBtn.classList.toggle("active", state.lang === "en");
-  }
-
-  /* =========================
-     7) Upload + remover
-     ========================= */
-  function bindUpload() {
-    const input = $("#file-soberano");
-    if (!input) return;
-
-    input.addEventListener("change", () => {
-      const picked = Array.from(input.files || []).map((f) => ({
-        name: f.name,
-        size: f.size,
-        type: f.type,
-        lastModified: f.lastModified
-      }));
-
-      // evita duplicar por nome
-      picked.forEach((nf) => {
-        if (!state.files.some((x) => x.name === nf.name)) state.files.push(nf);
-      });
-
-      input.value = "";
-      renderAcervo();
-      runAudit();
+  // =============== C12) AUTO-REPAIR GUARDS ===============
+  function onClick(selectorOrEl, fn) {
+    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
+    if (!node) return;
+    node.addEventListener('click', (e) => {
+      try { fn(e); } catch (err) { console.error(err); }
     });
   }
 
-  function renderAcervo() {
-    const box = $("#file-display-area");
-    if (!box) return;
-
-    const t = i18n[state.lang];
-    box.innerHTML = "";
-
-    if (!state.files.length) {
-      const p = document.createElement("p");
-      p.className = "txt-vazio";
-      p.textContent = t.acervoVazio;
-      box.appendChild(p);
-      return;
-    }
-
-    state.files.forEach((f, idx) => {
-      const row = document.createElement("div");
-      row.className = "file-item";
-      row.innerHTML = `
-        <span class="file-name">${escapeHtml(f.name)}</span>
-        <button type="button" class="file-remove" aria-label="Remover arquivo">✖</button>
-      `;
-      row.querySelector(".file-remove").addEventListener("click", () => {
-        state.files.splice(idx, 1);
-        renderAcervo();
-        runAudit();
-      });
-      box.appendChild(row);
+  function onInput(selectorOrEl, fn) {
+    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
+    if (!node) return;
+    node.addEventListener('input', (e) => {
+      try { fn(e); } catch (err) { console.error(err); }
     });
   }
 
-  /* =========================
-     8) Auditoria (simulador)
-     ========================= */
-  function bindDirectInputs() {
-    const txt = $("#cmd-input");
-    const area = $("#area-direito");
-    if (txt) txt.addEventListener("input", runAudit);
-    if (area) area.addEventListener("change", runAudit);
+  // =============== Sanitização ===============
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
   }
 
-  function runAudit() {
-    const txtEl = $("#cmd-input");
-    const btn = $("#btn-executar");
+  // =============== Fail-closed ===============
+  function isValidInstruction() {
+    const v = (el.cmd()?.value || '').trim();
+    return v.length >= 10;
+  }
 
-    const caseText = (txtEl?.value || "").trim();
+  function refreshButtons() {
+    const ok = isValidInstruction();
+    const btnGerar = el.btnGerar();
+    if (btnGerar) btnGerar.disabled = !ok;
 
-    if (btn) btn.disabled = caseText.length < 10;
+    const hasDraft = !!state.draftHtml;
+    const btnExportar = el.btnExportar();
+    const btnArquivar = el.btnArquivar();
+    if (btnExportar) btnExportar.disabled = !hasDraft;
+    if (btnArquivar) btnArquivar.disabled = !(hasDraft || state.chat.length || state.files.length);
 
-    if (caseText.length < 10) {
-      const audit = {
-        status: "NEED_MORE_INFO",
-        axes: { metal: 0, estado: clamp(state.files.length * 33, 0, 100), legiao: 0, logos: 0 },
-        score: 0,
-        risk: 100,
-        viability: 0
-      };
-      state.lastAudit = audit;
-      renderAudit(audit);
+    const chatSend = el.chatSend();
+    const chatInput = el.chatInput();
+    if (chatSend && chatInput) chatSend.disabled = chatInput.value.trim().length === 0;
+
+    const btnLimparAnexos = el.btnLimparAnexos();
+    if (btnLimparAnexos) btnLimparAnexos.disabled = state.files.length === 0;
+  }
+
+  // =============== C4) Upload / Render files (usa template) ===============
+  function fileIdFrom(f) {
+    return `${f.name}|${f.size}|${f.type}|${f.lastModified}`;
+  }
+
+  function renderFiles() {
+    const ul = el.listaArquivos();
+    const empty = el.filesEmpty();
+    if (!ul || !empty) return;
+
+    ul.innerHTML = '';
+    if (state.files.length === 0) {
+      empty.classList.remove('hidden');
       return;
     }
+    empty.classList.add('hidden');
 
-    const metal = clamp(Math.floor(caseText.length / 10), 0, 100);
-    const estado = clamp(state.files.length * 33, 0, 100);
-    const legiao = clamp(Math.floor(caseText.split(/\s+/).length / 3), 0, 100);
-    const logos = clamp(caseText.length > 120 ? 60 : caseText.length > 40 ? 35 : 10, 0, 100);
+    const tpl = el.tplFile();
+    for (const f of state.files) {
+      let li;
+      if (tpl && tpl.content) {
+        li = tpl.content.firstElementChild.cloneNode(true);
+        li.querySelector('.file-name').textContent = f.name;
+        li.querySelector('.file-sub').textContent = `${formatBytes(f.size)} • ${f.type || '—'} • ${new Date(f.lastModified).toLocaleString()}`;
+        const btn = li.querySelector('.file-remove');
+        btn.addEventListener('click', () => {
+          state.files = state.files.filter(x => x.id !== f.id);
+          persistSession();
+          renderFiles();
+          refreshButtons();
+        });
+      } else {
+        li = document.createElement('li');
+        li.className = 'file-item';
+        li.textContent = f.name;
+      }
+      ul.appendChild(li);
+    }
+  }
 
-    const score = Math.floor((metal + estado + legiao + logos) / 4);
-    const risk = clamp(100 - score, 0, 100);
+  function formatBytes(n) {
+    const num = Number(n) || 0;
+    if (num < 1024) return `${num} B`;
+    const kb = num / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    const mb = kb / 1024;
+    if (mb < 1024) return `${mb.toFixed(1)} MB`;
+    const gb = mb / 1024;
+    return `${gb.toFixed(2)} GB`;
+  }
 
-    const audit = {
-      status: "OK",
-      axes: { metal, estado, legiao, logos },
-      score,
-      risk,
-      viability: score
+  // =============== C5) Auditoria simulada ===============
+  function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+
+  function simulateAudit(instruction, files) {
+    // Heurística simples offline (simulador): usa tamanho do texto + quantidade de anexos
+    const len = instruction.length;
+    const fcount = files.length;
+    const signal = clamp01((len / 600) + (fcount / 8) * 0.35);
+
+    const metal = clamp01(signal * 0.85 + (Math.random() * 0.10));
+    const estado = clamp01(signal * 0.75 + (Math.random() * 0.18));
+    const legiao = clamp01(signal * 0.70 + (Math.random() * 0.22));
+    const logos = clamp01(signal * 0.80 + (Math.random() * 0.14));
+
+    const scores = {
+      metal: Math.round(metal * 100),
+      estado: Math.round(estado * 100),
+      legiao: Math.round(legiao * 100),
+      logos: Math.round(logos * 100)
     };
 
-    state.lastAudit = audit;
-    renderAudit(audit);
+    const certScore = Math.round((scores.metal + scores.estado + scores.legiao + scores.logos) / 4);
+    const status = certScore >= 55 ? 'OK' : 'FAIL';
+
+    const evidencias = [];
+    if (fcount) {
+      for (const f of files.slice(0, 8)) {
+        evidencias.push({
+          tipo: 'ARQUIVO',
+          nome: f.name,
+          meta: `${formatBytes(f.size)} • ${f.type || '—'} • lastModified=${f.lastModified}`
+        });
+      }
+    } else {
+      evidencias.push({ tipo: 'AUSENTE', nome: 'Sem anexos', meta: 'Acervo não informado.' });
+    }
+
+    const ledger = [
+      { etapa: 'INPUT', detalhe: `instrucao_len=${len}` },
+      { etapa: 'FILES', detalhe: `qtd=${fcount}` },
+      { etapa: 'AUDIT', detalhe: `cert=${certScore} status=${status}` }
+    ];
+
+    let motivo = status === 'OK'
+      ? 'CERT aprovado (simulador): consistência mínima atingida.'
+      : 'CERT reprovado (simulador): instrução/acervo insuficientes para robustez.';
+
+    return { scores, certScore, status, motivo, evidencias, ledger };
   }
 
   function renderAudit(audit) {
-    const t = i18n[state.lang];
+    if (!audit) return;
+    const { scores, certScore, status, motivo } = audit;
 
-    setFill("#e-metal .fill", audit?.axes?.metal ?? 0);
-    setFill("#e-estado .fill", audit?.axes?.estado ?? 0);
-    setFill("#e-legiao .fill", audit?.axes?.legiao ?? 0);
-    setFill("#e-logos .fill", audit?.axes?.logos ?? 0);
+    const setBar = (barEl, val) => { if (barEl) barEl.style.width = `${Math.max(0, Math.min(100, val))}%`; };
+    setBar(el.barMetal(), scores.metal);
+    setBar(el.barEstado(), scores.estado);
+    setBar(el.barLegiao(), scores.legiao);
+    setBar(el.barLogos(), scores.logos);
 
-    const cert = $("#selo-cert");
-    const aut = $("#selo-audit");
+    const setText = (node, txt) => { if (node) node.textContent = txt; };
+    setText(el.vMetal(), String(scores.metal));
+    setText(el.vEstado(), String(scores.estado));
+    setText(el.vLegiao(), String(scores.legiao));
+    setText(el.vLogos(), String(scores.logos));
 
-    if (!audit) {
-      if (cert) { cert.className = "selo selo-off"; cert.textContent = t.certWait; }
-      if (aut) { aut.className = "selo selo-off"; aut.textContent = t.auditWait; }
-      setMetric("--", "--");
-      return;
-    }
+    const seloCert = el.seloCert();
+    const seloAuth = el.seloAuth();
+    if (seloCert) seloCert.textContent = `CERT: ${certScore}/100`;
+    if (seloAuth) seloAuth.textContent = `AUTENTICIDADE: ${status === 'OK' ? 'OK' : 'FAIL'}`;
 
-    if (audit.status !== "OK") {
-      if (cert) { cert.className = "selo selo-off"; cert.textContent = "CERT: FAIL-CLOSED"; }
-      if (aut) { aut.className = "selo selo-off"; aut.textContent = t.needMoreInfo; }
-      setMetric(audit.viability, audit.risk);
-      return;
-    }
-
-    if (cert) {
-      cert.className = "selo selo-on";
-      cert.textContent = `CERT: ${audit.score}/100`;
-    }
-    if (aut) {
-      aut.className = "selo selo-on";
-      aut.textContent = "AUTENTICIDADE: OK";
-    }
-    setMetric(audit.viability, audit.risk);
+    const auditMotivo = el.auditMotivo();
+    if (auditMotivo) auditMotivo.textContent = motivo;
   }
 
-  function setFill(sel, pct) {
-    const el = $(sel);
-    if (!el) return;
-    el.style.width = `${clamp(Number(pct) || 0, 0, 100)}%`;
+  // =============== C6) Draft generator (minuta) ===============
+  function areaLabel() {
+    const sel = el.area();
+    if (!sel) return state.areaValue;
+    const opt = sel.options[sel.selectedIndex];
+    return (opt && opt.textContent) ? opt.textContent.trim() : sel.value;
   }
 
-  function setMetric(viab, risk) {
-    const v = $("#val-expectativa");
-    const r = $("#val-erro");
-    if (v) v.textContent = viab === "--" ? "--" : String(viab);
-    if (r) r.textContent = risk === "--" ? "--" : String(risk);
-  }
+  function buildDraftHtml() {
+    if (!isValidInstruction()) return '';
 
-  /* =========================
-     9) Gerar minuta (simulado)
-     ========================= */
-  function bindGenerate() {
-    const btn = $("#btn-executar");
-    if (!btn) return;
+    const instr = (el.cmd()?.value || '').trim();
+    const areaTxt = areaLabel();
+    const files = state.files;
 
-    btn.addEventListener("click", () => {
-      const txt = ($("#cmd-input")?.value || "").trim();
-      const area = ($("#area-direito")?.value || "civil").trim();
+    // Sanitização: todo texto do usuário passa por escapeHtml
+    const safeInstr = escapeHtml(instr);
 
-      if (txt.length < 10) {
-        alert(i18n[state.lang].needMoreInfo);
-        return;
-      }
+    const fileList = files.length
+      ? `<ul>${files.map(f => `<li><strong>${escapeHtml(f.name)}</strong> — ${escapeHtml(formatBytes(f.size))} — ${escapeHtml(f.type || '—')}</li>`).join('')}</ul>`
+      : `<p><em>Sem anexos informados.</em></p>`;
 
-      const protocolId = genProtocolId();
-      const html = buildDraftHtml({ txt, area, protocolId, files: state.files });
+    const audit = state.audit;
+    const auditBlock = audit
+      ? `<div class="draft-block">
+          <h3>Auditoria (Simulador)</h3>
+          <ul>
+            <li>METAL: ${audit.scores.metal}</li>
+            <li>ESTADO: ${audit.scores.estado}</li>
+            <li>LEGIÃO: ${audit.scores.legiao}</li>
+            <li>LOGOS: ${audit.scores.logos}</li>
+            <li><strong>CERT:</strong> ${audit.certScore}/100 (${escapeHtml(audit.status)})</li>
+          </ul>
+          <p>${escapeHtml(audit.motivo)}</p>
+        </div>`
+      : '';
 
-      state.lastDraft = { protocolId, html, ts: isoNow() };
-      renderDraft(html);
-    });
-  }
+    const dt = new Date();
+    const dtStr = dt.toLocaleString();
 
-  function genProtocolId() {
-    const rnd = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const ts = Date.now().toString(36).toUpperCase();
-    return `ARK-${ts}-${rnd}`;
-  }
-
-  function buildDraftHtml({ txt, area, protocolId, files }) {
-    const title = state.lang === "pt" ? "MINUTA TÉCNICA" : "LEGAL DRAFT";
-    const labelProto = state.lang === "pt" ? "PROTOCOLO" : "PROTOCOL";
-    const labelAnx = state.lang === "pt" ? "ANEXOS" : "ATTACHMENTS";
-
+    // Documento “minuta técnica” (simulada)
     return `
-      <div style="color:#000;font-family:Times New Roman,serif;padding:24px;">
-        <h2 style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin:0 0 14px 0;">
-          ${escapeHtml(title)} — ${escapeHtml(area.toUpperCase())}
-        </h2>
-        <p style="margin:6px 0;"><strong>${escapeHtml(labelProto)}:</strong> ${escapeHtml(protocolId)}</p>
-        <p style="margin:14px 0 0 0;"><strong>${escapeHtml(labelAnx)}:</strong> ${files.length}</p>
-        <hr style="border:0;border-top:1px solid #000;margin:14px 0;">
-        <div style="white-space:pre-wrap;line-height:1.45;text-align:justify;">
-          ${escapeHtml(txt)}
+      <section class="draft">
+        <h1>Minuta Técnica — ${escapeHtml(areaTxt)}</h1>
+        <p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
+        <p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
+
+        <div class="draft-block">
+          <h2>Instrução</h2>
+          <p>${safeInstr.replaceAll('\n', '<br>')}</p>
         </div>
-      </div>
-    `;
+
+        <div class="draft-block">
+          <h2>Acervo Probatório (metadados)</h2>
+          ${fileList}
+        </div>
+
+        ${auditBlock}
+
+        <div class="draft-block">
+          <h2>Protocolo (Simulador)</h2>
+          <ul>
+            <li>Fail-closed: geração somente com instrução válida.</li>
+            <li>Sanitização: texto do usuário escapado (sem injeção HTML).</li>
+            <li>Offline-first: sem dependências externas.</li>
+            <li>Export: impressão isolada do documento.</li>
+          </ul>
+        </div>
+      </section>
+    `.trim();
   }
 
-  function renderDraft(html) {
-    const canvas = $("#output-canvas");
-    if (!canvas) return;
-    canvas.innerHTML = html;
-
-    // ✅ garante que placeholder some e o PDF vai pegar o conteúdo
-    ensureCanvasPlaceholder(false);
+  function renderDraft() {
+    const out = el.out();
+    const ph = el.placeholder();
+    if (!out) return;
+    out.innerHTML = state.draftHtml || '';
+    if (ph) ph.textContent = state.draftHtml ? '' : t('aguardandoDoc');
   }
 
-  function ensureCanvasPlaceholder(force = false) {
-    const canvas = $("#output-canvas");
-    if (!canvas) return;
-
-    const hasDraft = !!state.lastDraft?.html;
-
-    if (hasDraft && !force) return;
-
-    const ph = canvas.querySelector(".placeholder-msg");
-    if (!ph) return;
-
-    const txtPh = $("#txt-placeholder");
-    if (txtPh) txtPh.textContent = i18n[state.lang].placeholderCanvas;
-  }
-
-  /* =========================
-     10) Chat (simulador)
-     ========================= */
-  function bindChat() {
-    const send = $("#chat-send");
-    const input = $("#chat-input");
-
-    if (send) send.addEventListener("click", sendChat);
-    if (input) {
-      input.addEventListener("keydown", (ev) => {
-        if (ev.key === "Enter") {
-          ev.preventDefault();
-          sendChat();
-        }
-      });
-    }
-
-    $$(".chip-action").forEach((chip) => {
-      chip.addEventListener("click", () => {
-        const intent = chip.dataset.intent || "";
-        const i = $("#chat-input");
-        if (!i) return;
-        i.value = state.lang === "pt" ? `Quero ${intent}. Contexto: ` : `I want ${intent}. Context: `;
-        i.focus();
-      });
-    });
-  }
-
-  function ensureChatEmpty(force = false) {
-    const box = $("#chat-messages");
-    if (!box) return;
-
-    const hasMsg = box.querySelector(".msg");
-    if (hasMsg && !force) return;
-
-    box.innerHTML = `
-      <div class="chat-empty">
-        <p>${escapeHtml(i18n[state.lang].chatEmpty)}</p>
-      </div>
-    `;
-
-    const input = $("#chat-input");
-    if (input) input.placeholder = i18n[state.lang].chatPh;
-  }
-
-  function sendChat() {
-    const input = $("#chat-input");
-    const msg = (input?.value || "").trim();
-    if (!msg) return;
-
-    appendMsg("user", msg);
-    input.value = "";
-
-    setTimeout(() => {
-      const reply =
-        state.lang === "pt"
-          ? "Recebido. (Simulador ativo) Para registrar, use Arquivar/Exportar/Gerar."
-          : "Received. (Simulator) To persist, use Archive/Export/Generate.";
-      appendMsg("assistant", reply);
-    }, 160);
-  }
-
-  function appendMsg(role, text) {
-    const box = $("#chat-messages");
-    if (!box) return;
-
-    const empty = box.querySelector(".chat-empty");
-    if (empty) empty.remove();
-
-    const div = document.createElement("div");
-    div.className = `msg ${role}`;
-    div.innerHTML = `<div class="msg-body">${escapeHtml(text)}</div>`;
-    box.appendChild(div);
-    box.scrollTop = box.scrollHeight;
-  }
-
-  /* =========================
-     11) Export (print) ✅ corrigido: não fica em branco
-     ========================= */
-  function bindExport() {
-    const btn = $("#btn-exportar");
-    if (!btn) return;
-
-    btn.addEventListener("click", () => {
-      const t = i18n[state.lang];
-      if (!state.lastDraft?.html) {
-        alert(t.noDraftToExport);
-        return;
-      }
-
-      // ✅ joga o conteúdo do canvas no container de impressão
-      const printHost = $("#secao-impressao-isolada");
-      if (printHost) {
-        printHost.innerHTML = ""; // limpa
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = state.lastDraft.html;
-        printHost.appendChild(wrapper);
-      }
-
-      // dá um tick para o DOM aplicar antes do print
-      setTimeout(() => window.print(), 50);
-    });
-  }
-
-  /* =========================
-     12) Archive (localStorage)
-     ========================= */
-  function bindArchive() {
-    const btn = $("#btn-salvar");
-    if (!btn) return;
-
-    btn.addEventListener("click", () => {
-      const t = i18n[state.lang];
-
-      if (!state.lastDraft?.html) {
-        alert(t.noDraftToArchive);
-        return;
-      }
-
-      const protocolId = state.lastDraft.protocolId || genProtocolId();
-
-      const archive = loadArchive();
-      archive.unshift({
-        protocolId,
-        ts: isoNow(),
-        draft: state.lastDraft.html,
-        audit: state.lastAudit || null,
-        files: [...state.files]
-      });
-      saveArchive(archive);
-
-      state.lastArchive = { protocolId, ts: isoNow() };
-      alert(t.archivedOk);
-    });
-  }
-
-  function loadArchive() {
-    try {
-      const raw = localStorage.getItem(STORAGE.archive);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-
-  function saveArchive(arr) {
-    try {
-      localStorage.setItem(STORAGE.archive, JSON.stringify(arr.slice(0, 50)));
-    } catch (e) {
-      console.error("[ARKHOS_UI] archive save error:", e);
-    }
-  }
-
-  /* =========================
-     13) Top Actions (AJUDA/CONFIG) - no-op seguro
-     ========================= */
-  function bindTopActions() {
-    const ajuda = $("#btn-top-ajuda");
-    const config = $("#btn-top-config");
-
-    if (ajuda) ajuda.addEventListener("click", () => {
-      console.log("[ARKHOS_UI] AJUDA clicked");
-      // aqui você pluga um modal depois
-      alert(state.lang === "pt" ? "Ajuda (stub)." : "Help (stub).");
-    });
-
-    if (config) config.addEventListener("click", () => {
-      console.log("[ARKHOS_UI] CONFIG clicked");
-      alert(state.lang === "pt" ? "Config (stub)." : "Config (stub).");
-    });
-  }
-})();
+  // =============== C7) Rastreabilidade ===============
+  function renderTraceability(audit) {
+    const cr = el
