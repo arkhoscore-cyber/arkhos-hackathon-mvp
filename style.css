@@ -1,4 +1,4 @@
-/* ARKHOS_UI — style.css (offline-first, sem libs) */
+/* ARKHOS 1.0 — style.css (offline-first, estável) */
 
 /* =============== TOKENS + BASE =============== */
 :root{
@@ -20,17 +20,20 @@
 
 *{box-sizing:border-box}
 html,body{height:100%}
+
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  background:radial-gradient(1200px 600px at 20% 0%,rgba(116,167,255,.08),transparent 55%),
-             radial-gradient(900px 500px at 90% 10%,rgba(157,124,255,.08),transparent 55%),
-             var(--bg);
+  background:
+    radial-gradient(1200px 600px at 20% 0%,rgba(116,167,255,.08),transparent 55%),
+    radial-gradient(900px 500px at 90% 10%,rgba(157,124,255,.08),transparent 55%),
+    var(--bg);
   color:var(--text);
   overflow-x:hidden;
 }
 
 .hidden{display:none!important}
+
 .sr-only{
   position:absolute!important;
   width:1px;height:1px;margin:-1px;padding:0;border:0;
@@ -46,37 +49,152 @@ body{
   max-width:1400px;
   margin:0 auto;
 }
+
 @media(max-width:900px){
   .bancada-container{grid-template-columns:1fr;padding:12px}
 }
 
-/* =============== TOPBAR =============== */
+/* =============== TOPBAR NOVO =============== */
 .topbar{
-  position:sticky;top:0;z-index:10;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:12px 16px;
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:14px 16px 10px 16px;
   border-bottom:1px solid var(--border);
-  background:rgba(16,23,39,.9);
+  background:rgba(16,23,39,.92);
   backdrop-filter:blur(8px);
 }
-.brand{display:flex;align-items:center;gap:10px}
-.brand-mark{
-  width:38px;height:38px;border-radius:12px;
-  display:flex;align-items:center;justify-content:center;
-  border:1px solid var(--border);
-  background:linear-gradient(135deg,rgba(116,167,255,.25),rgba(157,124,255,.2));
-}
-.brand-subtitle{font-size:12px;color:var(--muted)}
 
-.badges{display:flex;gap:8px;flex-wrap:wrap}
-.badge{
-  font-size:12px;padding:6px 10px;border-radius:999px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.04);
+.brand{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
 }
-.badge-op{border-color:rgba(57,217,138,.35);background:rgba(57,217,138,.1)}
-.badge-health{border-color:rgba(116,167,255,.35)}
-.badge-runtime{border-color:rgba(157,124,255,.35)}
+
+.brand-title{
+  font-weight:900;
+  font-size:20px;
+  letter-spacing:.5px;
+}
+
+.brand-subtitle{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* Linha inferior */
+.topbar-right{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+
+/* =============== STATUS BADGES =============== */
+.badges{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.badge{
+  font-size:12px;
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.05);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.badge-op{
+  border-color:rgba(255,255,255,.2);
+}
+
+.badge-runtime{
+  font-weight:700;
+}
+
+/* Estados dinâmicos */
+.badge-runtime.local{
+  border-color:var(--bad);
+  color:var(--bad);
+}
+
+.badge-runtime.online{
+  border-color:var(--ok);
+  color:var(--ok);
+}
+
+/* =============== BOTÕES =============== */
+.btn-top,.btn-main,.btn-secundario{
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.05);
+  padding:10px 14px;
+  min-height:46px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:.15s ease;
+}
+
+.btn-top:hover,
+.btn-secundario:hover{
+  background:rgba(255,255,255,.08);
+}
+
+.btn-main{
+  font-weight:800;
+  border-color:rgba(116,167,255,.45);
+  background:linear-gradient(135deg,rgba(116,167,255,.18),rgba(157,124,255,.14));
+}
+
+button:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+/* =============== CAMPOS =============== */
+.field{margin:10px 0}
+.field-label{font-size:12px;color:var(--muted)}
+
+.select,.textarea,.chat-input,.file{
+  width:100%;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:rgba(0,0,0,.2);
+  padding:10px 12px;
+  color:var(--text);
+}
+
+.textarea{min-height:120px}
+
+/* =============== TABS =============== */
+.tabs{display:flex;gap:10px}
+
+.tab{
+  flex:1;
+  text-align:center;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:10px;
+  font-weight:800;
+  background:rgba(255,255,255,.05);
+}
+
+.tab.active{
+  border-color:rgba(116,167,255,.45);
+  background:linear-gradient(135deg,rgba(116,167,255,.16),rgba(157,124,255,.12));
+}
 
 /* =============== CARDS =============== */
 .card{
@@ -87,82 +205,60 @@ body{
   padding:18px;
   margin-bottom:14px;
 }
-.card-title{margin:0 0 10px;font-weight:800;font-size:16px}
-.hint{font-size:12px;color:var(--muted)}
 
-/* =============== BOTÕES =============== */
-.btn-top,.btn-main,.btn-secundario{
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.05);
-  padding:10px 14px;
-  min-height:52px;
-  display:inline-flex;align-items:center;justify-content:center;
-  cursor:pointer;
-}
-.btn-main{
+.card-title{
+  margin:0 0 10px;
   font-weight:800;
-  border-color:rgba(116,167,255,.45);
-  background:linear-gradient(135deg,rgba(116,167,255,.18),rgba(157,124,255,.14));
-}
-button:disabled{opacity:.55;cursor:not-allowed}
-
-/* =============== CAMPOS =============== */
-.field{margin:10px 0}
-.field-label{font-size:12px;color:var(--muted)}
-.select,.textarea,.chat-input,.file{
-  width:100%;
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:rgba(0,0,0,.2);
-  padding:10px 12px;
-  color:var(--text);
-}
-.textarea{min-height:120px}
-
-/* =============== TABS =============== */
-.tabs{display:flex;gap:10px}
-.tab{
-  flex:1;text-align:center;
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:10px;
-  font-weight:800;
-  background:rgba(255,255,255,.05);
-}
-.tab.active{
-  border-color:rgba(116,167,255,.45);
-  background:linear-gradient(135deg,rgba(116,167,255,.16),rgba(157,124,255,.12));
+  font-size:16px;
 }
 
-/* =============== DASHBOARD / METRICS =============== */
+.hint{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* =============== METRICS =============== */
 .metrics-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:12px;
 }
+
 .metric-card{
   border:1px solid var(--border);
   border-radius:var(--radius);
   padding:12px;
   background:rgba(0,0,0,.2);
 }
-.metric-value{font-size:18px;font-weight:900}
+
+.metric-value{
+  font-size:18px;
+  font-weight:900;
+}
+
 .bar{
-  height:10px;border-radius:999px;margin-top:8px;
+  height:10px;
+  border-radius:999px;
+  margin-top:8px;
   background:rgba(255,255,255,.06);
   border:1px solid var(--border);
 }
+
 .fill{
-  height:100%;width:0%;
+  height:100%;
+  width:0%;
   background:linear-gradient(90deg,var(--ok),var(--accent),var(--accent-2));
 }
 
 /* =============== FILE / ARCHIVE LIST =============== */
 .file-item,.archive-item{
-  display:flex;justify-content:space-between;gap:10px;
-  padding:10px;border:1px solid var(--border);
-  border-radius:14px;background:rgba(0,0,0,.2);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:rgba(0,0,0,.2);
   margin-bottom:8px;
 }
 
@@ -176,24 +272,50 @@ button:disabled{opacity:.55;cursor:not-allowed}
 }
 
 /* =============== CHAT =============== */
-.chat-messages{display:flex;flex-direction:column;gap:10px;min-height:240px}
+.chat-messages{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-height:240px;
+}
+
 .msg{
-  max-width:92%;padding:10px 12px;border-radius:14px;
+  max-width:92%;
+  padding:10px 12px;
+  border-radius:14px;
   border:1px solid var(--border);
   background:rgba(0,0,0,.2);
 }
-.msg.me{align-self:flex-end;background:rgba(116,167,255,.15)}
-.msg.bot{align-self:flex-start;background:rgba(57,217,138,.12)}
 
-.chat-input-wrap{display:flex;gap:10px}
-.chat-send{min-width:120px}
+.msg.me{
+  align-self:flex-end;
+  background:rgba(116,167,255,.15);
+}
+
+.msg.bot{
+  align-self:flex-start;
+  background:rgba(57,217,138,.12);
+}
+
+.chat-input-wrap{
+  display:flex;
+  gap:10px;
+}
+
+.chat-send{
+  min-width:120px;
+}
 
 /* =============== MODAL =============== */
 .modal{
-  position:fixed;inset:0;
-  display:flex;align-items:center;justify-content:center;
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   background:rgba(0,0,0,.6);
 }
+
 .modal-card{
   width:min(720px,100%);
   border-radius:var(--radius-2);
@@ -204,6 +326,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 /* =============== PRINT =============== */
 .only-print{display:none}
+
 @media print{
   body{background:#fff;color:#000}
   .no-print{display:none!important}
@@ -212,4 +335,4 @@ button:disabled{opacity:.55;cursor:not-allowed}
     color:#000!important;
     box-shadow:none!important;
   }
-  }
+}
