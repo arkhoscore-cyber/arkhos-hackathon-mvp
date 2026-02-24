@@ -38,6 +38,9 @@
     btnLimparSessao: () => $('#btn-limpar-sessao'),
     btnCompartilhar: () => $('#btn-compartilhar'),
 
+    badgeHealth: () => $('#badge-health'),
+    badgeRuntime: () => $('#badge-runtime'),
+
     btnTabPro: () => $('#btn-tab-pro'),
     btnTabChat: () => $('#btn-tab-chat'),
     telaPro: () => $('#tela-pro'),
@@ -83,7 +86,7 @@
     chatInput: () => $('#chat-input'),
     chatSend: () => $('#chat-send'),
     chatArquivar: () => $('#chat-arquivar'),
-    chatLimpar: () => $('#chat-limpar'),
+    chatLimpar: () => $('#chat-limpar')
   };
 
   function nowTs() { return Date.now(); }
@@ -139,7 +142,9 @@
       alertCopiado: 'Copiado para a área de transferência.',
       exportFalha: 'Export falhou. Tente novamente.',
       precisaGerar: 'Gere uma minuta antes de exportar.',
-      precisaInstrucao: 'Instrução insuficiente (mín. 10 caracteres).'
+      precisaInstrucao: 'Instrução insuficiente (mín. 10 caracteres).',
+      abrir: 'ABRIR',
+      excluir: 'EXCLUIR'
     },
     en: {
       proTitle: 'Professional Mode',
@@ -176,7 +181,9 @@
       alertCopiado: 'Copied to clipboard.',
       exportFalha: 'Export failed. Try again.',
       precisaGerar: 'Generate a draft before exporting.',
-      precisaInstrucao: 'Insufficient instruction (min 10 characters).'
+      precisaInstrucao: 'Insufficient instruction (min 10 characters).',
+      abrir: 'OPEN',
+      excluir: 'DELETE'
     }
   };
 
@@ -278,7 +285,7 @@
     const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
     if (!node) return;
     node.addEventListener('click', (e) => {
-      try { fn(e); } catch (err) { console.error(err); }
+      try { fn(e); } catch (err) { console.error(err); toastError(err); }
     });
   }
 
@@ -286,8 +293,17 @@
     const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
     if (!node) return;
     node.addEventListener('input', (e) => {
-      try { fn(e); } catch (err) { console.error(err); }
+      try { fn(e); } catch (err) { console.error(err); toastError(err); }
     });
+  }
+
+  // =============== Toast minimal (fail loud) ===============
+  function toast(msg) {
+    try { alert(String(msg)); } catch { /* noop */ }
+  }
+  function toastError(err) {
+    const msg = (err && err.message) ? err.message : String(err || 'Erro');
+    toast(msg);
   }
 
   // =============== Sanitização ===============
@@ -325,6 +341,35 @@
     if (btnLimparAnexos) btnLimparAnexos.disabled = state.files.length === 0;
   }
 
+  // =============== Session persistence (current work-in-progress) ===============
+  function persistSession() {
+    const payload = {
+      v: 1,
+      lang: state.lang,
+      tab: state.tab,
+      areaValue: state.areaValue,
+      files: state.files,
+      draftHtml: state.draftHtml,
+      audit: state.audit,
+      chat: state.chat
+    };
+    try { saveLS(LS.session, payload); } catch (e) { console.error(e); }
+  }
+
+  function restoreSession() {
+    const payload = loadLS(LS.session, null);
+    if (!payload || typeof payload !== 'object') return;
+
+    if (payload.lang) state.lang = payload.lang;
+    if (payload.tab) state.tab = payload.tab;
+    if (payload.areaValue) state.areaValue = payload.areaValue;
+
+    if (Array.isArray(payload.files)) state.files = payload.files;
+    state.draftHtml = typeof payload.draftHtml === 'string' ? payload.draftHtml : '';
+    state.audit = payload.audit && typeof payload.audit === 'object' ? payload.audit : null;
+    state.chat = Array.isArray(payload.chat) ? payload.chat : [];
+  }
+
   // =============== C4) Upload / Render files (usa template) ===============
   function fileIdFrom(f) {
     return `${f.name}|${f.size}|${f.type}|${f.lastModified}`;
@@ -345,17 +390,21 @@
     const tpl = el.tplFile();
     for (const f of state.files) {
       let li;
-      if (tpl && tpl.content) {
+      if (tpl && tpl.content && tpl.content.firstElementChild) {
         li = tpl.content.firstElementChild.cloneNode(true);
-        li.querySelector('.file-name').textContent = f.name;
-        li.querySelector('.file-sub').textContent = `${formatBytes(f.size)} • ${f.type || '—'} • ${new Date(f.lastModified).toLocaleString()}`;
+        const nameEl = li.querySelector('.file-name');
+        const subEl = li.querySelector('.file-sub');
+        if (nameEl) nameEl.textContent = f.name;
+        if (subEl) subEl.textContent = `${formatBytes(f.size)} • ${f.type || '—'} • ${new Date(f.lastModified).toLocaleString()}`;
         const btn = li.querySelector('.file-remove');
-        btn.addEventListener('click', () => {
-          state.files = state.files.filter(x => x.id !== f.id);
-          persistSession();
-          renderFiles();
-          refreshButtons();
-        });
+        if (btn) {
+          btn.addEventListener('click', () => {
+            state.files = state.files.filter(x => x.id !== f.id);
+            persistSession();
+            renderFiles();
+            refreshButtons();
+          });
+        }
       } else {
         li = document.createElement('li');
         li.className = 'file-item';
@@ -376,19 +425,49 @@
     return `${gb.toFixed(2)} GB`;
   }
 
-  // =============== C5) Auditoria simulada ===============
+  // =============== C5) Auditoria simulada (DETERMINÍSTICA) ===============
   function clamp01(x) { return Math.max(0, Math.min(1, x)); }
 
+  // FNV-1a 32-bit
+  function hash32(str) {
+    let h = 0x811c9dc5;
+    const s = String(str);
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return h >>> 0;
+  }
+
+  // Mulberry32 PRNG
+  function prng(seedU32) {
+    let a = seedU32 >>> 0;
+    return () => {
+      a |= 0;
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function auditSeed(instruction, files) {
+    const ids = (files || []).map(f => f.id).join('||');
+    return hash32(`${instruction}__${ids}__${state.areaValue}__v1`);
+  }
+
   function simulateAudit(instruction, files) {
-    // Heurística simples offline (simulador): usa tamanho do texto + quantidade de anexos
+    const rnd = prng(auditSeed(instruction, files));
+
+    // Heurística offline: tamanho do texto + quantidade de anexos
     const len = instruction.length;
     const fcount = files.length;
     const signal = clamp01((len / 600) + (fcount / 8) * 0.35);
 
-    const metal = clamp01(signal * 0.85 + (Math.random() * 0.10));
-    const estado = clamp01(signal * 0.75 + (Math.random() * 0.18));
-    const legiao = clamp01(signal * 0.70 + (Math.random() * 0.22));
-    const logos = clamp01(signal * 0.80 + (Math.random() * 0.14));
+    const metal = clamp01(signal * 0.85 + (rnd() * 0.10));
+    const estado = clamp01(signal * 0.75 + (rnd() * 0.18));
+    const legiao = clamp01(signal * 0.70 + (rnd() * 0.22));
+    const logos = clamp01(signal * 0.80 + (rnd() * 0.14));
 
     const scores = {
       metal: Math.round(metal * 100),
@@ -419,7 +498,7 @@
       { etapa: 'AUDIT', detalhe: `cert=${certScore} status=${status}` }
     ];
 
-    let motivo = status === 'OK'
+    const motivo = status === 'OK'
       ? 'CERT aprovado (simulador): consistência mínima atingida.'
       : 'CERT reprovado (simulador): instrução/acervo insuficientes para robustez.';
 
@@ -428,7 +507,7 @@
 
   function renderAudit(audit) {
     if (!audit) return;
-    const { scores, certScore, status, motivo } = audit;
+    const { scores, certScore, status, motivo, evidencias, ledger } = audit;
 
     const setBar = (barEl, val) => { if (barEl) barEl.style.width = `${Math.max(0, Math.min(100, val))}%`; };
     setBar(el.barMetal(), scores.metal);
@@ -449,6 +528,15 @@
 
     const auditMotivo = el.auditMotivo();
     if (auditMotivo) auditMotivo.textContent = motivo;
+
+    // Traceability panels
+    const cr = el.certResumo();
+    const lr = el.ledgerResumo();
+    const er = el.evidenciasResumo();
+
+    if (cr) cr.textContent = `CERT=${certScore}/100 | STATUS=${status}\n${motivo}`;
+    if (lr) lr.textContent = (Array.isArray(ledger) ? ledger : []).map(x => `- ${x.etapa}: ${x.detalhe}`).join('\n') || t('aguardando');
+    if (er) er.textContent = (Array.isArray(evidencias) ? evidencias : []).map(x => `- ${x.tipo}: ${x.nome} (${x.meta})`).join('\n') || t('aguardando');
   }
 
   // =============== C6) Draft generator (minuta) ===============
@@ -531,6 +619,534 @@
     if (ph) ph.textContent = state.draftHtml ? '' : t('aguardandoDoc');
   }
 
-  // =============== C7) Rastreabilidade ===============
-  function renderTraceability(audit) {
-    const cr = el
+  /* === CUT_HERE === */
+ // =============== C7) PRINT / EXPORT (copy to only-print) ===============
+  function copyToPrintSection() {
+    const out = el.out();
+    const printArea = el.printOnly();
+    if (!out || !printArea) return false;
+
+    const html = String(out.innerHTML || '').trim();
+    if (!html) return false;
+
+    printArea.innerHTML = html;
+    return true;
+  }
+
+  function exportPdfPrint() {
+    if (!state.draftHtml) {
+      toast(t('precisaGerar'));
+      return;
+    }
+    const ok = copyToPrintSection();
+    if (!ok) {
+      toast(t('exportFalha'));
+      return;
+    }
+    try {
+      window.print();
+    } catch (e) {
+      console.error(e);
+      toast(t('exportFalha'));
+    }
+  }
+
+  // =============== C8) ARCHIVE (list/open/delete/clear) ===============
+  function loadArchive() {
+    const arr = loadLS(LS.archive, []);
+    return Array.isArray(arr) ? arr : [];
+  }
+
+  function saveArchive(list) {
+    try { saveLS(LS.archive, list); } catch (e) { console.error(e); }
+  }
+
+  function archiveItemTitle(item) {
+    const area = item.areaLabel || item.areaValue || '—';
+    const dt = new Date(item.ts || nowTs()).toLocaleString();
+    return `${area} • ${dt}`;
+  }
+
+  function renderArchiveList() {
+    const ul = el.listaArquivados();
+    const empty = el.archiveEmpty();
+    if (!ul || !empty) return;
+
+    const list = loadArchive();
+    ul.innerHTML = '';
+
+    if (!list.length) {
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    for (const item of list) {
+      const li = document.createElement('li');
+      li.className = 'archive-item';
+
+      const meta = document.createElement('div');
+      meta.className = 'archive-meta';
+
+      const title = document.createElement('div');
+      title.className = 'archive-title';
+      title.textContent = archiveItemTitle(item);
+
+      const sub = document.createElement('div');
+      sub.className = 'archive-sub';
+      const fcount = Array.isArray(item.filesMeta) ? item.filesMeta.length : 0;
+      const ccount = Array.isArray(item.chat) ? item.chat.length : 0;
+      sub.textContent = `draft=${item.draftHtml ? 'SIM' : 'NÃO'} • anexos=${fcount} • chat=${ccount}`;
+
+      meta.appendChild(title);
+      meta.appendChild(sub);
+
+      const actions = document.createElement('div');
+      actions.className = 'archive-actions';
+
+      const btnOpen = document.createElement('button');
+      btnOpen.className = 'btn-secundario';
+      btnOpen.type = 'button';
+      btnOpen.textContent = t('abrir');
+
+      const btnDel = document.createElement('button');
+      btnDel.className = 'btn-top';
+      btnDel.type = 'button';
+      btnDel.textContent = t('excluir');
+
+      btnOpen.addEventListener('click', () => {
+        try { openArchived(item.id); } catch (e) { console.error(e); toastError(e); }
+      });
+
+      btnDel.addEventListener('click', () => {
+        try { deleteArchived(item.id); } catch (e) { console.error(e); toastError(e); }
+      });
+
+      actions.appendChild(btnOpen);
+      actions.appendChild(btnDel);
+
+      li.appendChild(meta);
+      li.appendChild(actions);
+      ul.appendChild(li);
+    }
+  }
+
+  function archiveCurrentSession() {
+    const list = loadArchive();
+
+    const item = {
+      id: `a_${nowTs()}_${hash32(`${state.areaValue}|${(el.cmd()?.value || '').trim()}|${state.files.map(f => f.id).join(',')}`)}`,
+      ts: nowTs(),
+      lang: state.lang,
+      areaValue: state.areaValue,
+      areaLabel: areaLabel(),
+      cmd: (el.cmd()?.value || '').trim(),
+      filesMeta: state.files.slice(),
+      audit: state.audit,
+      draftHtml: state.draftHtml,
+      chat: state.chat.slice()
+    };
+
+    const next = [item, ...list].slice(0, MAX_ARCHIVE);
+    saveArchive(next);
+    renderArchiveList();
+    toast(t('alertArquivado'));
+  }
+
+  function openArchived(id) {
+    const list = loadArchive();
+    const item = list.find(x => x.id === id);
+    if (!item) return;
+
+    state.lang = item.lang || state.lang;
+    state.areaValue = item.areaValue || state.areaValue;
+    state.files = Array.isArray(item.filesMeta) ? item.filesMeta : [];
+    state.audit = item.audit && typeof item.audit === 'object' ? item.audit : null;
+    state.draftHtml = typeof item.draftHtml === 'string' ? item.draftHtml : '';
+    state.chat = Array.isArray(item.chat) ? item.chat : [];
+
+    // Apply to inputs/UI
+    const area = el.area();
+    if (area) area.value = state.areaValue;
+
+    const cmd = el.cmd();
+    if (cmd) cmd.value = item.cmd || '';
+
+    applyI18n();
+    renderFiles();
+    if (state.audit) renderAudit(state.audit);
+    renderDraft();
+    chatRender();
+    refreshButtons();
+    persistSession();
+  }
+
+  function deleteArchived(id) {
+    const list = loadArchive();
+    const next = list.filter(x => x.id !== id);
+    saveArchive(next);
+    renderArchiveList();
+  }
+
+  function clearArchive() {
+    try { localStorage.removeItem(LS.archive); } catch (e) { console.error(e); }
+    renderArchiveList();
+  }
+
+  // =============== C9) CHAT (persist + archive) ===============
+  function chatAddMessage(role, text) {
+    state.chat.push({
+      role: role === 'bot' ? 'bot' : 'me',
+      text: String(text || ''),
+      ts: nowTs()
+    });
+    chatSave();
+    chatRender();
+    refreshButtons();
+  }
+
+  function chatSave() { persistSession(); }
+
+  function chatClear() {
+    state.chat = [];
+    chatSave();
+    chatRender();
+    refreshButtons();
+    toast(t('alertLimpo'));
+  }
+
+  function chatRender() {
+    const box = el.chatMessages();
+    if (!box) return;
+    box.innerHTML = '';
+
+    for (const m of state.chat) {
+      const wrap = document.createElement('div');
+      wrap.className = `msg ${m.role === 'bot' ? 'bot' : 'me'}`;
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = new Date(m.ts || nowTs()).toLocaleString();
+
+      const text = document.createElement('div');
+      text.className = 'text';
+      text.textContent = m.text;
+
+      wrap.appendChild(meta);
+      wrap.appendChild(text);
+      box.appendChild(wrap);
+    }
+
+    try { box.scrollTop = box.scrollHeight; } catch { /* noop */ }
+  }
+
+  function simulateChatReply(userText) {
+    const trimmed = String(userText || '').trim();
+    const seed = hash32(`${trimmed}__${state.areaValue}__${state.lang}`);
+    const rnd = prng(seed);
+
+    const variantsPt = [
+      'Entendi. Se você quiser, posso transformar isso em uma minuta técnica no modo PRO.',
+      'Certo. Você prefere um resumo objetivo ou uma versão mais detalhada?',
+      'Ok. Para fortalecer o pedido, inclua datas, nomes e o que exatamente você quer que o juiz/órgão determine.'
+    ];
+    const variantsEn = [
+      'Got it. If you want, I can turn this into a technical draft in PRO mode.',
+      'Okay. Do you prefer a concise summary or a more detailed version?',
+      'Alright. To strengthen it, include dates, names, and what exactly you want the authority to decide.'
+    ];
+
+    const pool = state.lang === 'en' ? variantsEn : variantsPt;
+    const pick = pool[Math.floor(rnd() * pool.length)] || pool[0];
+
+    return pick;
+  }
+
+  // =============== C10) MODALS + CONFIG actions ===============
+  function openModal(modalEl) {
+    if (!modalEl) return;
+    modalEl.classList.remove('hidden');
+    modalEl.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeModal(modalEl) {
+    if (!modalEl) return;
+    modalEl.classList.add('hidden');
+    modalEl.setAttribute('aria-hidden', 'true');
+  }
+
+  function closeAllModals() {
+    closeModal(el.modalAjuda());
+    closeModal(el.modalConfig());
+  }
+
+  function htmlToText(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = String(html || '');
+    return (tmp.textContent || tmp.innerText || '').trim();
+  }
+
+  async function copyToClipboard(text) {
+    const s = String(text || '');
+    if (!s) return false;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(s);
+      return true;
+    }
+
+    const ta = document.createElement('textarea');
+    ta.value = s;
+    ta.setAttribute('readonly', 'true');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return !!ok;
+  }
+
+  async function shareCurrent() {
+    const text = state.draftHtml ? htmlToText(state.draftHtml) : '';
+    if (!text) {
+      toast(t('precisaGerar'));
+      return;
+    }
+
+    const title = 'ARKHOS — Documento';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text });
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    try {
+      const ok = await copyToClipboard(text);
+      if (ok) toast(t('alertCopiado'));
+      else throw new Error('Clipboard falhou');
+    } catch (e) {
+      console.error(e);
+      try { prompt('Copie o texto:', text); } catch { toast(t('exportFalha')); }
+    }
+  }
+
+  function clearSession() {
+    state.files = [];
+    state.draftHtml = '';
+    state.audit = null;
+    state.chat = [];
+
+    const cmd = el.cmd(); if (cmd) cmd.value = '';
+    const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
+
+    renderFiles();
+    renderDraft();
+    applyI18n();
+    chatRender();
+    refreshButtons();
+
+    try { localStorage.removeItem(LS.session); } catch (e) { console.error(e); }
+    toast(t('alertLimpo'));
+  }
+
+  // =============== C11) HEALTH/RUNTIME + generate flow ===============
+  function setHealthBadge(text) {
+    const b = el.badgeHealth();
+    if (!b) return;
+    b.textContent = String(text || 'HEALTH: OK');
+  }
+
+  function setRuntimeBadge(text) {
+    const b = el.badgeRuntime();
+    if (!b) return;
+    b.textContent = String(text || 'RUNTIME: LOCAL');
+  }
+
+  function generateAll() {
+    if (!isValidInstruction()) {
+      toast(t('precisaInstrucao'));
+      return;
+    }
+
+    state.areaValue = el.area()?.value || state.areaValue;
+
+    const instr = (el.cmd()?.value || '').trim();
+    state.audit = simulateAudit(instr, state.files);
+    renderAudit(state.audit);
+
+    state.draftHtml = buildDraftHtml();
+    renderDraft();
+
+    persistSession();
+    refreshButtons();
+  }
+
+  // =============== Bind UI ===============
+  function bindUi() {
+    // Language
+    onClick(el.btnLangPt(), () => { state.lang = 'pt'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
+    onClick(el.btnLangEn(), () => { state.lang = 'en'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
+
+    // Tabs
+    onClick(el.btnTabPro(), () => { setTab('pro'); persistSession(); });
+    onClick(el.btnTabChat(), () => { setTab('chat'); persistSession(); });
+
+    // Inputs
+    onInput(el.cmd(), () => { refreshButtons(); persistSession(); });
+    onInput(el.area(), () => { state.areaValue = el.area()?.value || state.areaValue; persistSession(); });
+
+    // Files
+    const fi = el.fileInput();
+    if (fi) {
+      fi.addEventListener('change', () => {
+        const files = Array.from(fi.files || []);
+        for (const f of files) {
+          const id = fileIdFrom(f);
+          if (state.files.some(x => x.id === id)) continue;
+          state.files.push({
+            id,
+            name: f.name,
+            size: f.size,
+            type: f.type,
+            lastModified: f.lastModified
+          });
+        }
+        persistSession();
+        renderFiles();
+        refreshButtons();
+      });
+    }
+
+    onClick(el.btnLimparAnexos(), () => {
+      state.files = [];
+      const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
+      persistSession();
+      renderFiles();
+      refreshButtons();
+    });
+
+    // Generate / Export / Archive
+    onClick(el.btnGerar(), () => { generateAll(); });
+    onClick(el.btnExportar(), () => { exportPdfPrint(); });
+    onClick(el.btnArquivar(), () => { archiveCurrentSession(); });
+
+    // Archive panel
+    onClick(el.btnLimparArchive(), () => { clearArchive(); });
+
+    // Chat
+    onInput(el.chatInput(), () => { refreshButtons(); });
+
+    onClick(el.chatSend(), () => {
+      const input = el.chatInput();
+      if (!input) return;
+      const txt = input.value.trim();
+      if (!txt) return;
+
+      chatAddMessage('me', txt);
+      input.value = '';
+      refreshButtons();
+
+      setTimeout(() => {
+        const reply = simulateChatReply(txt);
+        chatAddMessage('bot', reply);
+      }, 500);
+    });
+
+    // Chips: prefill chat input
+    $$('.chip-action').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const chip = btn.getAttribute('data-chip') || '';
+        const input = el.chatInput();
+        if (!input) return;
+
+        const mapPt = {
+          peticao: 'Quero uma petição inicial objetiva. Contexto: ',
+          resumo: 'Resuma este caso em tópicos: ',
+          revisao: 'Revise e melhore o texto abaixo (clareza e força): ',
+          relatorio: 'Gere um relatório estruturado (fatos, pedidos, riscos): '
+        };
+        const mapEn = {
+          peticao: 'I want a concise initial petition. Context: ',
+          resumo: 'Summarize this case in bullet points: ',
+          revisao: 'Review and improve the text below (clarity and strength): ',
+          relatorio: 'Generate a structured report (facts, requests, risks): '
+        };
+        const map = state.lang === 'en' ? mapEn : mapPt;
+        input.value = map[chip] || input.value;
+        input.focus();
+        refreshButtons();
+      });
+    });
+
+    onClick(el.chatArquivar(), () => { archiveCurrentSession(); });
+    onClick(el.chatLimpar(), () => { chatClear(); });
+
+    // Modals
+    onClick(el.btnAjuda(), () => { openModal(el.modalAjuda()); });
+    onClick(el.btnConfig(), () => { openModal(el.modalConfig()); });
+    onClick(el.btnAjudaFechar(), () => { closeModal(el.modalAjuda()); });
+    onClick(el.btnConfigFechar(), () => { closeModal(el.modalConfig()); });
+
+    // Config actions
+    onClick(el.btnLimparSessao(), () => { clearSession(); closeModal(el.modalConfig()); });
+    onClick(el.btnCompartilhar(), () => { shareCurrent(); });
+
+    // Click outside modal card closes
+    const modalA = el.modalAjuda();
+    const modalC = el.modalConfig();
+    if (modalA) modalA.addEventListener('click', (e) => { if (e.target === modalA) closeModal(modalA); });
+    if (modalC) modalC.addEventListener('click', (e) => { if (e.target === modalC) closeModal(modalC); });
+
+    // Esc closes modals
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllModals();
+    });
+  }
+
+  // =============== Boot ===============
+  function boot() {
+    // Restore basics
+    const savedLang = loadLS(LS.lang, null);
+    if (savedLang === 'pt' || savedLang === 'en') state.lang = savedLang;
+
+    const savedTab = loadLS(LS.tab, null);
+    if (savedTab === 'pro' || savedTab === 'chat') state.tab = savedTab;
+
+    restoreSession();
+
+    // Apply to inputs
+    const area = el.area(); if (area) area.value = state.areaValue || area.value;
+
+    // Badges
+    setHealthBadge('HEALTH: OK');
+    setRuntimeBadge('RUNTIME: LOCAL');
+
+    // Render
+    applyI18n();
+    setTab(state.tab);
+    renderFiles();
+    if (state.audit) renderAudit(state.audit);
+    renderDraft();
+    chatRender();
+    renderArchiveList();
+    refreshButtons();
+
+    // Bind
+    bindUi();
+  }
+
+  // =============== Global error hooks ===============
+  window.addEventListener('error', (e) => {
+    try { console.error(e.error || e.message || e); } catch { /* noop */ }
+  });
+
+  window.addEventListener('unhandledrejection', (e) => {
+    try { console.error(e.reason || e); } catch { /* noop */ }
+  });
+
+  boot();
+})();
