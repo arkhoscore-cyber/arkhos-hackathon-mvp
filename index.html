@@ -1,13 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br" data-app="ARKHOS_UI" data-ui-contract="CONTRACT_API_V0" data-ui-mode="LOCAL_SIMULADOR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ARKHOS | Estação de Inteligência Jurídica</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+
+  <noscript>
+    <div style="padding:12px; background:#111; color:#fff; border-bottom:1px solid #333; font-family:system-ui;">
+      Este sistema precisa de JavaScript para operar (UI Controller / STAR_SOCKET).
+    </div>
+  </noscript>
 
   <!-- =========================
        HEADER (CABINE + TELEMETRIA)
@@ -15,7 +21,7 @@
   <header class="no-print" id="app-header">
     <div class="header-container">
 
-      <!-- Marca central (símbolos + logo) -->
+      <!-- Marca central -->
       <div class="logo-area" aria-label="Marca ARKHOS">
         <span class="symbol" aria-hidden="true">♈</span>
         <h1 id="app-title">ARKHOS</h1>
@@ -23,11 +29,11 @@
         <small class="subtitle" id="subtitle">ESTAÇÃO DE CONFORMIDADE E MINUTAGEM TÉCNICA</small>
       </div>
 
-      <!-- Direita: Status + Idioma -->
+      <!-- Direita: Telemetria + Idioma -->
       <div class="header-right">
 
-        <!-- Telemetria do motor (porta aberta para REMOTO) -->
-        <div id="vigilia-status" class="motor-status" data-state="CONNECTING" data-latency-ms="" data-engine-version="">
+        <!-- Telemetria do motor -->
+        <div id="vigilia-status" class="motor-status" data-state="CONNECTING" data-latency-ms="" data-engine-version="" aria-label="Telemetria do motor">
           <div class="pulse-icon" aria-hidden="true"></div>
 
           <div class="motor-lines">
@@ -45,11 +51,11 @@
           </div>
         </div>
 
-        <!-- Seletor de idioma -->
+        <!-- Idioma -->
         <div class="lang-switcher" aria-label="Selecionar idioma">
-          <button onclick="mudarIdioma('pt')" id="btn-lang-pt" class="lang-btn active" type="button">PT</button>
+          <button id="btn-lang-pt" class="lang-btn active" type="button" data-lang="pt" aria-pressed="true">PT</button>
           <span class="divider" aria-hidden="true">|</span>
-          <button onclick="mudarIdioma('en')" id="btn-lang-en" class="lang-btn" type="button">EN</button>
+          <button id="btn-lang-en" class="lang-btn" type="button" data-lang="en" aria-pressed="false">EN</button>
         </div>
 
       </div>
@@ -66,20 +72,35 @@
          ========================= -->
     <section class="col-comando" aria-label="Comandos do sistema">
 
-      <!-- Seletor de modo (dualidade) -->
+      <!-- Seletor de modo -->
       <div class="seletor-pista" role="tablist" aria-label="Alternar modo de trabalho">
-        <button id="btn-pista-direta" class="btn-pista ativo" type="button" role="tab" aria-selected="true" aria-controls="painel-direto">
+        <button
+          id="btn-pista-direta"
+          class="btn-pista ativo"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="painel-direto"
+          data-target="#painel-direto">
           MODO PROFISSIONAL (MINUTA)
         </button>
-        <button id="btn-pista-guiada" class="btn-pista" type="button" role="tab" aria-selected="false" aria-controls="painel-chat">
+
+        <button
+          id="btn-pista-guiada"
+          class="btn-pista"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="painel-chat"
+          data-target="#painel-chat">
           ASSISTENTE JURÍDICO (CHAT)
         </button>
       </div>
 
       <!-- =========================
-           PAINEL 1: MODO DIRETO (MINUTA)
+           PAINEL 1: MODO DIRETO
            ========================= -->
-      <div id="painel-direto" class="panel-mode" data-mode="direto">
+      <section id="painel-direto" class="panel-mode" data-mode="direto" role="tabpanel" aria-labelledby="btn-pista-direta">
 
         <div class="card-comando">
           <label for="area-direito" id="label-area">COMPETÊNCIA / ÁREA DE ATUAÇÃO</label>
@@ -98,9 +119,9 @@
 
           <!-- Acervo / Upload -->
           <div class="upload-area" aria-label="Acervo probatório">
-            <label for="file-soberano" class="btn-anexo">
+            <label for="file-soberano" class="btn-anexo" role="button" tabindex="0">
               <span id="label-anexo">📎 APORTAR LASTRO DOCUMENTAL (ACERVO)</span>
-              <input type="file" id="file-soberano" multiple style="display:none;">
+              <input type="file" id="file-soberano" multiple />
             </label>
 
             <div id="file-display-area" class="lista-arquivos" aria-live="polite">
@@ -110,28 +131,28 @@
         </div>
 
         <!-- Monitor de integridade -->
-        <div class="monitor-integridade" aria-label="Análise de conformidade processual">
+        <section class="monitor-integridade" aria-label="Análise de conformidade processual">
           <h3>ANÁLISE DE CONFORMIDADE PROCESSUAL</h3>
 
           <div class="grid-eixos">
             <div class="eixo" id="e-metal">
               <label>LÓGICA (Estrutura)</label>
-              <div class="bar"><div class="fill" style="width: 0%;"></div></div>
+              <div class="bar"><div class="fill" style="width: 0%"></div></div>
             </div>
 
             <div class="eixo" id="e-estado">
               <label>PROVAS (Acervo)</label>
-              <div class="bar"><div class="fill" style="width: 0%;"></div></div>
+              <div class="bar"><div class="fill" style="width: 0%"></div></div>
             </div>
 
             <div class="eixo" id="e-legiao">
               <label>CONTEXTO (Jurisprudência)</label>
-              <div class="bar"><div class="fill" style="width: 0%;"></div></div>
+              <div class="bar"><div class="fill" style="width: 0%"></div></div>
             </div>
 
             <div class="eixo" id="e-logos">
               <label>DIREITO (Fundamentação)</label>
-              <div class="bar"><div class="fill" style="width: 0%;"></div></div>
+              <div class="bar"><div class="fill" style="width: 0%"></div></div>
             </div>
           </div>
 
@@ -139,18 +160,18 @@
             <span id="selo-cert" class="selo selo-off">CERT: AGUARDANDO</span>
             <span id="selo-audit" class="selo selo-off">AUTENTICIDADE: PENDENTE</span>
           </div>
-        </div>
+        </section>
 
-        <button id="btn-executar" class="btn-main" disabled type="button">
+        <button id="btn-executar" class="btn-main" type="button" disabled>
           GERAR MINUTA E PROTOCOLAR
         </button>
 
-      </div>
+      </section>
 
       <!-- =========================
-           PAINEL 2: ASSISTENTE (CHAT) — VOLÁTIL
+           PAINEL 2: ASSISTENTE (CHAT)
            ========================= -->
-      <div id="painel-chat" class="panel-mode" data-mode="assistente" hidden>
+      <section id="painel-chat" class="panel-mode" data-mode="assistente" role="tabpanel" aria-labelledby="btn-pista-guiada" hidden>
 
         <div class="card-chat" aria-label="Assistente jurídico">
           <div class="chat-top">
@@ -161,7 +182,6 @@
               </span>
             </div>
 
-            <!-- Portas de intenção (atalhos) -->
             <div class="chat-actions" id="chat-actions" aria-label="Ações rápidas do assistente">
               <button type="button" class="chip-action" data-intent="peticao">Pedir Petição</button>
               <button type="button" class="chip-action" data-intent="resumo">Gerar Resumo</button>
@@ -170,44 +190,40 @@
             </div>
           </div>
 
-          <!-- Container de mensagens -->
           <div id="chat-messages" class="chat-messages" aria-live="polite" aria-label="Mensagens do chat">
-            <!-- Mensagens serão inseridas aqui pelo script -->
             <div class="chat-empty">
               <p>Digite sua consulta. O assistente vai conduzir as perguntas necessárias e apontar o que falta para “passar” no fail-closed.</p>
             </div>
           </div>
 
-          <!-- Input sticky (estrutura pronta; CSS define comportamento) -->
           <div class="chat-input-wrap" aria-label="Enviar mensagem">
             <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua consulta jurídica..." autocomplete="off" />
             <button id="chat-send" class="chat-send" type="button">Enviar</button>
           </div>
 
-          <!-- Acervo no chat (mesma tomada; reutiliza o input existente) -->
           <div class="chat-acervo-hint">
             <small>Você pode anexar documentos pelo mesmo Acervo do sistema (lastro probatório).</small>
           </div>
         </div>
 
-      </div>
+      </section>
 
       <!-- =========================
-           PORTA UNIVERSAL (TOMADA-ESTRELA)
-           Metadados que permitem o motor acoplar sem quebrar a UI
+           STAR SOCKET (PORTA UNIVERSAL)
            ========================= -->
       <section class="portas-motor" aria-label="Portas do motor (metadados)" hidden>
-        <div id="motor-port" data-port="STAR_SOCKET_V0"
-             data-health-endpoint="/health"
-             data-audit-endpoint="/audit"
-             data-draft-endpoint="/draft"
-             data-chat-endpoint="/chat"
-             data-archive-endpoint="/archive"
-             data-auth="GATEWAY_TOKEN"
-             data-runtime="LOCAL_SIMULADOR">
+        <div
+          id="motor-port"
+          data-port="STAR_SOCKET_V0"
+          data-health-endpoint="/health"
+          data-audit-endpoint="/audit"
+          data-draft-endpoint="/draft"
+          data-chat-endpoint="/chat"
+          data-archive-endpoint="/archive"
+          data-auth="GATEWAY_TOKEN"
+          data-runtime="LOCAL_SIMULADOR">
         </div>
 
-        <!-- Contrato mínimo embutido (documental; o script pode ler se quiser) -->
         <script id="contract-api-v0" type="application/json">
 {
   "name": "CONTRATO_API_V0",
@@ -239,19 +255,18 @@
          ========================= -->
     <section class="col-resultado" aria-label="Resultados e documento">
 
-      <!-- Métricas -->
       <div class="dashboard-lcu" aria-label="Métricas principais">
         <div class="metric-card" id="card-metrica-1">
           <small id="label-metrica-1">MÉTRICA DE VIABILIDADE</small>
           <strong id="val-expectativa">--</strong>
         </div>
+
         <div class="metric-card warning" id="card-metrica-2">
           <small id="label-metrica-2">MARGEM DE RISCO TÉCNICO</small>
           <strong id="val-erro">--</strong>
         </div>
       </div>
 
-      <!-- Canvas do documento -->
       <div id="output-canvas" class="canvas-documento" aria-label="Pré-visualização do documento">
         <div class="placeholder-msg">
           <span class="icon" aria-hidden="true">📄</span>
@@ -259,7 +274,6 @@
         </div>
       </div>
 
-      <!-- Painel de rastreabilidade (CERT / Evidências / Ledger) -->
       <details class="painel-rastreio" id="painel-rastreio">
         <summary>
           <span>Rastreabilidade & CERT (Governança)</span>
@@ -267,7 +281,6 @@
         </summary>
 
         <div class="rastreio-grid">
-
           <div class="rastreio-card">
             <h4>CERT</h4>
             <div id="cert-resumo" class="rastreio-body">
@@ -288,11 +301,9 @@
               <p class="muted">Sem evidências anexadas ao resultado (ainda).</p>
             </div>
           </div>
-
         </div>
       </details>
 
-      <!-- Ações finais -->
       <div class="acoes-finais" aria-label="Ações finais">
         <button id="btn-exportar" class="btn-secundario" type="button">📥 EXPORTAR DOCUMENTO (PDF LIMPO)</button>
         <button id="btn-salvar" class="btn-secundario" type="button">💾 ARQUIVAR NO SISTEMA</button>
@@ -309,5 +320,4 @@
 
   <script src="script.js"></script>
 </body>
-</html>
-```0
+                </html>
