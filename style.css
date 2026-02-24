@@ -93,6 +93,28 @@ header{
   justify-content:flex-end;
 }
 
+/* Top actions (faltava) */
+.top-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+/* Botões do topo (faltava) */
+.btn-top{
+  border:1px solid var(--border);
+  background:#fff;
+  color:#000;
+  border-radius:10px;
+  padding:8px 12px;
+  font-weight:900;
+  font-size:.78rem;
+  letter-spacing:.6px;
+}
+.btn-top:hover{filter:brightness(0.96)}
+.btn-top:active{transform:translateY(1px)}
+
 /* =========================
    BADGES
    ========================= */
@@ -164,6 +186,10 @@ header{
   gap:16px;
   overflow-y:auto;
 }
+
+/* telas (faltava) */
+.tela{display:block}
+.panel-mode{display:block}
 
 /* =========================
    TABS
@@ -265,10 +291,13 @@ textarea{
 .file-item{
   display:flex;
   justify-content:space-between;
+  gap:10px;
+  align-items:center;
   padding:8px 6px;
   border-bottom:1px solid rgba(255,255,255,.06);
 }
 .file-item:last-child{border-bottom:none}
+.file-name{word-break:break-word}
 
 .file-remove{
   border:1px solid rgba(255,75,75,.35);
@@ -295,6 +324,18 @@ textarea{
   margin-bottom:10px;
 }
 
+/* grid-eixos (faltava) */
+.grid-eixos{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.eixo label{
+  display:block;
+  margin-bottom:6px;
+}
+
+/* barras */
 .bar{
   background:#222;
   height:6px;
@@ -308,6 +349,81 @@ textarea{
   transition:width .35s ease;
 }
 
+/* selos (faltava) */
+.selos-validacao{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.selo{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:.72rem;
+  font-weight:900;
+  letter-spacing:.5px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.35);
+}
+.selo-off{color:var(--muted)}
+.selo-on{
+  color:var(--success);
+  border-color:rgba(0,255,136,.35);
+}
+
+/* =========================
+   BOTÕES PRINCIPAIS (faltava)
+   ========================= */
+.btn-main{
+  width:100%;
+  border:none;
+  border-radius:12px;
+  padding:14px 12px;
+  font-weight:1000;
+  letter-spacing:.8px;
+  background:linear-gradient(90deg, rgba(0,212,255,.22), rgba(212,175,55,.16));
+  color:var(--text);
+  border:1px solid rgba(0,212,255,.22);
+}
+.btn-main:hover{filter:brightness(1.05)}
+.btn-main:active{transform:translateY(1px)}
+.btn-main:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  filter:none;
+}
+
+/* =========================
+   DASHBOARD / MÉTRICAS (faltava)
+   ========================= */
+.dashboard-lcu{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.metric-card{
+  background:var(--bg-surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:12px;
+  box-shadow:var(--shadow);
+}
+.metric-card small{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+  letter-spacing:.7px;
+  font-size:.7rem;
+  margin-bottom:6px;
+}
+.metric-card strong{
+  font-size:1.2rem;
+  letter-spacing:.5px;
+}
+.metric-card.warning strong{color:var(--warn)}
+
 /* =========================
    CANVAS
    ========================= */
@@ -319,11 +435,130 @@ textarea{
   padding:22px;
   font-family:var(--font-doc);
   overflow:auto;
+  box-shadow:var(--shadow);
 }
+
+/* placeholder (faltava) */
+.placeholder-msg{
+  border:1px dashed rgba(0,0,0,.25);
+  border-radius:10px;
+  padding:16px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  background:rgba(0,0,0,.02);
+}
+.placeholder-msg .icon{font-size:1.2rem}
+
+/* =========================
+   RASTREIO (faltava)
+   ========================= */
+.painel-rastreio{
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:var(--bg-surface);
+  overflow:hidden;
+}
+.painel-rastreio summary{
+  cursor:pointer;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  color:var(--text);
+  font-weight:900;
+  letter-spacing:.4px;
+}
+.painel-rastreio summary .hint{
+  color:var(--muted);
+  font-weight:800;
+  font-size:.8rem;
+}
+.rastreio-grid{
+  padding:14px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.rastreio-card{
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:12px;
+  background:rgba(0,0,0,.25);
+}
+.rastreio-card h4{
+  margin-bottom:8px;
+  color:var(--gold);
+  letter-spacing:.6px;
+  font-size:.85rem;
+}
+.rastreio-body p{color:var(--muted)}
+.rastreio-card-wide{grid-column:1 / -1}
+
+/* =========================
+   AÇÕES FINAIS (faltava)
+   ========================= */
+.acoes-finais{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.btn-secundario{
+  flex:1;
+  min-width:220px;
+  border:1px solid var(--border);
+  background:#000;
+  color:var(--text);
+  border-radius:12px;
+  padding:12px 12px;
+  font-weight:900;
+  letter-spacing:.6px;
+}
+.btn-secundario:hover{filter:brightness(1.07)}
+.btn-secundario:active{transform:translateY(1px)}
 
 /* =========================
    CHAT
    ========================= */
+.chat-top{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:6px;
+}
+.chat-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.chat-badge{
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.35);
+  color:var(--muted);
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:.72rem;
+  font-weight:900;
+}
+.chat-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.chip-action{
+  border:1px solid rgba(0,212,255,.25);
+  background:rgba(0,212,255,.08);
+  color:var(--text);
+  border-radius:999px;
+  padding:8px 10px;
+  font-weight:900;
+  font-size:.78rem;
+}
+.chip-action:hover{filter:brightness(1.08)}
+
 .chat-messages{
   border:1px solid var(--border);
   border-radius:var(--radius-sm);
@@ -336,6 +571,8 @@ textarea{
   flex-direction:column;
   gap:10px;
 }
+.chat-empty p{color:var(--muted)}
+
 .msg{
   border:1px solid rgba(255,255,255,.10);
   border-radius:14px;
@@ -351,35 +588,90 @@ textarea{
   background:rgba(212,175,55,.08);
 }
 
+/* input do chat (faltava) */
+.chat-input-wrap{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.chat-input{
+  flex:1;
+  border:1px solid #333;
+  background:#000;
+  color:#fff;
+  border-radius:10px;
+  padding:12px;
+  font-family:var(--font-mono);
+}
+.chat-send{
+  border:1px solid rgba(212,175,55,.35);
+  background:rgba(212,175,55,.12);
+  color:var(--gold);
+  border-radius:10px;
+  padding:12px 14px;
+  font-weight:1000;
+  letter-spacing:.5px;
+}
+.chat-send:hover{filter:brightness(1.1)}
+.chat-send:active{transform:translateY(1px)}
+
+.chat-acervo-hint small{color:var(--muted)}
+
 /* =========================
    MOBILE
    ========================= */
 @media (max-width:900px){
   .bancada-container{grid-template-columns:1fr}
-  .col-comando{border-right:none;border-bottom:1px solid var(--border)}
+  .col-comando{
+    border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+  .dashboard-lcu{grid-template-columns:1fr}
+  .rastreio-grid{grid-template-columns:1fr}
+  .btn-secundario{min-width:unset}
+  header{padding:12px 12px}
 }
 
 /* =========================
-   PRINT
+   PRINT (PDF LIMPO) ✅ melhorado
    ========================= */
 @media print{
+  @page { size: A4; margin: 14mm; }
+
   .no-print{display:none !important}
   .only-print{display:block !important}
+
+  *{
+    box-shadow:none !important;
+    text-shadow:none !important;
+  }
 
   html,body{
     background:#fff !important;
     color:#000 !important;
     height:auto !important;
     min-height:auto !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   #secao-impressao-isolada{
-    position:absolute;
-    top:0;left:0;
+    position:static;
     width:100%;
-    padding:0;
-    margin:0;
+    padding:0 !important;
+    margin:0 !important;
     background:#fff !important;
     color:#000 !important;
+    font-family:var(--font-doc) !important;
   }
+
+  /* garante que o texto do draft fique legível */
+  #secao-impressao-isolada *{
+    color:#000 !important;
+    background:transparent !important;
   }
+
+  /* evita quebras ridículas */
+  h1,h2,h3,h4{break-after:avoid-page}
+  p,div{orphans:3; widows:3}
+                }
