@@ -10,48 +10,33 @@
 <body>
 
   <noscript>
-    <div style="padding:12px; background:#111; color:#fff; border-bottom:1px solid #333; font-family:system-ui;">
-      Este sistema precisa de JavaScript para operar (UI Controller / STAR_SOCKET).
+    <div style="padding:12px;background:#111;color:#fff;border-bottom:1px solid #333;font-family:system-ui;">
+      Este sistema precisa de JavaScript para operar.
     </div>
   </noscript>
 
   <!-- =========================
-       HEADER (CABINE + TELEMETRIA)
+       HEADER (Marca + Idioma + Ações úteis)
        ========================= -->
   <header class="no-print" id="app-header">
     <div class="header-container">
 
-      <!-- Marca central -->
       <div class="logo-area" aria-label="Marca ARKHOS">
         <span class="symbol" aria-hidden="true">♈</span>
         <h1 id="app-title">ARKHOS</h1>
         <span class="symbol" aria-hidden="true">⚖️</span>
-        <small class="subtitle" id="subtitle">ESTAÇÃO DE CONFORMIDADE E MINUTAGEM TÉCNICA</small>
+        <small class="subtitle" id="subtitle">ESTAÇÃO DE INTELIGÊNCIA JURÍDICA</small>
       </div>
 
-      <!-- Direita: Telemetria + Idioma -->
       <div class="header-right">
 
-        <!-- Telemetria do motor -->
-        <div id="vigilia-status" class="motor-status" data-state="CONNECTING" data-latency-ms="" data-engine-version="" aria-label="Telemetria do motor">
-          <div class="pulse-icon" aria-hidden="true"></div>
-
-          <div class="motor-lines">
-            <div class="motor-line">
-              <span class="motor-label">MOTOR:</span>
-              <b id="status-core" class="status-on">CONECTANDO</b>
-            </div>
-
-            <div class="motor-badges" aria-label="Badges de operação">
-              <span id="badge-runtime" class="badge badge-runtime" data-runtime="LOCAL_SIMULADOR">LOCAL SIMULADOR</span>
-              <span id="badge-health" class="badge badge-health" data-health="CONNECTING">CONNECTING</span>
-              <span id="badge-latency" class="badge badge-latency" hidden>-- ms</span>
-              <span id="badge-engine" class="badge badge-engine" hidden>ENGINE --</span>
-            </div>
-          </div>
+        <!-- Header limpo: status simples + 1 ação útil -->
+        <div class="top-actions" aria-label="Ações do topo">
+          <span id="status-core" class="badge badge-health" data-health="OPERATIONAL">OPERACIONAL</span>
+          <button id="btn-top-ajuda" class="btn-top" type="button">AJUDA</button>
+          <button id="btn-top-config" class="btn-top" type="button">CONFIG</button>
         </div>
 
-        <!-- Idioma -->
         <div class="lang-switcher" aria-label="Selecionar idioma">
           <button id="btn-lang-pt" class="lang-btn active" type="button" data-lang="pt" aria-pressed="true">PT</button>
           <span class="divider" aria-hidden="true">|</span>
@@ -63,7 +48,7 @@
   </header>
 
   <!-- =========================
-       MAIN (BANCADA / WORKBENCH)
+       MAIN (Telas: PRO vs CHAT)
        ========================= -->
   <main class="bancada-container no-print" id="app-main">
 
@@ -72,7 +57,7 @@
          ========================= -->
     <section class="col-comando" aria-label="Comandos do sistema">
 
-      <!-- Seletor de modo -->
+      <!-- Tabs / troca de tela -->
       <div class="seletor-pista" role="tablist" aria-label="Alternar modo de trabalho">
         <button
           id="btn-pista-direta"
@@ -80,8 +65,8 @@
           type="button"
           role="tab"
           aria-selected="true"
-          aria-controls="painel-direto"
-          data-target="#painel-direto">
+          aria-controls="tela-pro"
+          data-target="#tela-pro">
           MODO PROFISSIONAL (MINUTA)
         </button>
 
@@ -91,121 +76,135 @@
           type="button"
           role="tab"
           aria-selected="false"
-          aria-controls="painel-chat"
-          data-target="#painel-chat">
+          aria-controls="tela-chat"
+          data-target="#tela-chat">
           ASSISTENTE JURÍDICO (CHAT)
         </button>
       </div>
 
       <!-- =========================
-           PAINEL 1: MODO DIRETO
+           TELA 1: PRO (MINUTA)
            ========================= -->
-      <section id="painel-direto" class="panel-mode" data-mode="direto" role="tabpanel" aria-labelledby="btn-pista-direta">
+      <section id="tela-pro" class="tela" role="tabpanel" aria-labelledby="btn-pista-direta">
 
-        <div class="card-comando">
-          <label for="area-direito" id="label-area">COMPETÊNCIA / ÁREA DE ATUAÇÃO</label>
-          <select id="area-direito" class="select-tecnico">
-            <option value="civil">Direito Civil (Contratos, Família, Danos)</option>
-            <option value="penal">Direito Criminal (Defesa, Inquérito, Execução)</option>
-            <option value="trabalhista">Direito Trabalhista (Reclamatória, Defesa)</option>
-            <option value="consumidor">Direito do Consumidor (Indenizações, Juizado)</option>
-            <option value="tributario">Direito Tributário (Defesa Fiscal, Recuperação)</option>
-            <option value="previdenciario">Direito Previdenciário (Concessão, Revisão)</option>
-            <option value="administrativo">Direito Administrativo (Licitações, Servidores)</option>
-          </select>
+        <div class="panel-mode" data-mode="direto" id="painel-direto">
 
-          <label for="cmd-input" id="label-input">INSTRUÇÃO TÉCNICA DA MINUTA</label>
-          <textarea id="cmd-input" placeholder="Descreva os fatos ou a ordem jurídica de acordo com a área selecionada..."></textarea>
+          <div class="card-comando">
+            <label for="area-direito" id="label-area">COMPETÊNCIA / ÁREA DE ATUAÇÃO</label>
+            <select id="area-direito" class="select-tecnico">
+              <option value="civil">Direito Civil (Contratos, Família, Danos)</option>
+              <option value="penal">Direito Criminal (Defesa, Inquérito, Execução)</option>
+              <option value="trabalhista">Direito Trabalhista (Reclamatória, Defesa)</option>
+              <option value="consumidor">Direito do Consumidor (Indenizações, Juizado)</option>
+              <option value="tributario">Direito Tributário (Defesa Fiscal, Recuperação)</option>
+              <option value="previdenciario">Direito Previdenciário (Concessão, Revisão)</option>
+              <option value="administrativo">Direito Administrativo (Licitações, Servidores)</option>
+            </select>
 
-          <!-- Acervo / Upload -->
-          <div class="upload-area" aria-label="Acervo probatório">
-            <label for="file-soberano" class="btn-anexo" role="button" tabindex="0">
-              <span id="label-anexo">📎 APORTAR LASTRO DOCUMENTAL (ACERVO)</span>
+            <label for="cmd-input" id="label-input">INSTRUÇÃO TÉCNICA DA MINUTA</label>
+            <textarea id="cmd-input" placeholder="Descreva os fatos ou a ordem jurídica de acordo com a área selecionada..."></textarea>
+
+            <!-- Acervo / Upload -->
+            <div class="upload-area" aria-label="Acervo probatório">
+              <label for="file-soberano" class="btn-anexo" role="button" tabindex="0">
+                <span id="label-anexo">📎 APORTAR LASTRO DOCUMENTAL (ACERVO)</span>
+              </label>
               <input type="file" id="file-soberano" multiple />
-            </label>
 
-            <div id="file-display-area" class="lista-arquivos" aria-live="polite">
-              <p class="txt-vazio">Acervo probatório vazio. Aguardando documentos...</p>
+              <div id="file-display-area" class="lista-arquivos" aria-live="polite">
+                <p class="txt-vazio">Acervo probatório vazio. Aguardando documentos...</p>
+
+                <!-- Template (JS vai clonar) -->
+                <template id="tpl-file-item">
+                  <div class="file-item">
+                    <span class="file-name"></span>
+                    <button type="button" class="file-remove" data-remove-index="" aria-label="Remover arquivo">✖</button>
+                  </div>
+                </template>
+              </div>
             </div>
           </div>
+
+          <!-- Auditoria / Conformidade -->
+          <section class="monitor-integridade" aria-label="Análise de conformidade processual">
+            <h3 id="titulo-analise">ANÁLISE DE CONFORMIDADE PROCESSUAL</h3>
+
+            <div class="grid-eixos">
+              <div class="eixo" id="e-metal">
+                <label id="lbl-e-metal">LÓGICA (Estrutura)</label>
+                <div class="bar"><div class="fill" style="width:0%"></div></div>
+              </div>
+
+              <div class="eixo" id="e-estado">
+                <label id="lbl-e-estado">PROVAS (Acervo)</label>
+                <div class="bar"><div class="fill" style="width:0%"></div></div>
+              </div>
+
+              <div class="eixo" id="e-legiao">
+                <label id="lbl-e-legiao">CONTEXTO (Jurisprudência)</label>
+                <div class="bar"><div class="fill" style="width:0%"></div></div>
+              </div>
+
+              <div class="eixo" id="e-logos">
+                <label id="lbl-e-logos">DIREITO (Fundamentação)</label>
+                <div class="bar"><div class="fill" style="width:0%"></div></div>
+              </div>
+            </div>
+
+            <div class="selos-validacao" aria-label="Selos de validação">
+              <span id="selo-cert" class="selo selo-off">CERT: AGUARDANDO</span>
+              <span id="selo-audit" class="selo selo-off">AUTENTICIDADE: PENDENTE</span>
+            </div>
+          </section>
+
+          <button id="btn-executar" class="btn-main" type="button" disabled>
+            GERAR MINUTA E PROTOCOLAR
+          </button>
+
         </div>
-
-        <!-- Monitor de integridade -->
-        <section class="monitor-integridade" aria-label="Análise de conformidade processual">
-          <h3>ANÁLISE DE CONFORMIDADE PROCESSUAL</h3>
-
-          <div class="grid-eixos">
-            <div class="eixo" id="e-metal">
-              <label>LÓGICA (Estrutura)</label>
-              <div class="bar"><div class="fill" style="width: 0%"></div></div>
-            </div>
-
-            <div class="eixo" id="e-estado">
-              <label>PROVAS (Acervo)</label>
-              <div class="bar"><div class="fill" style="width: 0%"></div></div>
-            </div>
-
-            <div class="eixo" id="e-legiao">
-              <label>CONTEXTO (Jurisprudência)</label>
-              <div class="bar"><div class="fill" style="width: 0%"></div></div>
-            </div>
-
-            <div class="eixo" id="e-logos">
-              <label>DIREITO (Fundamentação)</label>
-              <div class="bar"><div class="fill" style="width: 0%"></div></div>
-            </div>
-          </div>
-
-          <div class="selos-validacao" aria-label="Selos de validação">
-            <span id="selo-cert" class="selo selo-off">CERT: AGUARDANDO</span>
-            <span id="selo-audit" class="selo selo-off">AUTENTICIDADE: PENDENTE</span>
-          </div>
-        </section>
-
-        <button id="btn-executar" class="btn-main" type="button" disabled>
-          GERAR MINUTA E PROTOCOLAR
-        </button>
-
       </section>
 
       <!-- =========================
-           PAINEL 2: ASSISTENTE (CHAT)
+           TELA 2: CHAT (SEPARADA)
            ========================= -->
-      <section id="painel-chat" class="panel-mode" data-mode="assistente" role="tabpanel" aria-labelledby="btn-pista-guiada" hidden>
+      <section id="tela-chat" class="tela" role="tabpanel" aria-labelledby="btn-pista-guiada" hidden>
 
-        <div class="card-chat" aria-label="Assistente jurídico">
-          <div class="chat-top">
-            <div class="chat-title">
-              <strong id="chat-title">ASSISTENTE JURÍDICO</strong>
-              <span class="chat-badge" id="chat-volatile-badge" title="Sessão volátil por padrão">
-                Sessão volátil (só registra ao Arquivar/Exportar/Gerar)
-              </span>
+        <div class="panel-mode" data-mode="assistente" id="painel-chat">
+
+          <div class="card-chat" aria-label="Assistente jurídico">
+            <div class="chat-top">
+              <div class="chat-title">
+                <strong id="chat-title">ASSISTENTE JURÍDICO</strong>
+                <span class="chat-badge" id="chat-volatile-badge" title="Sessão volátil por padrão">
+                  Sessão volátil (só registra ao Arquivar/Exportar/Gerar)
+                </span>
+              </div>
+
+              <div class="chat-actions" id="chat-actions" aria-label="Ações rápidas do assistente">
+                <button type="button" class="chip-action" data-intent="peticao">Pedir Petição</button>
+                <button type="button" class="chip-action" data-intent="resumo">Gerar Resumo</button>
+                <button type="button" class="chip-action" data-intent="revisao">Revisar Texto</button>
+                <button type="button" class="chip-action" data-intent="relatorio">Relatório Técnico</button>
+              </div>
             </div>
 
-            <div class="chat-actions" id="chat-actions" aria-label="Ações rápidas do assistente">
-              <button type="button" class="chip-action" data-intent="peticao">Pedir Petição</button>
-              <button type="button" class="chip-action" data-intent="resumo">Gerar Resumo</button>
-              <button type="button" class="chip-action" data-intent="revisao">Revisar Texto</button>
-              <button type="button" class="chip-action" data-intent="relatorio">Relatório Técnico</button>
+            <div id="chat-messages" class="chat-messages" aria-live="polite" aria-label="Mensagens do chat">
+              <div class="chat-empty">
+                <p>Digite sua consulta. O assistente vai conduzir as perguntas necessárias e apontar o que falta para “passar” no fail-closed.</p>
+              </div>
+            </div>
+
+            <div class="chat-input-wrap" aria-label="Enviar mensagem">
+              <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua consulta jurídica..." autocomplete="off" />
+              <button id="chat-send" class="chat-send" type="button">Enviar</button>
+            </div>
+
+            <div class="chat-acervo-hint">
+              <small>Você pode anexar documentos pelo mesmo Acervo do sistema (lastro probatório).</small>
             </div>
           </div>
 
-          <div id="chat-messages" class="chat-messages" aria-live="polite" aria-label="Mensagens do chat">
-            <div class="chat-empty">
-              <p>Digite sua consulta. O assistente vai conduzir as perguntas necessárias e apontar o que falta para “passar” no fail-closed.</p>
-            </div>
-          </div>
-
-          <div class="chat-input-wrap" aria-label="Enviar mensagem">
-            <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua consulta jurídica..." autocomplete="off" />
-            <button id="chat-send" class="chat-send" type="button">Enviar</button>
-          </div>
-
-          <div class="chat-acervo-hint">
-            <small>Você pode anexar documentos pelo mesmo Acervo do sistema (lastro probatório).</small>
-          </div>
         </div>
-
       </section>
 
       <!-- =========================
@@ -260,7 +259,6 @@
           <small id="label-metrica-1">MÉTRICA DE VIABILIDADE</small>
           <strong id="val-expectativa">--</strong>
         </div>
-
         <div class="metric-card warning" id="card-metrica-2">
           <small id="label-metrica-2">MARGEM DE RISCO TÉCNICO</small>
           <strong id="val-erro">--</strong>
@@ -314,10 +312,10 @@
   </main>
 
   <!-- =========================
-       IMPRESSÃO ISOLADA (C05)
+       PRINT (C05)
        ========================= -->
   <div id="secao-impressao-isolada" class="only-print"></div>
 
   <script src="script.js"></script>
 </body>
-                </html>
+  </html>
