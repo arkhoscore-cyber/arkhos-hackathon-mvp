@@ -1,34 +1,32 @@
-<!-- ===================== BLOCO HTML_HEADER (SUBSTITUIR O <header> INTEIRO) ===================== -->
-<header class="topbar no-print" role="banner">
-  <!-- LINHA 1: MARCA (APENAS) -->
-  <div class="topbar-line topbar-line--brand">
+<!doctype html>
+<html lang="pt-BR" data-ui-mode="LOCAL_SIMULADOR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>ARKHOS_UI — Estação de Inteligência Jurídica</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <a class="sr-only" href="#main">Pular para o conteúdo</a>
+
+  <header class="topbar no-print" role="banner">
     <div class="brand">
-      <div class="brand-icon-left" aria-hidden="true">⟐</div>
-
+      <div class="brand-mark" aria-hidden="true">⟐</div>
       <div class="brand-text">
-        <div class="brand-title">ARKHOS 1.0</div>
-        <div class="brand-subtitle">Estação de Inteligência Jurídica</div>
-      </div>
-
-      <div class="brand-icon-right" aria-hidden="true" title="Jurídico">⚖</div>
-    </div>
-  </div>
-
-  <!-- LINHA 2: CONTROLES (EMBAIXO) -->
-  <div class="topbar-line topbar-line--controls" aria-label="Controles">
-    <div class="status-row" aria-label="Status do sistema">
-      <span class="badge badge-op" id="badge-operacional">OPERACIONAL</span>
-      <span class="badge badge-health" id="badge-health" title="Saúde da sessão">HEALTH: OK</span>
-      <span class="badge badge-runtime" id="badge-runtime" title="Runtime">RUNTIME: LOCAL</span>
-
-      <!-- MODO (LOCAL / ONLINE) — ONLINE exige “código de chamada” + permissão (JS) -->
-      <div class="mode-toggle" role="group" aria-label="Modo de operação">
-        <button class="btn-top" id="btn-mode-local" type="button" aria-pressed="true">LOCAL</button>
-        <button class="btn-top" id="btn-mode-online" type="button" aria-pressed="false">ONLINE</button>
+        <div class="brand-title">ARKHOS_UI</div>
+        <div class="brand-subtitle">Estação de Inteligência Jurídica (LOCAL_SIMULADOR)</div>
       </div>
     </div>
 
-    <div class="actions-row">
+    <div class="topbar-right">
+      <div class="badges" aria-label="Status do sistema">
+        <span class="badge badge-op" id="badge-operacional">OPERACIONAL</span>
+        <span class="badge badge-health" id="badge-health" title="Saúde da sessão">HEALTH: OK</span>
+        <span class="badge badge-runtime" id="badge-runtime" title="Runtime">RUNTIME: LOCAL</span>
+      </div>
+
       <div class="lang-toggle" role="group" aria-label="Idioma">
         <button class="btn-top" id="btn-lang-pt" type="button" aria-pressed="true">PT</button>
         <button class="btn-top" id="btn-lang-en" type="button" aria-pressed="false">EN</button>
@@ -39,6 +37,231 @@
         <button class="btn-top" id="btn-config" type="button">CONFIG</button>
       </div>
     </div>
+  </header>
+
+  <main id="main" class="bancada-container" role="main">
+    <aside class="col-comandos no-print" aria-label="Coluna de comandos">
+
+      <section class="card">
+        <div class="tabs" role="tablist" aria-label="Modos">
+          <button id="btn-tab-pro" class="tab active" role="tab"
+                  aria-selected="true" aria-controls="tela-pro" type="button">
+            PRO
+          </button>
+          <button id="btn-tab-chat" class="tab" role="tab"
+                  aria-selected="false" aria-controls="tela-chat" type="button">
+            CHAT
+          </button>
+        </div>
+      </section>
+
+      <!-- TELA PRO -->
+      <section id="tela-pro" class="screen" role="tabpanel" aria-labelledby="btn-tab-pro">
+        <section class="card">
+          <h2 class="card-title" id="pro-title">Modo Profissional</h2>
+
+          <label class="field">
+            <span class="field-label" id="lbl-area">Área</span>
+            <select id="area-direito" class="select">
+              <option value="civil">Civil</option>
+              <option value="penal">Penal</option>
+              <option value="trabalhista">Trabalhista</option>
+              <option value="familia">Família</option>
+              <option value="tributario">Tributário</option>
+              <option value="consumidor">Consumidor</option>
+              <option value="administrativo">Administrativo</option>
+              <option value="constitucional">Constitucional</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-label" id="lbl-instrucao">Instrução</span>
+            <textarea id="cmd-input" class="textarea" rows="7"
+                      placeholder="Descreva o caso e o que você precisa (mín. 10 caracteres)."></textarea>
+          </label>
+
+          <div class="row row-gap">
+            <button id="btn-executar" class="btn-main" type="button" disabled>GERAR MINUTA</button>
+            <button id="btn-exportar" class="btn-secundario" type="button" disabled>EXPORTAR PDF</button>
+            <button id="btn-arquivar" class="btn-secundario" type="button" disabled>ARQUIVAR SESSÃO</button>
+          </div>
+
+          <p class="hint" id="hint-failclosed" aria-live="polite">
+            Fail-closed: informe uma instrução válida para habilitar a geração.
+          </p>
+        </section>
+
+        <section class="card">
+          <h3 class="card-title" id="ttl-acervo">Acervo Probatório</h3>
+
+          <div class="upload-row">
+            <input id="file-soberano" class="file" type="file" multiple />
+            <button id="btn-limpar-anexos" class="btn-secundario" type="button" disabled>REMOVER TODOS</button>
+          </div>
+
+          <template id="tpl-file-item">
+            <li class="file-item">
+              <div class="file-meta">
+                <div class="file-name"></div>
+                <div class="file-sub"></div>
+              </div>
+              <button class="btn-top file-remove" type="button" aria-label="Remover arquivo">✕</button>
+            </li>
+          </template>
+
+          <ul id="lista-arquivos" class="file-list" aria-label="Arquivos anexados"></ul>
+          <p id="files-empty" class="hint" aria-live="polite">Nenhum arquivo anexado.</p>
+        </section>
+
+        <section class="card dashboard-lcu">
+          <div class="dashboard-head">
+            <h3 class="card-title" id="ttl-auditoria">Auditoria (Simulador)</h3>
+            <div class="selos-validacao" aria-label="Selos de validação">
+              <span class="selo" id="selo-cert">CERT: —</span>
+              <span class="selo" id="selo-auth">AUTENTICIDADE: —</span>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label" id="m-metal">METAL</div>
+              <div class="metric-value" id="v-metal">—</div>
+              <div class="bar"><div class="fill" id="bar-metal"></div></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label" id="m-estado">ESTADO</div>
+              <div class="metric-value" id="v-estado">—</div>
+              <div class="bar"><div class="fill" id="bar-estado"></div></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label" id="m-legiao">LEGIÃO</div>
+              <div class="metric-value" id="v-legiao">—</div>
+              <div class="bar"><div class="fill" id="bar-legiao"></div></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label" id="m-logos">LOGOS</div>
+              <div class="metric-value" id="v-logos">—</div>
+              <div class="bar"><div class="fill" id="bar-logos"></div></div>
+            </div>
+          </div>
+
+          <div class="audit-foot">
+            <div class="hint" id="audit-motivo" aria-live="polite">Aguardando geração para auditoria.</div>
+          </div>
+        </section>
+
+        <section class="card" id="painel-rastreio">
+          <h3 class="card-title" id="ttl-rastreio">Rastreabilidade</h3>
+          <details open>
+            <summary id="sum-cert">CERT</summary>
+            <div class="mono" id="cert-resumo">Aguardando…</div>
+          </details>
+          <details>
+            <summary id="sum-ledger">LEDGER</summary>
+            <div class="mono" id="ledger-resumo">Aguardando…</div>
+          </details>
+          <details>
+            <summary id="sum-evid">EVIDÊNCIAS</summary>
+            <div class="mono" id="evidencias-resumo">Aguardando…</div>
+          </details>
+        </section>
+
+        <section class="card" id="painel-arquivados">
+          <div class="row row-between">
+            <h3 class="card-title" id="ttl-arquivados">Arquivados</h3>
+            <button id="btn-limpar-archive" class="btn-top" type="button">LIMPAR</button>
+          </div>
+          <ul id="lista-arquivados" class="archive-list" aria-label="Sessões arquivadas"></ul>
+          <p id="archive-empty" class="hint">Nenhum arquivado.</p>
+        </section>
+
+        <!-- porta do motor remoto (futuro) mantida, mas oculta -->
+        <div id="motor-port" hidden aria-hidden="true"></div>
+      </section>
+
+      <!-- TELA CHAT -->
+      <section id="tela-chat" class="screen hidden" role="tabpanel" aria-labelledby="btn-tab-chat">
+        <section class="card chat-top">
+          <h2 class="card-title" id="chat-title">Assistente Jurídico</h2>
+          <div class="chip-row" aria-label="Ações rápidas">
+            <button class="chip-action" data-chip="peticao" type="button">Petição</button>
+            <button class="chip-action" data-chip="resumo" type="button">Resumo</button>
+            <button class="chip-action" data-chip="revisao" type="button">Revisão</button>
+            <button class="chip-action" data-chip="relatorio" type="button">Relatório</button>
+          </div>
+        </section>
+
+        <section class="card chat-body" aria-label="Mensagens">
+          <div id="chat-messages" class="chat-messages" role="log" aria-live="polite"></div>
+        </section>
+
+        <section class="card chat-input-card">
+          <div class="chat-input-wrap">
+            <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua mensagem…" />
+            <button id="chat-send" class="chat-send btn-main" type="button" disabled>ENVIAR</button>
+          </div>
+          <div class="row row-gap">
+            <button id="chat-arquivar" class="btn-secundario" type="button">ARQUIVAR CHAT</button>
+            <button id="chat-limpar" class="btn-secundario" type="button">LIMPAR CHAT</button>
+          </div>
+        </section>
+      </section>
+
+    </aside>
+
+    <section class="col-resultados" aria-label="Coluna de resultados">
+      <section class="card canvas-card">
+        <div class="row row-between no-print">
+          <h2 class="card-title" id="ttl-canvas">Documento</h2>
+          <span id="txt-placeholder" class="hint">Aguardando geração…</span>
+        </div>
+        <article id="output-canvas" class="output-canvas" aria-label="Documento gerado"></article>
+      </section>
+
+      <!-- ONLY PRINT: recebe cópia do documento antes de imprimir -->
+      <section id="secao-impressao-isolada" class="only-print" aria-label="Documento para impressão"></section>
+    </section>
+  </main>
+
+  <!-- MODAL: AJUDA -->
+  <div id="modal-ajuda" class="modal hidden no-print" role="dialog" aria-modal="true" aria-labelledby="modal-ajuda-title">
+    <div class="modal-card">
+      <div class="row row-between">
+        <h3 id="modal-ajuda-title" class="card-title">Ajuda</h3>
+        <button class="btn-top" id="btn-ajuda-fechar" type="button" aria-label="Fechar">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="hint" id="ajuda-texto">
+          Local simulador. Gere minuta no modo PRO, use CHAT para conversas, exporte PDF e arquive sessões.
+        </p>
+        <ul class="bullets">
+          <li>Fail-closed: mínimo 10 caracteres para gerar.</li>
+          <li>Export: imprime somente o documento gerado.</li>
+          <li>Arquivar: salva draft, auditoria, anexos e chat.</li>
+        </ul>
+      </div>
+    </div>
   </div>
-</header>
-<!-- ===================== /BLOCO HTML_HEADER ===================== -->
+
+  <!-- MODAL: CONFIG -->
+  <div id="modal-config" class="modal hidden no-print" role="dialog" aria-modal="true" aria-labelledby="modal-config-title">
+    <div class="modal-card">
+      <div class="row row-between">
+        <h3 id="modal-config-title" class="card-title">Config</h3>
+        <button class="btn-top" id="btn-config-fechar" type="button" aria-label="Fechar">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="row row-gap">
+          <button id="btn-limpar-sessao" class="btn-secundario" type="button">LIMPAR SESSÃO</button>
+          <button id="btn-compartilhar" class="btn-secundario" type="button">COMPARTILHAR</button>
+        </div>
+        <p class="hint" id="config-hint">
+          “Compartilhar” usa recursos nativos quando disponíveis (Android) ou fallback para copiar texto.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+          </html>
