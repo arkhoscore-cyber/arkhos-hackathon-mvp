@@ -1,5 +1,4 @@
-/* ===================== script.js (PARTE 1/3) — COLE INÍCIO DO ARQUIVO ===================== */
-/* ARKHOS_UI — script.js (offline-first, sem libs, LOCAL_SIMULADOR + ONLINE_GATED) */
+/* ARKHOS_UI — script.js (offline-first, sem libs, LOCAL_SIMULADOR) */
 (() => {
   'use strict';
 
@@ -8,12 +7,7 @@
     lang: 'arkhos_lang_v1',
     tab: 'arkhos_tab_v1',
     archive: 'arkhos_archive_v1',
-    session: 'arkhos_session_v1',
-
-    // MODE (LOCAL/ONLINE) + GATE
-    mode: 'arkhos_mode_v1',
-    remoteGate: 'arkhos_remote_gate_v1',      // { permitted:true/false, codeHash:number }
-    remoteLast: 'arkhos_remote_last_v1'       // { at:ts, ok:true/false }
+    session: 'arkhos_session_v1'
   };
 
   const MAX_ARCHIVE = 50;
@@ -25,14 +19,7 @@
     files: [], // {id,name,size,type,lastModified}
     draftHtml: '',
     audit: null, // {scores:{metal,estado,legiao,logos}, certScore, status, motivo, evidencias:[], ledger:[]}
-    chat: [], // {role:'me'|'bot', text, ts}
-
-    // MODO DE OPERAÇÃO (gated)
-    mode: 'local', // 'local' | 'online'
-    remote: {
-      permitted: false,
-      codeHash: 0
-    }
+    chat: [] // {role:'me'|'bot', text, ts}
   };
 
   const $ = (sel) => document.querySelector(sel);
@@ -50,10 +37,6 @@
     btnConfigFechar: () => $('#btn-config-fechar'),
     btnLimparSessao: () => $('#btn-limpar-sessao'),
     btnCompartilhar: () => $('#btn-compartilhar'),
-
-    // NEW: MODE TOGGLE (LOCAL / ONLINE)
-    btnModeLocal: () => $('#btn-mode-local'),
-    btnModeOnline: () => $('#btn-mode-online'),
 
     badgeHealth: () => $('#badge-health'),
     badgeRuntime: () => $('#badge-runtime'),
@@ -122,66 +105,6 @@
     localStorage.setItem(key, JSON.stringify(value));
   }
 
-  // =============== Toast minimal (fail loud) ===============
-  function toast(msg) {
-    try { alert(String(msg)); } catch { /* noop */ }
-  }
-  function toastError(err) {
-    const msg = (err && err.message) ? err.message : String(err || 'Erro');
-    toast(msg);
-  }
-
-  // =============== Sanitização ===============
-  function escapeHtml(str) {
-    return String(str)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
-
-  // =============== C12) AUTO-REPAIR GUARDS ===============
-  function onClick(selectorOrEl, fn) {
-    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
-    if (!node) return;
-    node.addEventListener('click', (e) => {
-      try { fn(e); } catch (err) { console.error(err); toastError(err); }
-    });
-  }
-
-  function onInput(selectorOrEl, fn) {
-    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
-    if (!node) return;
-    node.addEventListener('input', (e) => {
-      try { fn(e); } catch (err) { console.error(err); toastError(err); }
-    });
-  }
-
-  // =============== Hash / PRNG (determinístico) ===============
-  // FNV-1a 32-bit
-  function hash32(str) {
-    let h = 0x811c9dc5;
-    const s = String(str);
-    for (let i = 0; i < s.length; i++) {
-      h ^= s.charCodeAt(i);
-      h = Math.imul(h, 0x01000193);
-    }
-    return h >>> 0;
-  }
-
-  // Mulberry32 PRNG
-  function prng(seedU32) {
-    let a = seedU32 >>> 0;
-    return () => {
-      a |= 0;
-      a = (a + 0x6D2B79F5) | 0;
-      let t = Math.imul(a ^ (a >>> 15), 1 | a);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
   // =============== C2) i18n + ARIA PRESSED ===============
   const I18N = {
     pt: {
@@ -221,21 +144,7 @@
       precisaGerar: 'Gere uma minuta antes de exportar.',
       precisaInstrucao: 'Instrução insuficiente (mín. 10 caracteres).',
       abrir: 'ABRIR',
-      excluir: 'EXCLUIR',
-
-      // MODE
-      local: 'LOCAL',
-      online: 'ONLINE',
-      runtimeLocal: 'RUNTIME: LOCAL',
-      runtimeOnline: 'RUNTIME: ONLINE',
-      gateTitulo: 'Código de chamada',
-      gateDefinir: 'Defina um código de chamada (senha) para habilitar o ONLINE neste aparelho:',
-      gateConfirmar: 'Confirme o código de chamada:',
-      gateDigitar: 'Digite o código de chamada para ligar o ONLINE:',
-      gateCurto: 'Código muito curto. Mínimo 4 caracteres.',
-      gateInvalido: 'Código inválido. ONLINE bloqueado.',
-      gateAtivado: 'ONLINE habilitado neste aparelho.',
-      gateDesligado: 'ONLINE desligado.'
+      excluir: 'EXCLUIR'
     },
     en: {
       proTitle: 'Professional Mode',
@@ -274,21 +183,7 @@
       precisaGerar: 'Generate a draft before exporting.',
       precisaInstrucao: 'Insufficient instruction (min 10 characters).',
       abrir: 'OPEN',
-      excluir: 'DELETE',
-
-      // MODE
-      local: 'LOCAL',
-      online: 'ONLINE',
-      runtimeLocal: 'RUNTIME: LOCAL',
-      runtimeOnline: 'RUNTIME: ONLINE',
-      gateTitulo: 'Call code',
-      gateDefinir: 'Set a call code (password) to enable ONLINE on this device:',
-      gateConfirmar: 'Confirm the call code:',
-      gateDigitar: 'Enter the call code to turn ONLINE on:',
-      gateCurto: 'Code too short. Minimum 4 characters.',
-      gateInvalido: 'Invalid code. ONLINE blocked.',
-      gateAtivado: 'ONLINE enabled on this device.',
-      gateDesligado: 'ONLINE turned off.'
+      excluir: 'DELETE'
     }
   };
 
@@ -300,7 +195,7 @@
   function applyI18n() {
     document.documentElement.lang = state.lang === 'pt' ? 'pt-BR' : 'en';
 
-    // aria-pressed (LANG)
+    // aria-pressed
     const pt = el.btnLangPt();
     const en = el.btnLangEn();
     if (pt && en) {
@@ -308,18 +203,6 @@
       en.setAttribute('aria-pressed', String(state.lang === 'en'));
       pt.classList.toggle('active', state.lang === 'pt');
       en.classList.toggle('active', state.lang === 'en');
-    }
-
-    // MODE buttons
-    const mLocal = el.btnModeLocal();
-    const mOnline = el.btnModeOnline();
-    if (mLocal && mOnline) {
-      mLocal.textContent = t('local');
-      mOnline.textContent = t('online');
-      mLocal.setAttribute('aria-pressed', String(state.mode === 'local'));
-      mOnline.setAttribute('aria-pressed', String(state.mode === 'online'));
-      mLocal.classList.toggle('active', state.mode === 'local');
-      mOnline.classList.toggle('active', state.mode === 'online');
     }
 
     // Text nodes
@@ -397,6 +280,42 @@
     }
   }
 
+  // =============== C12) AUTO-REPAIR GUARDS ===============
+  function onClick(selectorOrEl, fn) {
+    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
+    if (!node) return;
+    node.addEventListener('click', (e) => {
+      try { fn(e); } catch (err) { console.error(err); toastError(err); }
+    });
+  }
+
+  function onInput(selectorOrEl, fn) {
+    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
+    if (!node) return;
+    node.addEventListener('input', (e) => {
+      try { fn(e); } catch (err) { console.error(err); toastError(err); }
+    });
+  }
+
+  // =============== Toast minimal (fail loud) ===============
+  function toast(msg) {
+    try { alert(String(msg)); } catch { /* noop */ }
+  }
+  function toastError(err) {
+    const msg = (err && err.message) ? err.message : String(err || 'Erro');
+    toast(msg);
+  }
+
+  // =============== Sanitização ===============
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
   // =============== Fail-closed ===============
   function isValidInstruction() {
     const v = (el.cmd()?.value || '').trim();
@@ -422,20 +341,17 @@
     if (btnLimparAnexos) btnLimparAnexos.disabled = state.files.length === 0;
   }
 
-  // =============== Session persistence (work-in-progress) ===============
+  // =============== Session persistence (current work-in-progress) ===============
   function persistSession() {
     const payload = {
-      v: 2,
+      v: 1,
       lang: state.lang,
       tab: state.tab,
       areaValue: state.areaValue,
       files: state.files,
       draftHtml: state.draftHtml,
       audit: state.audit,
-      chat: state.chat,
-
-      mode: state.mode,
-      remote: state.remote
+      chat: state.chat
     };
     try { saveLS(LS.session, payload); } catch (e) { console.error(e); }
   }
@@ -452,113 +368,11 @@
     state.draftHtml = typeof payload.draftHtml === 'string' ? payload.draftHtml : '';
     state.audit = payload.audit && typeof payload.audit === 'object' ? payload.audit : null;
     state.chat = Array.isArray(payload.chat) ? payload.chat : [];
-
-    if (payload.mode === 'local' || payload.mode === 'online') state.mode = payload.mode;
-    if (payload.remote && typeof payload.remote === 'object') {
-      state.remote.permitted = !!payload.remote.permitted;
-      state.remote.codeHash = Number(payload.remote.codeHash) || 0;
-    }
   }
-
-  // =============== REMOTE GATE (ONLINE) ===============
-  function loadRemoteGate() {
-    const g = loadLS(LS.remoteGate, null);
-    if (!g || typeof g !== 'object') return { permitted: false, codeHash: 0 };
-    return { permitted: !!g.permitted, codeHash: Number(g.codeHash) || 0 };
-  }
-
-  function saveRemoteGate(g) {
-    const payload = { permitted: !!g.permitted, codeHash: Number(g.codeHash) || 0 };
-    try { saveLS(LS.remoteGate, payload); } catch (e) { console.error(e); }
-  }
-
-  function setRuntimeBadge(text) {
-    const b = el.badgeRuntime();
-    if (!b) return;
-    b.textContent = String(text || (state.mode === 'online' ? t('runtimeOnline') : t('runtimeLocal')));
-  }
-
-  function setHealthBadge(text) {
-    const b = el.badgeHealth();
-    if (!b) return;
-    b.textContent = String(text || 'HEALTH: OK');
-  }
-
-  function applyModeUi() {
-    // runtime badge
-    setRuntimeBadge(state.mode === 'online' ? t('runtimeOnline') : t('runtimeLocal'));
-
-    // aria pressed on mode buttons (applyI18n also does, but this keeps consistent)
-    const mLocal = el.btnModeLocal();
-    const mOnline = el.btnModeOnline();
-    if (mLocal && mOnline) {
-      mLocal.setAttribute('aria-pressed', String(state.mode === 'local'));
-      mOnline.setAttribute('aria-pressed', String(state.mode === 'online'));
-      mLocal.classList.toggle('active', state.mode === 'local');
-      mOnline.classList.toggle('active', state.mode === 'online');
-    }
-  }
-
-  function ensureOnlineGate() {
-    // Already permitted on this device
-    if (!state.remote.permitted || !state.remote.codeHash) return false;
-    const code = prompt(`${t('gateTitulo')} — ${t('gateDigitar')}`) || '';
-    if (!code) return false;
-    return hash32(code) === (state.remote.codeHash >>> 0);
-  }
-
-  function setMode(mode) {
-    state.mode = (mode === 'online') ? 'online' : 'local';
-    saveLS(LS.mode, state.mode);
-    persistSession();
-    applyModeUi();
-  }
-
-  function goLocal() {
-    setMode('local');
-    try { saveLS(LS.remoteLast, { at: nowTs(), ok: true, mode: 'local' }); } catch {}
-    toast(t('gateDesligado'));
-  }
-
-  function goOnline() {
-    // Gate must exist (permission)
-    const okGate = ensureOnlineGate();
-    if (!okGate) {
-      setMode('local');
-      try { saveLS(LS.remoteLast, { at: nowTs(), ok: false, mode: 'online' }); } catch {}
-      return;
-    }
-
-    // Must enter code each time to turn on
-    const okCode = verifyOnlineCode();
-    if (!okCode) {
-      toast(t('gateInvalido'));
-      setMode('local');
-      try { saveLS(LS.remoteLast, { at: nowTs(), ok: false, mode: 'online' }); } catch {}
-      return;
-    }
-
-    setMode('online');
-    try { saveLS(LS.remoteLast, { at: nowTs(), ok: true, mode: 'online' }); } catch {}
-  }
-
-  /* === CUT_HERE (PARTE 2 COMEÇA NO PRÓXIMO BLOCO) === */
- /* ===================== script.js (PARTE 2/3) — COLE EM SEGUIDA ===================== */
 
   // =============== C4) Upload / Render files (usa template) ===============
   function fileIdFrom(f) {
     return `${f.name}|${f.size}|${f.type}|${f.lastModified}`;
-  }
-
-  function formatBytes(n) {
-    const num = Number(n) || 0;
-    if (num < 1024) return `${num} B`;
-    const kb = num / 1024;
-    if (kb < 1024) return `${kb.toFixed(1)} KB`;
-    const mb = kb / 1024;
-    if (mb < 1024) return `${mb.toFixed(1)} MB`;
-    const gb = mb / 1024;
-    return `${gb.toFixed(2)} GB`;
   }
 
   function renderFiles() {
@@ -600,8 +414,42 @@
     }
   }
 
+  function formatBytes(n) {
+    const num = Number(n) || 0;
+    if (num < 1024) return `${num} B`;
+    const kb = num / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    const mb = kb / 1024;
+    if (mb < 1024) return `${mb.toFixed(1)} MB`;
+    const gb = mb / 1024;
+    return `${gb.toFixed(2)} GB`;
+  }
+
   // =============== C5) Auditoria simulada (DETERMINÍSTICA) ===============
   function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+
+  // FNV-1a 32-bit
+  function hash32(str) {
+    let h = 0x811c9dc5;
+    const s = String(str);
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return h >>> 0;
+  }
+
+  // Mulberry32 PRNG
+  function prng(seedU32) {
+    let a = seedU32 >>> 0;
+    return () => {
+      a |= 0;
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
 
   function auditSeed(instruction, files) {
     const ids = (files || []).map(f => f.id).join('||');
@@ -647,8 +495,7 @@
     const ledger = [
       { etapa: 'INPUT', detalhe: `instrucao_len=${len}` },
       { etapa: 'FILES', detalhe: `qtd=${fcount}` },
-      { etapa: 'AUDIT', detalhe: `cert=${certScore} status=${status}` },
-      { etapa: 'MODE', detalhe: `mode=${state.mode}` }
+      { etapa: 'AUDIT', detalhe: `cert=${certScore} status=${status}` }
     ];
 
     const motivo = status === 'OK'
@@ -732,13 +579,11 @@
     const dt = new Date();
     const dtStr = dt.toLocaleString();
 
-    const modeTxt = (state.mode === 'online') ? 'ONLINE_GATED' : 'LOCAL_SIMULADOR';
-
     // Documento “minuta técnica” (simulada)
     return `
       <section class="draft">
         <h1>Minuta Técnica — ${escapeHtml(areaTxt)}</h1>
-        <p><strong>Modo:</strong> ${escapeHtml(modeTxt)}</p>
+        <p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
         <p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
 
         <div class="draft-block">
@@ -760,7 +605,6 @@
             <li>Sanitização: texto do usuário escapado (sem injeção HTML).</li>
             <li>Offline-first: sem dependências externas.</li>
             <li>Export: impressão isolada do documento.</li>
-            <li>ONLINE: modo bloqueado por código + permissão local (sem chamadas remotas nesta versão).</li>
           </ul>
         </div>
       </section>
@@ -775,10 +619,8 @@
     if (ph) ph.textContent = state.draftHtml ? '' : t('aguardandoDoc');
   }
 
-  /* === CUT_HERE (PARTE 3 COMEÇA NO PRÓXIMO BLOCO) === */
- /* ===================== script.js (PARTE 3/3) — COLE EM SEGUIDA (FINALIZA ARQUIVO) ===================== */
-
-  // =============== C7) PRINT / EXPORT (copy to only-print) ===============
+  /* === CUT_HERE === */
+ // =============== C7) PRINT / EXPORT (copy to only-print) ===============
   function copyToPrintSection() {
     const out = el.out();
     const printArea = el.printOnly();
@@ -854,8 +696,7 @@
       sub.className = 'archive-sub';
       const fcount = Array.isArray(item.filesMeta) ? item.filesMeta.length : 0;
       const ccount = Array.isArray(item.chat) ? item.chat.length : 0;
-      const mode = item.mode || 'local';
-      sub.textContent = `mode=${mode} • draft=${item.draftHtml ? 'SIM' : 'NÃO'} • anexos=${fcount} • chat=${ccount}`;
+      sub.textContent = `draft=${item.draftHtml ? 'SIM' : 'NÃO'} • anexos=${fcount} • chat=${ccount}`;
 
       meta.appendChild(title);
       meta.appendChild(sub);
@@ -897,8 +738,6 @@
       id: `a_${nowTs()}_${hash32(`${state.areaValue}|${(el.cmd()?.value || '').trim()}|${state.files.map(f => f.id).join(',')}`)}`,
       ts: nowTs(),
       lang: state.lang,
-      mode: state.mode,
-
       areaValue: state.areaValue,
       areaLabel: areaLabel(),
       cmd: (el.cmd()?.value || '').trim(),
@@ -925,7 +764,6 @@
     state.audit = item.audit && typeof item.audit === 'object' ? item.audit : null;
     state.draftHtml = typeof item.draftHtml === 'string' ? item.draftHtml : '';
     state.chat = Array.isArray(item.chat) ? item.chat : [];
-    state.mode = (item.mode === 'online') ? 'online' : 'local';
 
     // Apply to inputs/UI
     const area = el.area();
@@ -935,7 +773,6 @@
     if (cmd) cmd.value = item.cmd || '';
 
     applyI18n();
-    applyModeUi();
     renderFiles();
     if (state.audit) renderAudit(state.audit);
     renderDraft();
@@ -1109,7 +946,6 @@
     renderFiles();
     renderDraft();
     applyI18n();
-    applyModeUi();
     chatRender();
     refreshButtons();
 
@@ -1117,7 +953,19 @@
     toast(t('alertLimpo'));
   }
 
-  // =============== C11) generate flow ===============
+  // =============== C11) HEALTH/RUNTIME + generate flow ===============
+  function setHealthBadge(text) {
+    const b = el.badgeHealth();
+    if (!b) return;
+    b.textContent = String(text || 'HEALTH: OK');
+  }
+
+  function setRuntimeBadge(text) {
+    const b = el.badgeRuntime();
+    if (!b) return;
+    b.textContent = String(text || 'RUNTIME: LOCAL');
+  }
+
   function generateAll() {
     if (!isValidInstruction()) {
       toast(t('precisaInstrucao'));
@@ -1142,10 +990,6 @@
     // Language
     onClick(el.btnLangPt(), () => { state.lang = 'pt'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
     onClick(el.btnLangEn(), () => { state.lang = 'en'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
-
-    // MODE (LOCAL/ONLINE)
-    onClick(el.btnModeLocal(), () => { goLocal(); applyI18n(); });
-    onClick(el.btnModeOnline(), () => { goOnline(); applyI18n(); });
 
     // Tabs
     onClick(el.btnTabPro(), () => { setTab('pro'); persistSession(); });
@@ -1272,29 +1116,14 @@
     const savedTab = loadLS(LS.tab, null);
     if (savedTab === 'pro' || savedTab === 'chat') state.tab = savedTab;
 
-    // Restore mode (default local)
-    const savedMode = loadLS(LS.mode, null);
-    if (savedMode === 'local' || savedMode === 'online') state.mode = savedMode;
-
-    // Restore remote gate (permission + hash)
-    const g = loadRemoteGate();
-    state.remote.permitted = g.permitted;
-    state.remote.codeHash = g.codeHash;
-
     restoreSession();
-
-    // Force: if online but no gate, downgrade to local
-    if (state.mode === 'online' && !(state.remote.permitted && state.remote.codeHash)) {
-      state.mode = 'local';
-      saveLS(LS.mode, state.mode);
-    }
 
     // Apply to inputs
     const area = el.area(); if (area) area.value = state.areaValue || area.value;
 
     // Badges
     setHealthBadge('HEALTH: OK');
-    applyModeUi();
+    setRuntimeBadge('RUNTIME: LOCAL');
 
     // Render
     applyI18n();
@@ -1321,5 +1150,3 @@
 
   boot();
 })();
-
-/* ===================== /script.js (FIM) ===================== */
