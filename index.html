@@ -183,57 +183,47 @@
       </section>
 
       <!-- TELA CHAT -->
-      <section id="tela-chat" class="screen hidden" role="tabpanel" aria-labelledby="btn-tab-chat">
-        <section class="card chat-top">
-          <h2 class="card-title" id="chat-title">Assistente Jurídico</h2>
-          <div class="chip-row" aria-label="Ações rápidas">
-            <button class="chip-action" data-chip="peticao" type="button">Petição</button>
-            <button class="chip-action" data-chip="resumo" type="button">Resumo</button>
-            <button class="chip-action" data-chip="revisao" type="button">Revisão</button>
-            <button class="chip-action" data-chip="relatorio" type="button">Relatório</button>
-          </div>
-        </section>
+<section id="tela-chat" class="screen hidden" role="tabpanel" aria-labelledby="btn-tab-chat">
 
-       <section class="card chat-input-card">
-  <!-- enviar mensagem (continua igual) -->
-  <div class="chat-input-wrap">
-    <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua mensagem…" />
-    <button id="chat-send" class="chat-send btn-main" type="button" disabled>ENVIAR</button>
-  </div>
+  <section class="card chat-top">
+    <h2 class="card-title" id="chat-title">Assistente Jurídico</h2>
+    <div class="chip-row" aria-label="Ações rápidas">
+      <button class="chip-action" data-chip="peticao" type="button">Petição</button>
+      <button class="chip-action" data-chip="resumo" type="button">Resumo</button>
+      <button class="chip-action" data-chip="revisao" type="button">Revisão</button>
+      <button class="chip-action" data-chip="relatorio" type="button">Relatório</button>
+    </div>
+  </section>
 
-  <!-- NOVO: anexos no chat -->
-  <div class="upload-row" style="margin-top:10px">
-    <input id="chat-file" class="file" type="file" multiple />
-    <button id="btn-chat-limpar-anexos" class="btn-secundario" type="button" disabled>REMOVER ANEXOS</button>
-  </div>
-  <p id="chat-files-empty" class="hint" aria-live="polite">Nenhum anexo no chat.</p>
+  <!-- 🔴 BLOCO DAS MENSAGENS (ESTAVA FALTANDO) -->
+  <section class="card chat-body" aria-label="Mensagens">
+    <div id="chat-messages" class="chat-messages" role="log" aria-live="polite"></div>
+  </section>
 
-  <!-- NOVO: exportar/compartilhar o documento do chat -->
-  <div class="row row-gap" style="margin-top:10px">
+  <section class="card chat-input-card">
 
-  <!-- GERAR DOCUMENTO DO CHAT -->
-  <button id="chat-gerar-doc" class="btn-main" type="button" disabled>
-    GERAR DOC
-  </button>
+    <div class="chat-input-wrap">
+      <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua mensagem…" />
+      <button id="chat-send" class="chat-send btn-main" type="button" disabled>ENVIAR</button>
+    </div>
 
-  <!-- EXPORTAR / ENVIAR PRA FORA -->
-  <button id="chat-enviar-doc" class="btn-secundario" type="button" disabled>
-    EXPORTAR
-  </button>
+    <div class="upload-row" style="margin-top:10px">
+      <input id="chat-file" class="file" type="file" multiple />
+      <button id="btn-chat-limpar-anexos" class="btn-secundario" type="button" disabled>REMOVER ANEXOS</button>
+    </div>
 
-  <!-- ARQUIVAR INTERNAMENTE -->
-  <button id="chat-arquivar" class="btn-secundario" type="button">
-    ARQUIVAR CHAT
-  </button>
+    <p id="chat-files-empty" class="hint" aria-live="polite">Nenhum anexo no chat.</p>
 
-  <!-- LIMPAR SESSÃO -->
-  <button id="chat-limpar" class="btn-secundario" type="button">
-    LIMPAR CHAT
-  </button>
+    <div class="row row-gap" style="margin-top:10px">
+      <button id="chat-gerar-doc" class="btn-main" type="button" disabled>GERAR DOC</button>
+      <button id="chat-enviar-doc" class="btn-secundario" type="button" disabled>EXPORTAR</button>
+      <button id="chat-arquivar" class="btn-secundario" type="button">ARQUIVAR CHAT</button>
+      <button id="chat-limpar" class="btn-secundario" type="button">LIMPAR CHAT</button>
+    </div>
 
-  </div>
-       </section>
-      </section>
+  </section>
+
+</section>
 
     </aside>
 
