@@ -217,6 +217,7 @@
     const btnGerar = el.btnGerar(); if (btnGerar) btnGerar.textContent = t('gerar');
     const btnExportar = el.btnExportar(); if (btnExportar) btnExportar.textContent = t('exportar');
     const btnArquivar = el.btnArquivar(); if (btnArquivar) btnArquivar.textContent = t('arquivar');
+    const btnEnviar = el.btnEnviar(); if (btnEnviar) btnEnviar.textContent = t('enviar');
     const hint = $('#hint-failclosed'); if (hint) hint.textContent = t('failClosed');
 
     const ttlAcervo = $('#ttl-acervo'); if (ttlAcervo) ttlAcervo.textContent = t('acervo');
