@@ -1,6 +1,7 @@
 /* ARKHOS_UI — script.js (offline-first, sem libs, LOCAL_SIMULADOR) */
 (() => {
   'use strict';
+  alert('SCRIPT CARREGOU ✅');
 
   // =============== C1) STATE / STORAGE ===============
   const LS = {
