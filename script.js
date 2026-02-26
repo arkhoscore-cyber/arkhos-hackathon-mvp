@@ -1091,6 +1091,10 @@ onClick(el.chatGerarDoc(), () => { generateAll(); });
       });
     });
 
+
+    // Chat: gerar documento + exportar
+    onClick(el.chatGerarDoc(), () => { generateFromChat(); });
+    onClick(el.chatEnviarDoc(), () => { shareCurrent(); });
     onClick(el.chatArquivar(), () => { archiveCurrentSession(); });
     onClick(el.chatLimpar(), () => { chatClear(); });
 
