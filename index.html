@@ -12,31 +12,31 @@
   <a class="sr-only" href="#main">Pular para o conteúdo</a>
 
   <header class="topbar no-print" role="banner">
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true">⟐</div>
-      <div class="brand-text">
-        <div class="brand-title">ARKHOS_UI</div>
-        <div class="brand-subtitle">Estação de Inteligência Jurídica (LOCAL_SIMULADOR)</div>
-      </div>
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">⚖️</div>
+    <div class="brand-text">
+      <div class="brand-title">ARKHOS 1.0</div>
+      <div class="brand-subtitle">Estação de Inteligência Jurídica</div>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="badges" aria-label="Status do sistema">
+      <span class="badge badge-op" id="badge-operacional">OPERACIONAL</span>
+      <span class="badge badge-runtime" id="badge-runtime" title="Conexão do motor">MODO: OFFLINE</span>
     </div>
 
-    <div class="topbar-right">
-      <div class="badges" aria-label="Status do sistema">
-        <span class="badge badge-op" id="badge-operacional">OPERACIONAL</span>
-        <span class="badge badge-health" id="badge-health" title="Saúde da sessão">HEALTH: OK</span>
-        <span class="badge badge-runtime" id="badge-runtime" title="Runtime">RUNTIME: LOCAL</span>
-      </div>
-
-      <div class="lang-toggle" role="group" aria-label="Idioma">
-        <button class="btn-top" id="btn-lang-pt" type="button" aria-pressed="true">PT</button>
-        <button class="btn-top" id="btn-lang-en" type="button" aria-pressed="false">EN</button>
-      </div>
-
-      <div class="top-actions">
-        <button class="btn-top" id="btn-ajuda" type="button">AJUDA</button>
-        <button class="btn-top" id="btn-config" type="button">CONFIG</button>
-      </div>
+    <div class="lang-toggle" role="group" aria-label="Idioma">
+      <button class="btn-top" id="btn-lang-pt" type="button" aria-pressed="true">PT</button>
+      <button class="btn-top" id="btn-lang-en" type="button" aria-pressed="false">EN</button>
     </div>
+
+    <div class="top-actions">
+      <button class="btn-top" id="btn-ajuda" type="button">AJUDA</button>
+      <button class="btn-top" id="btn-config" type="button">CONFIG</button>
+      <button class="btn-main" id="btn-conectar-motor" type="button" title="Conectar motor remoto">CONECTAR MOTOR</button>
+    </div>
+  </div>
   </header>
 
   <main id="main" class="bancada-container" role="main">
