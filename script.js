@@ -53,6 +53,7 @@
     btnExportar: () => $('#btn-exportar'),
     btnArquivar: () => $('#btn-arquivar'),
     btnEnviar: () => $('#btn-enviar'),
+    chatGerarDoc: () => $('#chat-gerar-doc'),
 
     fileInput: () => $('#file-soberano'),
     btnLimparAnexos: () => $('#btn-limpar-anexos'),
@@ -1039,6 +1040,8 @@ onClick(el.btnGerar(), () => { generateAll(); });
 onClick(el.btnExportar(), () => { exportPdfPrint(); });
 onClick(el.btnEnviar(), () => { shareCurrent(); });
 onClick(el.btnArquivar(), () => { archiveCurrentSession(); });
+    // CHAT — gerar documento usando o mesmo motor
+onClick(el.chatGerarDoc(), () => { generateAll(); });
 
     // Archive panel
     onClick(el.btnLimparArchive(), () => { clearArchive(); });
