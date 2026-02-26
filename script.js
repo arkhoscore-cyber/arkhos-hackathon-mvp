@@ -1031,9 +1031,10 @@
     });
 
     // Generate / Export / Archive
-    onClick(el.btnGerar(), () => { generateAll(); });
-    onClick(el.btnExportar(), () => { exportPdfPrint(); });
-    onClick(el.btnArquivar(), () => { archiveCurrentSession(); });
+onClick(el.btnGerar(), () => { generateAll(); });
+onClick(el.btnExportar(), () => { exportPdfPrint(); });
+onClick(el.btnEnviar(), () => { shareCurrent(); });
+onClick(el.btnArquivar(), () => { archiveCurrentSession(); });
 
     // Archive panel
     onClick(el.btnLimparArchive(), () => { clearArchive(); });
