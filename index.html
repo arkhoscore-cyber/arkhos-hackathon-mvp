@@ -194,20 +194,27 @@
           </div>
         </section>
 
-        <section class="card chat-body" aria-label="Mensagens">
-          <div id="chat-messages" class="chat-messages" role="log" aria-live="polite"></div>
-        </section>
+       <section class="card chat-input-card">
+  <!-- enviar mensagem (continua igual) -->
+  <div class="chat-input-wrap">
+    <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua mensagem…" />
+    <button id="chat-send" class="chat-send btn-main" type="button" disabled>ENVIAR</button>
+  </div>
 
-        <section class="card chat-input-card">
-          <div class="chat-input-wrap">
-            <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua mensagem…" />
-            <button id="chat-send" class="chat-send btn-main" type="button" disabled>ENVIAR</button>
-          </div>
-          <div class="row row-gap">
-            <button id="chat-arquivar" class="btn-secundario" type="button">ARQUIVAR CHAT</button>
-            <button id="chat-limpar" class="btn-secundario" type="button">LIMPAR CHAT</button>
-          </div>
-        </section>
+  <!-- NOVO: anexos no chat -->
+  <div class="upload-row" style="margin-top:10px">
+    <input id="chat-file" class="file" type="file" multiple />
+    <button id="btn-chat-limpar-anexos" class="btn-secundario" type="button" disabled>REMOVER ANEXOS</button>
+  </div>
+  <p id="chat-files-empty" class="hint" aria-live="polite">Nenhum anexo no chat.</p>
+
+  <!-- NOVO: exportar/compartilhar o documento do chat -->
+  <div class="row row-gap" style="margin-top:10px">
+    <button id="chat-enviar-doc" class="btn-secundario" type="button" disabled>ENVIAR DOC</button>
+    <button id="chat-arquivar" class="btn-secundario" type="button">ARQUIVAR CHAT</button>
+    <button id="chat-limpar" class="btn-secundario" type="button">LIMPAR CHAT</button>
+  </div>
+       </section>
       </section>
 
     </aside>
