@@ -331,6 +331,8 @@
     const hasDraft = !!state.draftHtml;
     const btnExportar = el.btnExportar();
     const btnArquivar = el.btnArquivar();
+    const btnEnviar = el.btnEnviar ? el.btnEnviar() : null;
+    if (btnEnviar) btnEnviar.disabled = !hasDraft;
     if (btnExportar) btnExportar.disabled = !hasDraft;
     if (btnArquivar) btnArquivar.disabled = !(hasDraft || state.chat.length || state.files.length);
 
