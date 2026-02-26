@@ -52,6 +52,7 @@
     btnGerar: () => $('#btn-executar'),
     btnExportar: () => $('#btn-exportar'),
     btnArquivar: () => $('#btn-arquivar'),
+    btnEnviar: () => $('#btn-enviar'),
 
     fileInput: () => $('#file-soberano'),
     btnLimparAnexos: () => $('#btn-limpar-anexos'),
