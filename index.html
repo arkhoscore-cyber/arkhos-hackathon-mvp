@@ -12,31 +12,32 @@
   <a class="sr-only" href="#main">Pular para o conteúdo</a>
 
   <header class="topbar no-print" role="banner">
-  <div class="brand">
-    <div class="brand-mark" aria-hidden="true">⚖️</div>
-    <div class="brand-text">
-      <div class="brand-title">ARKHOS 1.0</div>
-      <div class="brand-subtitle">Estação de Inteligência Jurídica</div>
-    </div>
-  </div>
-
-  <div class="topbar-right">
-    <div class="badges" aria-label="Status do sistema">
-      <span class="badge badge-op" id="badge-operacional">OPERACIONAL</span>
-      <span class="badge badge-runtime" id="badge-runtime" title="Conexão do motor">MODO: OFFLINE</span>
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">⚖️</div>
+      <div class="brand-text">
+        <div class="brand-title">ARKHOS 1.0</div>
+        <div class="brand-subtitle">Estação de Inteligência Jurídica</div>
+      </div>
     </div>
 
-    <div class="lang-toggle" role="group" aria-label="Idioma">
-      <button class="btn-top" id="btn-lang-pt" type="button" aria-pressed="true">PT</button>
-      <button class="btn-top" id="btn-lang-en" type="button" aria-pressed="false">EN</button>
-    </div>
+    <div class="topbar-right">
+      <div class="badges" aria-label="Status do sistema">
+        <!-- ajuste: id bate com o JS -->
+        <span class="badge badge-op" id="badge-health">OPERACIONAL</span>
+        <span class="badge badge-runtime" id="badge-runtime" title="Conexão do motor">MODO: OFFLINE</span>
+      </div>
 
-    <div class="top-actions">
-      <button class="btn-top" id="btn-ajuda" type="button">AJUDA</button>
-      <button class="btn-top" id="btn-config" type="button">CONFIG</button>
-      <button class="btn-main" id="btn-conectar-motor" type="button" title="Conectar motor remoto">CONECTAR MOTOR</button>
+      <div class="lang-toggle" role="group" aria-label="Idioma">
+        <button class="btn-top" id="btn-lang-pt" type="button" aria-pressed="true">PT</button>
+        <button class="btn-top" id="btn-lang-en" type="button" aria-pressed="false">EN</button>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn-top" id="btn-ajuda" type="button">AJUDA</button>
+        <button class="btn-top" id="btn-config" type="button">CONFIG</button>
+        <button class="btn-main" id="btn-conectar-motor" type="button" title="Conectar motor remoto">CONECTAR MOTOR</button>
+      </div>
     </div>
-  </div>
   </header>
 
   <main id="main" class="bancada-container" role="main">
@@ -45,13 +46,9 @@
       <section class="card">
         <div class="tabs" role="tablist" aria-label="Modos">
           <button id="btn-tab-pro" class="tab active" role="tab"
-                  aria-selected="true" aria-controls="tela-pro" type="button">
-            PRO
-          </button>
+                  aria-selected="true" aria-controls="tela-pro" type="button">PRO</button>
           <button id="btn-tab-chat" class="tab" role="tab"
-                  aria-selected="false" aria-controls="tela-chat" type="button">
-            CHAT
-          </button>
+                  aria-selected="false" aria-controls="tela-chat" type="button">CHAT</button>
         </div>
       </section>
 
@@ -77,17 +74,15 @@
           <label class="field">
             <span class="field-label" id="lbl-instrucao">Instrução</span>
             <textarea id="cmd-input" class="textarea" rows="7"
-                      placeholder="Descreva o caso e o que você precisa (mín. 10 caracteres)."></textarea>
+              placeholder="Descreva o caso e o que você precisa (mín. 10 caracteres)."></textarea>
           </label>
 
           <div class="row row-gap">
-          <button id="btn-executar" class="btn-main" type="button" disabled>GERAR MINUTA</button>
-          <button id="btn-exportar" class="btn-secundario" type="button" disabled>EXPORTAR PDF</button>
-          <button id="btn-enviar" class="btn-secundario" type="button" disabled>ENVIAR</button>
-          <button id="btn-arquivar" class="btn-secundario" type="button" disabled>ARQUIVAR SESSÃO</button>
+            <button id="btn-executar" class="btn-main" type="button" disabled>GERAR MINUTA</button>
+            <button id="btn-exportar" class="btn-secundario" type="button" disabled>EXPORTAR PDF</button>
+            <button id="btn-enviar" class="btn-secundario" type="button" disabled>ENVIAR</button>
+            <button id="btn-arquivar" class="btn-secundario" type="button" disabled>ARQUIVAR SESSÃO</button>
           </div>
-            
-          
 
           <p class="hint" id="hint-failclosed" aria-live="polite">
             Fail-closed: informe uma instrução válida para habilitar a geração.
@@ -178,52 +173,48 @@
           <p id="archive-empty" class="hint">Nenhum arquivado.</p>
         </section>
 
-        <!-- porta do motor remoto (futuro) mantida, mas oculta -->
         <div id="motor-port" hidden aria-hidden="true"></div>
       </section>
 
       <!-- TELA CHAT -->
-<section id="tela-chat" class="screen hidden" role="tabpanel" aria-labelledby="btn-tab-chat">
+      <section id="tela-chat" class="screen hidden" role="tabpanel" aria-labelledby="btn-tab-chat">
+        <section class="card chat-top">
+          <h2 class="card-title" id="chat-title">Assistente Jurídico</h2>
+          <div class="chip-row" aria-label="Ações rápidas">
+            <button class="chip-action" data-chip="peticao" type="button">Petição</button>
+            <button class="chip-action" data-chip="resumo" type="button">Resumo</button>
+            <button class="chip-action" data-chip="revisao" type="button">Revisão</button>
+            <button class="chip-action" data-chip="relatorio" type="button">Relatório</button>
+          </div>
+        </section>
 
-  <section class="card chat-top">
-    <h2 class="card-title" id="chat-title">Assistente Jurídico</h2>
-    <div class="chip-row" aria-label="Ações rápidas">
-      <button class="chip-action" data-chip="peticao" type="button">Petição</button>
-      <button class="chip-action" data-chip="resumo" type="button">Resumo</button>
-      <button class="chip-action" data-chip="revisao" type="button">Revisão</button>
-      <button class="chip-action" data-chip="relatorio" type="button">Relatório</button>
-    </div>
-  </section>
+        <section class="card chat-body" aria-label="Mensagens">
+          <div id="chat-messages" class="chat-messages" role="log" aria-live="polite"></div>
+        </section>
 
-  <!-- 🔴 BLOCO DAS MENSAGENS (ESTAVA FALTANDO) -->
-  <section class="card chat-body" aria-label="Mensagens">
-    <div id="chat-messages" class="chat-messages" role="log" aria-live="polite"></div>
-  </section>
+        <section class="card chat-input-card">
+          <div class="chat-input-wrap">
+            <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua mensagem…" />
+            <button id="chat-send" class="chat-send btn-main" type="button" disabled>ENVIAR</button>
+          </div>
 
-  <section class="card chat-input-card">
+          <div class="upload-row" style="margin-top:10px">
+            <input id="chat-file" class="file" type="file" multiple />
+            <button id="btn-chat-limpar-anexos" class="btn-secundario" type="button" disabled>REMOVER ANEXOS</button>
+          </div>
 
-    <div class="chat-input-wrap">
-      <input id="chat-input" class="chat-input" type="text" placeholder="Escreva sua mensagem…" />
-      <button id="chat-send" class="chat-send btn-main" type="button" disabled>ENVIAR</button>
-    </div>
+          <p id="chat-files-empty" class="hint" aria-live="polite">Nenhum anexo no chat.</p>
+          <!-- opcional: lista visível de anexos do chat -->
+          <ul id="chat-files-list" class="file-list" aria-label="Anexos do chat"></ul>
 
-    <div class="upload-row" style="margin-top:10px">
-      <input id="chat-file" class="file" type="file" multiple />
-      <button id="btn-chat-limpar-anexos" class="btn-secundario" type="button" disabled>REMOVER ANEXOS</button>
-    </div>
-
-    <p id="chat-files-empty" class="hint" aria-live="polite">Nenhum anexo no chat.</p>
-
-    <div class="row row-gap" style="margin-top:10px">
-      <button id="chat-gerar-doc" class="btn-main" type="button" disabled>GERAR DOC</button>
-      <button id="chat-enviar-doc" class="btn-secundario" type="button" disabled>EXPORTAR</button>
-      <button id="chat-arquivar" class="btn-secundario" type="button">ARQUIVAR CHAT</button>
-      <button id="chat-limpar" class="btn-secundario" type="button">LIMPAR CHAT</button>
-    </div>
-
-  </section>
-
-</section>
+          <div class="row row-gap" style="margin-top:10px">
+            <button id="chat-gerar-doc" class="btn-main" type="button" disabled>GERAR DOC</button>
+            <button id="chat-enviar-doc" class="btn-secundario" type="button" disabled>EXPORTAR</button>
+            <button id="chat-arquivar" class="btn-secundario" type="button">ARQUIVAR CHAT</button>
+            <button id="chat-limpar" class="btn-secundario" type="button">LIMPAR CHAT</button>
+          </div>
+        </section>
+      </section>
 
     </aside>
 
@@ -236,7 +227,6 @@
         <article id="output-canvas" class="output-canvas" aria-label="Documento gerado"></article>
       </section>
 
-      <!-- ONLY PRINT: recebe cópia do documento antes de imprimir -->
       <section id="secao-impressao-isolada" class="only-print" aria-label="Documento para impressão"></section>
     </section>
   </main>
@@ -282,4 +272,4 @@
 
   <script src="script.js"></script>
 </body>
-          </html>
+            </html>
