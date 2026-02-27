@@ -1244,15 +1244,25 @@ function bindUi() {
 if (fi) {
   fi.addEventListener('change', () => {
     const files = Array.from(fi.files || []);
+
     for (const f of files) {
       const id = fileIdFrom(f);
+
       if (state.files.some(x => x.id === id)) continue;
 
-      // guarda o File real (pra poder compartilhar)
-      state.fileBlobs.set(id, f);
+      // salva metadados (persistem)
+      state.files.push({
+        id: id,
+        name: f.name,
+        size: f.size,
+        type: f.type,
+        lastModified: f.lastModified
+      });
 
-      state.files.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
+      // salva arquivo real (runtime para compartilhar)
+      state.fileBlobs.set(id, f);
     }
+
     persistSession();
     renderFiles();
     refreshButtons();
@@ -1330,19 +1340,23 @@ if (fi) {
 
   // CHAT files
   const cfi = el.chatFileInput();
-  if (cfi) {
-    cfi.addEventListener('change', () => {
-      const files = Array.from(cfi.files || []);
-      for (const f of files) {
-        const id = fileIdFrom(f);
-        if (state.chatFiles.some(x => x.id === id)) continue;
-        state.chatFiles.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
-      }
-      persistSession();
-      renderChatFiles();
-      refreshButtons();
-    });
-  }
+if (cfi) {
+  cfi.addEventListener('change', () => {
+    const files = Array.from(cfi.files || []);
+    for (const f of files) {
+      const id = fileIdFrom(f);
+      if (state.chatFiles.some(x => x.id === id)) continue;
+
+      // guarda o File real (pra poder compartilhar no CHAT)
+      state.chatFileBlobs.set(id, f);
+
+      state.chatFiles.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
+    }
+    persistSession();
+    renderChatFiles();
+    refreshButtons();
+  });
+    }
 
   onClick(el.btnChatLimparAnexos(), () => {
     state.chatFiles = [];
