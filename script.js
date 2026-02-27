@@ -1000,132 +1000,140 @@ btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
 
   // =============== Bind UI ===============
   function bindUi() {
-    // Language
-    onClick(el.btnLangPt(), () => { state.lang = 'pt'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
-    onClick(el.btnLangEn(), () => { state.lang = 'en'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
+  // Language
+  onClick(el.btnLangPt(), () => { state.lang = 'pt'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
+  onClick(el.btnLangEn(), () => { state.lang = 'en'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
 
-    // Tabs
-    onClick(el.btnTabPro(), () => { setTab('pro'); persistSession(); });
-    onClick(el.btnTabChat(), () => { setTab('chat'); persistSession(); });
+  // Tabs
+  onClick(el.btnTabPro(), () => { setTab('pro'); persistSession(); });
+  onClick(el.btnTabChat(), () => { setTab('chat'); persistSession(); });
 
-    // Inputs
-    onInput(el.cmd(), () => { refreshButtons(); persistSession(); });
-    onInput(el.area(), () => { state.areaValue = el.area()?.value || state.areaValue; persistSession(); });
+  // Inputs
+  onInput(el.cmd(), () => { refreshButtons(); persistSession(); });
+  onInput(el.area(), () => { state.areaValue = el.area()?.value || state.areaValue; persistSession(); });
 
-    // Files
-    const fi = el.fileInput();
-    if (fi) {
-      fi.addEventListener('change', () => {
-        const files = Array.from(fi.files || []);
-        for (const f of files) {
-          const id = fileIdFrom(f);
-          if (state.files.some(x => x.id === id)) continue;
-          state.files.push({
-            id,
-            name: f.name,
-            size: f.size,
-            type: f.type,
-            lastModified: f.lastModified
-          });
-        }
-        persistSession();
-        renderFiles();
-        refreshButtons();
-      });
-    }
-
-    onClick(el.btnLimparAnexos(), () => {
-      state.files = [];
-      const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
+  // Files
+  const fi = el.fileInput();
+  if (fi) {
+    fi.addEventListener('change', () => {
+      const files = Array.from(fi.files || []);
+      for (const f of files) {
+        const id = fileIdFrom(f);
+        if (state.files.some(x => x.id === id)) continue;
+        state.files.push({
+          id,
+          name: f.name,
+          size: f.size,
+          type: f.type,
+          lastModified: f.lastModified
+        });
+      }
       persistSession();
       renderFiles();
       refreshButtons();
     });
+  }
 
-    // Generate / Export / Archive
-onClick(el.btnGerar(), () => { generateAll(); });
-onClick(el.btnExportar(), () => { exportPdfPrint(); });
-onClick(el.btnEnviar(), () => { shareCurrent(); });
-onClick(el.btnArquivar(), () => { archiveCurrentSession(); });
-    // CHAT — gerar documento usando o mesmo motor
-onClick(el.chatGerarDoc(), () => { generateAll(); });
+  onClick(el.btnLimparAnexos(), () => {
+    state.files = [];
+    const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
+    persistSession();
+    renderFiles();
+    refreshButtons();
+  });
 
-    // Archive panel
-    onClick(el.btnLimparArchive(), () => { clearArchive(); });
+  // Generate / Export / Archive (PRO)
+  onClick(el.btnGerar(), () => { generateAll(); });
+  onClick(el.btnExportar(), () => { exportPdfPrint(); });
+  onClick(el.btnEnviar(), () => { shareCurrent(); });
+  onClick(el.btnArquivar(), () => { archiveCurrentSession(); });
 
-    // Chat
-    onInput(el.chatInput(), () => { refreshButtons(); });
+  // Archive panel
+  onClick(el.btnLimparArchive(), () => { clearArchive(); });
 
-    onClick(el.chatSend(), () => {
+  // Chat
+  onInput(el.chatInput(), () => { refreshButtons(); });
+
+  onClick(el.chatSend(), () => {
+    const input = el.chatInput();
+    if (!input) return;
+    const txt = input.value.trim();
+    if (!txt) return;
+
+    chatAddMessage('me', txt);
+    input.value = '';
+    refreshButtons();
+
+    setTimeout(() => {
+      const reply = simulateChatReply(txt);
+      chatAddMessage('bot', reply);
+    }, 500);
+  });
+
+  // Chips: prefill chat input
+  $$('.chip-action').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const chip = btn.getAttribute('data-chip') || '';
       const input = el.chatInput();
       if (!input) return;
-      const txt = input.value.trim();
-      if (!txt) return;
 
-      chatAddMessage('me', txt);
-      input.value = '';
+      const mapPt = {
+        peticao: 'Quero uma petição inicial objetiva. Contexto: ',
+        resumo: 'Resuma este caso em tópicos: ',
+        revisao: 'Revise e melhore o texto abaixo (clareza e força): ',
+        relatorio: 'Gere um relatório estruturado (fatos, pedidos, riscos): '
+      };
+      const mapEn = {
+        peticao: 'I want a concise initial petition. Context: ',
+        resumo: 'Summarize this case in bullet points: ',
+        revisao: 'Review and improve the text below (clarity and strength): ',
+        relatorio: 'Generate a structured report (facts, requests, risks): '
+      };
+      const map = state.lang === 'en' ? mapEn : mapPt;
+      input.value = map[chip] || input.value;
+      input.focus();
       refreshButtons();
-
-      setTimeout(() => {
-        const reply = simulateChatReply(txt);
-        chatAddMessage('bot', reply);
-      }, 500);
     });
+  });
 
-    // Chips: prefill chat input
-    $$('.chip-action').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const chip = btn.getAttribute('data-chip') || '';
-        const input = el.chatInput();
-        if (!input) return;
+  // Chat: gerar documento + exportar
+  onClick(el.chatGerarDoc(), () => {
+    if (typeof generateFromChat === 'function') return generateFromChat();
+    // fallback seguro (não quebra): se ainda não existir, não mata o app
+    if (typeof generateAll === 'function') return generateAll();
+  });
 
-        const mapPt = {
-          peticao: 'Quero uma petição inicial objetiva. Contexto: ',
-          resumo: 'Resuma este caso em tópicos: ',
-          revisao: 'Revise e melhore o texto abaixo (clareza e força): ',
-          relatorio: 'Gere um relatório estruturado (fatos, pedidos, riscos): '
-        };
-        const mapEn = {
-          peticao: 'I want a concise initial petition. Context: ',
-          resumo: 'Summarize this case in bullet points: ',
-          revisao: 'Review and improve the text below (clarity and strength): ',
-          relatorio: 'Generate a structured report (facts, requests, risks): '
-        };
-        const map = state.lang === 'en' ? mapEn : mapPt;
-        input.value = map[chip] || input.value;
-        input.focus();
-        refreshButtons();
-      });
-    });
+  onClick(el.chatEnviarDoc(), () => {
+    // prioridade: enviar DOC do chat (sem misturar PRO)
+    if (typeof shareChatDoc === 'function') return shareChatDoc();
+    // fallback seguro (mantém comportamento antigo sem quebrar)
+    if (typeof shareCurrent === 'function') return shareCurrent();
+  });
 
+  onClick(el.chatArquivar(), () => { archiveCurrentSession(); });
+  onClick(el.chatLimpar(), () => { chatClear(); });
 
-    // Chat: gerar documento + exportar
-    onClick(el.chatGerarDoc(), () => { generateFromChat(); });
-    onClick(el.chatEnviarDoc(), () => { shareCurrent(); });
-    onClick(el.chatArquivar(), () => { archiveCurrentSession(); });
-    onClick(el.chatLimpar(), () => { chatClear(); });
+  // Modals
+  onClick(el.btnAjuda(), () => { openModal(el.modalAjuda()); });
+  onClick(el.btnConfig(), () => { openModal(el.modalConfig()); });
+  onClick(el.btnAjudaFechar(), () => { closeModal(el.modalAjuda()); });
+  onClick(el.btnConfigFechar(), () => { closeModal(el.modalConfig()); });
 
-    // Modals
-    onClick(el.btnAjuda(), () => { openModal(el.modalAjuda()); });
-    onClick(el.btnConfig(), () => { openModal(el.modalConfig()); });
-    onClick(el.btnAjudaFechar(), () => { closeModal(el.modalAjuda()); });
-    onClick(el.btnConfigFechar(), () => { closeModal(el.modalConfig()); });
+  // Config actions
+  onClick(el.btnLimparSessao(), () => { clearSession(); closeModal(el.modalConfig()); });
+  onClick(el.btnCompartilhar(), () => { shareCurrent(); });
 
-    // Config actions
-    onClick(el.btnLimparSessao(), () => { clearSession(); closeModal(el.modalConfig()); });
-    onClick(el.btnCompartilhar(), () => { shareCurrent(); });
+  // Click outside modal card closes
+  const modalA = el.modalAjuda();
+  const modalC = el.modalConfig();
+  if (modalA) modalA.addEventListener('click', (e) => { if (e.target === modalA) closeModal(modalA); });
+  if (modalC) modalC.addEventListener('click', (e) => { if (e.target === modalC) closeModal(modalC); });
 
-    // Click outside modal card closes
-    const modalA = el.modalAjuda();
-    const modalC = el.modalConfig();
-    if (modalA) modalA.addEventListener('click', (e) => { if (e.target === modalA) closeModal(modalA); });
-    if (modalC) modalC.addEventListener('click', (e) => { if (e.target === modalC) closeModal(modalC); });
-
-    // Esc closes modals
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeAllModals();
-    });
-  }
+  // Esc closes modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAllModals();
+  });
+                                                                                            }
 
   // =============== Boot ===============
   function boot() {
