@@ -903,85 +903,6 @@ async function shareChatDoc() {
 }
 
 // =============== Archive ===============
-function loadArchive() {
-  const arr = loadLS(LS.archive, []);
-  return Array.isArray(arr) ? arr : [];
-}
-
-function saveArchive(list) {
-  try { saveLS(LS.archive, list); } catch (e) { console.error(e); }
-}
-
-function archiveItemTitle(item) {
-  const mode = item.mode === 'chat' ? 'CHAT' : 'PRO';
-  const area = item.areaLabel || item.areaValue || '—';
-  const dt = new Date(item.ts || nowTs()).toLocaleString();
-  return `${mode} • ${area} • ${dt}`;
-}
-
-function renderArchiveList() {
-  const ul = el.listaArquivados();
-  const empty = el.archiveEmpty();
-  if (!ul || !empty) return;
-
-  const list = loadArchive();
-  ul.innerHTML = '';
-
-  if (!list.length) { empty.classList.remove('hidden'); return; }
-  empty.classList.add('hidden');
-
-  for (const item of list) {
-    const li = document.createElement('li');
-    li.className = 'archive-item';
-
-    const meta = document.createElement('div');
-    meta.className = 'archive-meta';
-
-    const title = document.createElement('div');
-    title.className = 'archive-title';
-    title.textContent = archiveItemTitle(item);
-
-    const sub = document.createElement('div');
-    sub.className = 'archive-sub';
-
-    const fcount = Array.isArray(item.filesMeta) ? item.filesMeta.length : 0;
-    const ccount = Array.isArray(item.chat) ? item.chat.length : 0;
-    const hasDoc = item.mode === 'chat' ? !!item.chatDraftHtml : !!item.draftHtml;
-    sub.textContent = `doc=${hasDoc ? 'SIM' : 'NÃO'} • anexos=${fcount} • chat=${ccount}`;
-
-    meta.appendChild(title);
-    meta.appendChild(sub);
-
-    const actions = document.createElement('div');
-    actions.className = 'archive-actions';
-
-    const btnOpen = document.createElement('button');
-    btnOpen.className = 'btn-secundario';
-    btnOpen.type = 'button';
-    btnOpen.textContent = t('abrir');
-
-    const btnDel = document.createElement('button');
-    btnDel.className = 'btn-top';
-    btnDel.type = 'button';
-    btnDel.textContent = t('excluir');
-
-    btnOpen.addEventListener('click', () => {
-      try { openArchived(item.id); } catch (e) { console.error(e); toastError(e); }
-    });
-
-    btnDel.addEventListener('click', () => {
-      try { deleteArchived(item.id); } catch (e) { console.error(e); toastError(e); }
-    });
-
-    actions.appendChild(btnOpen);
-    actions.appendChild(btnDel);
-
-    li.appendChild(meta);
-    li.appendChild(actions);
-    ul.appendChild(li);
-  }
-}
-
 function archiveCurrentSession(modeHint) {
   const mode = (modeHint === 'chat' || state.tab === 'chat') ? 'chat' : 'pro';
   const list = loadArchive();
@@ -996,12 +917,12 @@ function archiveCurrentSession(modeHint) {
     areaValue: state.areaValue,
     areaLabel: areaLabel(),
 
-    // PRO snapshot (somente se mode='pro')
+    // PRO snapshot (somente PRO)
     cmd: mode === 'pro' ? proCmd : '',
     audit: mode === 'pro' ? state.audit : null,
     draftHtml: mode === 'pro' ? state.draftHtml : '',
 
-    // CHAT snapshot (somente se mode='chat')
+    // CHAT snapshot (somente CHAT)
     chat: mode === 'chat' ? (state.chat || []).slice() : [],
     chatDraftHtml: mode === 'chat' ? state.chatDraftHtml : '',
 
@@ -1018,58 +939,50 @@ function archiveCurrentSession(modeHint) {
 }
 
 function openArchived(id) {
-function openArchived(id) {
   const list = loadArchive();
   const item = list.find(x => x.id === id);
   if (!item) return;
 
-  // base
   state.lang = item.lang || state.lang;
   state.areaValue = item.areaValue || state.areaValue;
 
   const isChat = item.mode === 'chat';
 
   if (isChat) {
-    // ===== RESTORE CHAT =====
+    // RESTORE CHAT
     state.chat = Array.isArray(item.chat) ? item.chat : [];
     state.chatDraftHtml = typeof item.chatDraftHtml === 'string' ? item.chatDraftHtml : '';
     state.chatFiles = Array.isArray(item.filesMeta) ? item.filesMeta : [];
 
-    // ===== LIMPA PRO (anti-vazamento) =====
+    // LIMPA PRO (anti-vazamento)
     state.files = [];
     state.draftHtml = '';
     state.audit = null;
 
-    // inputs PRO limpos
     const cmd = el.cmd(); if (cmd) cmd.value = '';
   } else {
-    // ===== RESTORE PRO =====
+    // RESTORE PRO
     state.files = Array.isArray(item.filesMeta) ? item.filesMeta : [];
     state.draftHtml = typeof item.draftHtml === 'string' ? item.draftHtml : '';
     state.audit = item.audit && typeof item.audit === 'object' ? item.audit : null;
 
-    // input editável PRO restaurado
     const cmd = el.cmd(); if (cmd) cmd.value = item.cmd || '';
 
-    // ===== LIMPA CHAT (anti-vazamento) =====
+    // LIMPA CHAT (anti-vazamento)
     state.chat = [];
     state.chatDraftHtml = '';
     state.chatFiles = [];
   }
 
-  // aplica área
   const area = el.area();
   if (area) area.value = state.areaValue;
 
-  // UI
   applyI18n();
   setTab(isChat ? 'chat' : 'pro');
 
-  // render
   renderFiles();
   if (state.audit) renderAudit(state.audit);
 
-  // mostra o documento certo no canvas
   if (isChat) {
     if (typeof renderChatDraft === 'function') renderChatDraft();
   } else {
@@ -1081,7 +994,6 @@ function openArchived(id) {
   refreshButtons();
   persistSession();
 
-  // foco no lugar de edição (pra continuar trabalhando)
   if (isChat) {
     const ci = el.chatInput();
     if (ci) { try { ci.focus(); } catch {} }
@@ -1089,7 +1001,7 @@ function openArchived(id) {
     const cm = el.cmd();
     if (cm) { try { cm.focus(); } catch {} }
   }
-    }
+}
 
 function deleteArchived(id) {
   const list = loadArchive();
@@ -1101,8 +1013,10 @@ function deleteArchived(id) {
 function clearArchive() {
   try { localStorage.removeItem(LS.archive); } catch (e) { console.error(e); }
   renderArchiveList();
-}
-
+      }
+  
+    
+    
 // =============== CHAT core ===============
 function chatSave() { persistSession(); }
 
