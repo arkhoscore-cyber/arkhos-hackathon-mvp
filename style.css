@@ -20,6 +20,9 @@
 
 *{box-sizing:border-box}
 html,body{height:100%}
+
+/* 🔒 trava overflow lateral do documento */
+html{overflow-x:hidden}
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
@@ -27,8 +30,11 @@ body{
              radial-gradient(900px 500px at 90% 10%,rgba(157,124,255,.08),transparent 55%),
              var(--bg);
   color:var(--text);
-  overflow-x:hidden;
-} /* ✅ FECHADO */
+  overflow-x:hidden; /* reforço */
+}
+
+/* mídia nunca pode estourar */
+img,svg,video,canvas{max-width:100%;height:auto}
 
 .hidden{display:none!important}
 .sr-only{
@@ -40,43 +46,86 @@ body{
 /* =============== LAYOUT =============== */
 .bancada-container{
   display:grid;
-  grid-template-columns:minmax(0,420px) minmax(0,1fr); /* ✅ anti-estouro */
+  grid-template-columns:minmax(0,420px) minmax(0,1fr); /* ✅ anti-estouro real */
   gap:16px;
   padding:16px;
   max-width:1400px;
   margin:0 auto;
+
+  min-width:0;   /* ✅ permite encolher dentro da viewport */
+  max-width:100%;
 }
 @media(max-width:900px){
-  .bancada-container{grid-template-columns:1fr;padding:12px}
+  .bancada-container{
+    grid-template-columns:1fr;
+    padding:12px;
+  }
 }
 
 /* =============== TOPBAR =============== */
 .topbar{
   position:sticky;top:0;z-index:10;
-  display:flex;justify-content:space-between;align-items:center;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  gap:12px;             /* ✅ evita “apertar” e estourar */
+  flex-wrap:wrap;        /* ✅ deixa quebrar linha se precisar */
+  min-width:0;           /* ✅ permite encolher */
+  max-width:100%;
+
   padding:12px 16px;
   border-bottom:1px solid var(--border);
   background:rgba(16,23,39,.9);
   backdrop-filter:blur(8px);
 }
-.brand{display:flex;align-items:center;gap:10px}
+
+/* qualquer filho da topbar pode encolher (isso evita overflow invisível) */
+.topbar > *{min-width:0;max-width:100%}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;           /* ✅ */
+  max-width:100%;
+}
 .brand-mark{
   width:38px;height:38px;border-radius:12px;
   display:flex;align-items:center;justify-content:center;
   border:1px solid var(--border);
   background:linear-gradient(135deg,rgba(116,167,255,.25),rgba(157,124,255,.2));
+  flex:0 0 auto;
 }
 .brand-subtitle{font-size:12px;color:var(--muted)}
 
-.badges{display:flex;gap:8px;flex-wrap:wrap}
+/* badges quebram linha sem estourar */
+.badges{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;        /* ✅ */
+  min-width:0;
+  max-width:100%;
+}
 .badge{
   font-size:12px;padding:6px 10px;border-radius:999px;
   border:1px solid var(--border);
   background:rgba(255,255,255,.04);
+  white-space:nowrap;
 }
 .badge-op{border-color:rgba(57,217,138,.35);background:rgba(57,217,138,.1)}
 .badge-health{border-color:rgba(116,167,255,.35)}
 .badge-runtime{border-color:rgba(157,124,255,.35)}
+
+/* ✅ MOBILE: topo “nome em cima, botões embaixo” (igual sua foto preferida) */
+@media(max-width:720px){
+  .topbar{
+    flex-direction:column;     /* ✅ stack */
+    align-items:stretch;       /* ✅ ocupa largura */
+  }
+  .brand{justify-content:flex-start}
+  .badges{justify-content:flex-start}
+}
 
 /* =============== CARDS =============== */
 .card{
@@ -86,10 +135,12 @@ body{
   box-shadow:var(--shadow);
   padding:18px;
   margin-bottom:14px;
-  min-width:0; /* ✅ permite encolher no grid */
+
+  min-width:0;   /* ✅ crítico em grid/flex */
+  max-width:100%;
 }
 .card-title{margin:0 0 10px;font-weight:800;font-size:16px}
-.hint{font-size:12px;color:var(--muted)}
+.hint{font-size:12px;color:var(--muted);max-width:100%}
 
 /* =============== BOTÕES =============== */
 .btn-top,.btn-main,.btn-secundario{
@@ -98,8 +149,13 @@ body{
   background:rgba(255,255,255,.05);
   padding:10px 14px;
   min-height:52px;
-  display:inline-flex;align-items:center;justify-content:center;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   cursor:pointer;
+
+  max-width:100%;   /* ✅ nunca estoura */
+  min-width:0;      /* ✅ */
 }
 .btn-main{
   font-weight:800;
@@ -109,7 +165,7 @@ body{
 button:disabled{opacity:.55;cursor:not-allowed}
 
 /* =============== CAMPOS =============== */
-.field{margin:10px 0}
+.field{margin:10px 0;min-width:0;max-width:100%}
 .field-label{font-size:12px;color:var(--muted)}
 .select,.textarea,.chat-input,.file{
   width:100%;
@@ -118,18 +174,31 @@ button:disabled{opacity:.55;cursor:not-allowed}
   background:rgba(0,0,0,.2);
   padding:10px 12px;
   color:var(--text);
+
+  min-width:0;     /* ✅ */
+  max-width:100%;  /* ✅ */
 }
 .textarea{min-height:120px}
 
 /* =============== TABS =============== */
-.tabs{display:flex;gap:10px}
+.tabs{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;     /* ✅ se precisar quebrar (evita overflow) */
+  min-width:0;
+  max-width:100%;
+}
 .tab{
-  flex:1;text-align:center;
+  flex:1 1 140px;     /* ✅ encolhe sem estourar */
+  text-align:center;
   border:1px solid var(--border);
   border-radius:14px;
   padding:10px;
   font-weight:800;
   background:rgba(255,255,255,.05);
+
+  min-width:0;
+  max-width:100%;
 }
 .tab.active{
   border-color:rgba(116,167,255,.45);
@@ -139,7 +208,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 /* =============== DASHBOARD / METRICS =============== */
 .metrics-grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr); /* ✅ */
   gap:12px;
 }
 .metric-card{
@@ -147,6 +216,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
   border-radius:var(--radius);
   padding:12px;
   background:rgba(0,0,0,.2);
+  min-width:0;max-width:100%;
 }
 .metric-value{font-size:18px;font-weight:900}
 .bar{
@@ -161,11 +231,19 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 /* =============== FILE / ARCHIVE LIST =============== */
 .file-item,.archive-item{
-  display:flex;justify-content:space-between;gap:10px;
-  padding:10px;border:1px solid var(--border);
-  border-radius:14px;background:rgba(0,0,0,.2);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:rgba(0,0,0,.2);
   margin-bottom:8px;
+
+  min-width:0;max-width:100%;
 }
+.file-meta,.archive-meta{min-width:0}
+.file-name,.file-sub,.archive-title{min-width:0;max-width:100%}
 
 /* =============== CANVAS =============== */
 .output-canvas{
@@ -174,20 +252,39 @@ button:disabled{opacity:.55;cursor:not-allowed}
   padding:14px;
   min-height:340px;
   background:rgba(0,0,0,.15);
+
+  min-width:0;max-width:100%;
+  overflow-wrap:anywhere; /* ✅ texto grande não estoura */
 }
 
 /* =============== CHAT =============== */
-.chat-messages{display:flex;flex-direction:column;gap:10px;min-height:240px}
+.chat-messages{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-height:240px;
+
+  min-width:0;max-width:100%;
+}
 .msg{
-  max-width:92%;padding:10px 12px;border-radius:14px;
+  max-width:92%;
+  padding:10px 12px;
+  border-radius:14px;
   border:1px solid var(--border);
   background:rgba(0,0,0,.2);
+
+  overflow-wrap:anywhere; /* ✅ */
 }
 .msg.me{align-self:flex-end;background:rgba(116,167,255,.15)}
 .msg.bot{align-self:flex-start;background:rgba(57,217,138,.12)}
 
-.chat-input-wrap{display:flex;gap:10px}
-.chat-send{min-width:120px}
+.chat-input-wrap{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;     /* ✅ */
+  min-width:0;max-width:100%;
+}
+.chat-send{min-width:120px;flex:0 0 auto}
 
 /* =============== MODAL =============== */
 .modal{
@@ -201,6 +298,30 @@ button:disabled{opacity:.55;cursor:not-allowed}
   border:1px solid var(--border);
   background:rgba(16,23,39,.96);
   padding:16px;
+
+  min-width:0;max-width:100%;
+}
+
+/* =========================
+   UTILITÁRIOS
+   ========================= */
+.row{display:flex;align-items:center;min-width:0;max-width:100%}
+.row-gap{gap:10px;flex-wrap:wrap}
+.row-between{justify-content:space-between;gap:10px;flex-wrap:wrap}
+.upload-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;min-width:0;max-width:100%}
+
+.file-list,.archive-list{list-style:none;padding:0;margin:10px 0 0}
+.file-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.file-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.archive-title{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.archive-sub{font-size:12px;color:var(--muted)}
+.archive-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+@media(max-width:520px){
+  .chat-input-wrap{flex-direction:column}
+  .chat-send{min-width:100%}
 }
 
 /* =============== PRINT =============== */
@@ -209,36 +330,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
   body{background:#fff;color:#000}
   .no-print{display:none!important}
   .only-print{display:block!important}
-  #secao-impressao-isolada *{
-    color:#000!important;
-    box-shadow:none!important;
-  }
-}
 
-/* =========================
-   PATCH — UTILITÁRIOS + PRINT
-   ========================= */
-.row{display:flex;align-items:center}
-.row-gap{gap:10px;flex-wrap:wrap}
-.row-between{justify-content:space-between;gap:10px;flex-wrap:wrap}
-.upload-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-
-.file-list,.archive-list{list-style:none;padding:0;margin:10px 0 0}
-.file-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
-.file-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.file-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-.archive-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
-.archive-title{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.archive-sub{font-size:12px;color:var(--muted)}
-.archive-actions{display:flex;gap:8px;align-items:center}
-
-@media(max-width:520px){
-  .chat-input-wrap{flex-direction:column}
-  .chat-send{min-width:100%}
-}
-
-@media print{
   .bancada-container{display:block;padding:0;max-width:none}
   .canvas-card{display:none!important}
   #output-canvas{display:none!important}
@@ -251,6 +343,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
     background:#fff!important;
   }
 
+  #secao-impressao-isolada *{
+    color:#000!important;
+    box-shadow:none!important;
+  }
+
   *{print-color-adjust:exact;-webkit-print-color-adjust:exact}
   .draft, .draft *{page-break-inside:avoid}
-  }
+    }
