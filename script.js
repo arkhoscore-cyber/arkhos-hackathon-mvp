@@ -987,6 +987,7 @@ function archiveCurrentSession(modeHint) {
   const list = loadArchive();
 
   const proCmd = (el.cmd()?.value || '').trim();
+
   const item = {
     id: `a_${nowTs()}_${hash32(`${mode}|${state.areaValue}|${proCmd}|${(state.files || []).map(f => f.id).join(',')}|${(state.chat || []).length}`)}`,
     ts: nowTs(),
@@ -995,17 +996,19 @@ function archiveCurrentSession(modeHint) {
     areaValue: state.areaValue,
     areaLabel: areaLabel(),
 
-    // PRO snapshot
-    cmd: proCmd,
-    audit: state.audit,
-    draftHtml: state.draftHtml,
+    // PRO snapshot (somente se mode='pro')
+    cmd: mode === 'pro' ? proCmd : '',
+    audit: mode === 'pro' ? state.audit : null,
+    draftHtml: mode === 'pro' ? state.draftHtml : '',
 
-    // CHAT snapshot
-    chat: (state.chat || []).slice(),
-    chatDraftHtml: state.chatDraftHtml,
+    // CHAT snapshot (somente se mode='chat')
+    chat: mode === 'chat' ? (state.chat || []).slice() : [],
+    chatDraftHtml: mode === 'chat' ? state.chatDraftHtml : '',
 
-    // files snapshot per mode
-    filesMeta: (mode === 'chat') ? (state.chatFiles || []).slice() : (state.files || []).slice()
+    // files snapshot por modo
+    filesMeta: (mode === 'chat')
+      ? (state.chatFiles || []).slice()
+      : (state.files || []).slice()
   };
 
   const next = [item, ...list].slice(0, MAX_ARCHIVE);
@@ -1015,41 +1018,78 @@ function archiveCurrentSession(modeHint) {
 }
 
 function openArchived(id) {
+function openArchived(id) {
   const list = loadArchive();
   const item = list.find(x => x.id === id);
   if (!item) return;
 
+  // base
   state.lang = item.lang || state.lang;
   state.areaValue = item.areaValue || state.areaValue;
 
-  // Restore per mode
-  state.draftHtml = typeof item.draftHtml === 'string' ? item.draftHtml : '';
-  state.audit = item.audit && typeof item.audit === 'object' ? item.audit : null;
+  const isChat = item.mode === 'chat';
 
-  state.chatDraftHtml = typeof item.chatDraftHtml === 'string' ? item.chatDraftHtml : '';
-  state.chat = Array.isArray(item.chat) ? item.chat : [];
-
-  if (item.mode === 'chat') {
+  if (isChat) {
+    // ===== RESTORE CHAT =====
+    state.chat = Array.isArray(item.chat) ? item.chat : [];
+    state.chatDraftHtml = typeof item.chatDraftHtml === 'string' ? item.chatDraftHtml : '';
     state.chatFiles = Array.isArray(item.filesMeta) ? item.filesMeta : [];
+
+    // ===== LIMPA PRO (anti-vazamento) =====
+    state.files = [];
+    state.draftHtml = '';
+    state.audit = null;
+
+    // inputs PRO limpos
+    const cmd = el.cmd(); if (cmd) cmd.value = '';
   } else {
+    // ===== RESTORE PRO =====
     state.files = Array.isArray(item.filesMeta) ? item.filesMeta : [];
+    state.draftHtml = typeof item.draftHtml === 'string' ? item.draftHtml : '';
+    state.audit = item.audit && typeof item.audit === 'object' ? item.audit : null;
+
+    // input editável PRO restaurado
+    const cmd = el.cmd(); if (cmd) cmd.value = item.cmd || '';
+
+    // ===== LIMPA CHAT (anti-vazamento) =====
+    state.chat = [];
+    state.chatDraftHtml = '';
+    state.chatFiles = [];
   }
 
-  // Apply to inputs
-  const area = el.area(); if (area) area.value = state.areaValue;
-  const cmd = el.cmd(); if (cmd) cmd.value = item.cmd || '';
+  // aplica área
+  const area = el.area();
+  if (area) area.value = state.areaValue;
 
+  // UI
   applyI18n();
-  setTab(item.mode === 'chat' ? 'chat' : 'pro');
+  setTab(isChat ? 'chat' : 'pro');
 
-  // Render mode-specific
-  syncViewForTab();
+  // render
+  renderFiles();
   if (state.audit) renderAudit(state.audit);
+
+  // mostra o documento certo no canvas
+  if (isChat) {
+    if (typeof renderChatDraft === 'function') renderChatDraft();
+  } else {
+    renderDraft();
+  }
 
   chatRender();
   renderArchiveList();
+  refreshButtons();
   persistSession();
-}
+
+  // foco no lugar de edição (pra continuar trabalhando)
+  if (isChat) {
+    const ci = el.chatInput();
+    if (ci) { try { ci.focus(); } catch {} }
+  } else {
+    const cm = el.cmd();
+    if (cm) { try { cm.focus(); } catch {} }
+  }
+    }
 
 function deleteArchived(id) {
   const list = loadArchive();
