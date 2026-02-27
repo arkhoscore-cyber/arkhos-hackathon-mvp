@@ -37,12 +37,15 @@
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
+  // Safe element getters (never throw)
   const el = {
-    // Lang / top
+    // Topbar
     btnLangPt: () => $('#btn-lang-pt'),
     btnLangEn: () => $('#btn-lang-en'),
     btnAjuda: () => $('#btn-ajuda'),
     btnConfig: () => $('#btn-config'),
+    btnConectarMotor: () => $('#btn-conectar-motor'),
+
     modalAjuda: () => $('#modal-ajuda'),
     modalConfig: () => $('#modal-config'),
     btnAjudaFechar: () => $('#btn-ajuda-fechar'),
@@ -50,7 +53,8 @@
     btnLimparSessao: () => $('#btn-limpar-sessao'),
     btnCompartilhar: () => $('#btn-compartilhar'),
 
-    badgeHealth: () => $('#badge-health'),
+    // Badges (HTML usa: badge-operacional e badge-runtime)
+    badgeHealth: () => $('#badge-operacional'),
     badgeRuntime: () => $('#badge-runtime'),
 
     // Tabs
@@ -59,7 +63,7 @@
     telaPro: () => $('#tela-pro'),
     telaChat: () => $('#tela-chat'),
 
-    // PRO inputs / actions
+    // PRO inputs/actions
     area: () => $('#area-direito'),
     cmd: () => $('#cmd-input'),
     btnGerar: () => $('#btn-executar'),
@@ -90,7 +94,7 @@
     ledgerResumo: () => $('#ledger-resumo'),
     evidenciasResumo: () => $('#evidencias-resumo'),
 
-    // Canvas / print
+    // Canvas/print
     out: () => $('#output-canvas'),
     placeholder: () => $('#txt-placeholder'),
     printOnly: () => $('#secao-impressao-isolada'),
@@ -109,26 +113,30 @@
     chatArquivar: () => $('#chat-arquivar'),
     chatLimpar: () => $('#chat-limpar'),
     chatFileInput: () => $('#chat-file'),
-    btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
+    btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos'),
+    chatFilesEmpty: () => $('#chat-files-empty')
   };
 
-  // =============== SAFE EVENTS (FAIL LOUD) ===============
-  function toast(msg) { try { alert(String(msg)); } catch { /* noop */ } }
+  // =============== FAIL-LOUD HELPERS ===============
+  function toast(msg) {
+    try { alert(String(msg)); } catch { /* noop */ }
+  }
+
   function toastError(err) {
     const msg = (err && err.message) ? err.message : String(err || 'Erro');
     toast(msg);
   }
 
-  function onClick(selectorOrEl, fn) {
-    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
+  function onClick(nodeOrSelector, fn) {
+    const node = (typeof nodeOrSelector === 'string') ? $(nodeOrSelector) : nodeOrSelector;
     if (!node) return;
     node.addEventListener('click', (e) => {
       try { fn(e); } catch (err) { console.error(err); toastError(err); }
     });
   }
 
-  function onInput(selectorOrEl, fn) {
-    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
+  function onInput(nodeOrSelector, fn) {
+    const node = (typeof nodeOrSelector === 'string') ? $(nodeOrSelector) : nodeOrSelector;
     if (!node) return;
     node.addEventListener('input', (e) => {
       try { fn(e); } catch (err) { console.error(err); toastError(err); }
@@ -139,11 +147,13 @@
   function safeJsonParse(str, fallback) {
     try { return JSON.parse(str); } catch { return fallback; }
   }
+
   function loadLS(key, fallback) {
     const raw = localStorage.getItem(key);
     if (raw == null) return fallback;
     return safeJsonParse(raw, fallback);
   }
+
   function saveLS(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
   }
@@ -193,6 +203,7 @@
       arquivados: 'Arquivados',
       nenhumArquivado: 'Nenhum arquivado.',
       nenhumArquivo: 'Nenhum arquivo anexado.',
+      nenhumAnexoChat: 'Nenhum anexo no chat.',
       ajuda: 'Ajuda',
       config: 'Config',
       limparSessao: 'LIMPAR SESSÃO',
@@ -232,6 +243,7 @@
       arquivados: 'Archived',
       nenhumArquivado: 'No archives.',
       nenhumArquivo: 'No files attached.',
+      nenhumAnexoChat: 'No chat attachments.',
       ajuda: 'Help',
       config: 'Config',
       limparSessao: 'CLEAR SESSION',
@@ -254,8 +266,9 @@
   }
 
   function applyI18n() {
-    document.documentElement.lang = state.lang === 'pt' ? 'pt-BR' : 'en';
+    document.documentElement.lang = (state.lang === 'pt') ? 'pt-BR' : 'en';
 
+    // aria-pressed
     const ptBtn = el.btnLangPt();
     const enBtn = el.btnLangEn();
     if (ptBtn && enBtn) {
@@ -265,16 +278,19 @@
       enBtn.classList.toggle('active', state.lang === 'en');
     }
 
+    // Text nodes
     const proTitle = $('#pro-title'); if (proTitle) proTitle.textContent = t('proTitle');
     const chatTitle = $('#chat-title'); if (chatTitle) chatTitle.textContent = t('chatTitle');
     const lblArea = $('#lbl-area'); if (lblArea) lblArea.textContent = t('area');
     const lblInstr = $('#lbl-instrucao'); if (lblInstr) lblInstr.textContent = t('instrucao');
+
     const cmd = el.cmd(); if (cmd) cmd.placeholder = t('instrucaoPh');
 
     const btnGerar = el.btnGerar(); if (btnGerar) btnGerar.textContent = t('gerar');
     const btnExportar = el.btnExportar(); if (btnExportar) btnExportar.textContent = t('exportar');
     const btnArquivar = el.btnArquivar(); if (btnArquivar) btnArquivar.textContent = t('arquivar');
     const btnEnviar = el.btnEnviar(); if (btnEnviar) btnEnviar.textContent = t('enviar');
+
     const hint = $('#hint-failclosed'); if (hint) hint.textContent = t('failClosed');
 
     const ttlAcervo = $('#ttl-acervo'); if (ttlAcervo) ttlAcervo.textContent = t('acervo');
@@ -282,7 +298,6 @@
 
     const ttlAud = $('#ttl-auditoria'); if (ttlAud) ttlAud.textContent = t('auditoria');
     const ttlRas = $('#ttl-rastreio'); if (ttlRas) ttlRas.textContent = t('rastreio');
-
     const ttlCanvas = $('#ttl-canvas'); if (ttlCanvas) ttlCanvas.textContent = t('documento');
 
     const chatInput = el.chatInput(); if (chatInput) chatInput.placeholder = t('chatPh');
@@ -297,11 +312,13 @@
 
     const btnAjuda = el.btnAjuda(); if (btnAjuda) btnAjuda.textContent = t('ajuda').toUpperCase();
     const btnConfig = el.btnConfig(); if (btnConfig) btnConfig.textContent = t('config').toUpperCase();
+
     const modalAjTitle = $('#modal-ajuda-title'); if (modalAjTitle) modalAjTitle.textContent = t('ajuda');
     const modalCfgTitle = $('#modal-config-title'); if (modalCfgTitle) modalCfgTitle.textContent = t('config');
 
     const btnLimparSessao = el.btnLimparSessao(); if (btnLimparSessao) btnLimparSessao.textContent = t('limparSessao');
     const btnCompartilhar = el.btnCompartilhar(); if (btnCompartilhar) btnCompartilhar.textContent = t('compartilhar');
+
     const cfgHint = $('#config-hint'); if (cfgHint) cfgHint.textContent = t('shareHint');
 
     const auditMotivo = el.auditMotivo();
@@ -313,7 +330,10 @@
       const er = el.evidenciasResumo(); if (er) er.textContent = t('aguardando');
     }
 
-    // Placeholder do canvas depende da aba e do doc correspondente
+    const chatFilesEmpty = el.chatFilesEmpty();
+    if (chatFilesEmpty) chatFilesEmpty.textContent = t('nenhumAnexoChat');
+
+    // Placeholder do canvas (depende do doc da aba)
     const ph = el.placeholder();
     if (ph) {
       const hasDoc = (state.tab === 'chat') ? !!state.chatDraftHtml : !!state.draftHtml;
@@ -321,7 +341,7 @@
     }
   }
 
-  // =============== Tabs + isolamento visual ===============
+  // =============== Tabs ===============
   function setTab(tab) {
     state.tab = (tab === 'chat') ? 'chat' : 'pro';
     saveLS(LS.tab, state.tab);
@@ -342,8 +362,9 @@
       telaChat.classList.toggle('hidden', state.tab !== 'chat');
     }
 
-    // Isolamento visual total (PRO ≠ CHAT)
-    syncViewForTab();
+    // Isolamento visual (função existe no bloco 2)
+    if (typeof syncViewForTab === 'function') syncViewForTab();
+    applyI18n();
   }
 
   // =============== Files utils ===============
@@ -378,19 +399,22 @@
     const tpl = el.tplFile();
     for (const f of state.files) {
       let li;
+
       if (tpl && tpl.content && tpl.content.firstElementChild) {
         li = tpl.content.firstElementChild.cloneNode(true);
+
         const nameEl = li.querySelector('.file-name');
         const subEl = li.querySelector('.file-sub');
         if (nameEl) nameEl.textContent = f.name;
         if (subEl) subEl.textContent = `${formatBytes(f.size)} • ${f.type || '—'} • ${new Date(f.lastModified).toLocaleString()}`;
+
         const btn = li.querySelector('.file-remove');
         if (btn) {
           btn.addEventListener('click', () => {
             state.files = state.files.filter(x => x.id !== f.id);
-            persistSession();
+            if (typeof persistSession === 'function') persistSession();
             renderFiles();
-            refreshButtons();
+            if (typeof refreshButtons === 'function') refreshButtons();
           });
         }
       } else {
@@ -398,44 +422,29 @@
         li.className = 'file-item';
         li.textContent = f.name;
       }
+
       ul.appendChild(li);
     }
   }
 
-  // CHAT: (opcional) render simples — se sua UI não tiver lista, não quebra
+  // CHAT: simples (não quebra se não existir lista visual)
   function renderChatFiles() {
-    // Se não existir container no HTML, apenas ignora (sem crash).
-    // Você pode criar no futuro um #chat-files-list e #chat-files-empty se quiser.
-    const ul = $('#chat-files-list');
-    const empty = $('#chat-files-empty');
-    if (!ul || !empty) return;
-
-    ul.innerHTML = '';
-    if (!state.chatFiles.length) {
-      empty.classList.remove('hidden');
-      return;
-    }
-    empty.classList.add('hidden');
-
-    for (const f of state.chatFiles) {
-      const li = document.createElement('li');
-      li.className = 'file-item';
-      li.textContent = `${f.name} • ${formatBytes(f.size)}`;
-      ul.appendChild(li);
-    }
+    // Seu HTML atual NÃO tem lista; então só atualiza o hint/disabled via refreshButtons no bloco 3.
+    const empty = el.chatFilesEmpty();
+    if (!empty) return;
+    empty.classList.toggle('hidden', !!(state.chatFiles && state.chatFiles.length));
   }
 
   // =============== Badges ===============
   function setHealthBadge(text) {
     const b = el.badgeHealth();
-    if (b) b.textContent = String(text || 'HEALTH: OK');
-  }
-  function setRuntimeBadge(text) {
-    const b = el.badgeRuntime();
-    if (b) b.textContent = String(text || 'RUNTIME: LOCAL');
+    if (b) b.textContent = String(text || 'OPERACIONAL');
   }
 
-  
+  function setRuntimeBadge(text) {
+    const b = el.badgeRuntime();
+    if (b) b.textContent = String(text || 'MODO: OFFLINE');
+  }
 
   // =========================
   // ===== FIM BLOCO 1/3 =====
@@ -447,6 +456,7 @@
 // =============== Auditoria determinística ===============
 function clamp01(x) { return Math.max(0, Math.min(1, x)); }
 
+// FNV-1a 32-bit
 function hash32(str) {
   let h = 0x811c9dc5;
   const s = String(str);
@@ -457,6 +467,7 @@ function hash32(str) {
   return h >>> 0;
 }
 
+// Mulberry32 PRNG
 function prng(seedU32) {
   let a = seedU32 >>> 0;
   return () => {
@@ -477,7 +488,7 @@ function simulateAudit(instruction, files) {
   const rnd = prng(auditSeed(instruction, files));
 
   const len = instruction.length;
-  const fcount = files.length;
+  const fcount = (files || []).length;
   const signal = clamp01((len / 600) + (fcount / 8) * 0.35);
 
   const metal = clamp01(signal * 0.85 + (rnd() * 0.10));
@@ -497,7 +508,7 @@ function simulateAudit(instruction, files) {
 
   const evidencias = [];
   if (fcount) {
-    for (const f of files.slice(0, 8)) {
+    for (const f of (files || []).slice(0, 8)) {
       evidencias.push({
         tipo: 'ARQUIVO',
         nome: f.name,
@@ -514,7 +525,7 @@ function simulateAudit(instruction, files) {
     { etapa: 'AUDIT', detalhe: `cert=${certScore} status=${status}` }
   ];
 
-  const motivo = status === 'OK'
+  const motivo = (status === 'OK')
     ? 'CERT aprovado (simulador): consistência mínima atingida.'
     : 'CERT reprovado (simulador): instrução/acervo insuficientes para robustez.';
 
@@ -540,20 +551,22 @@ function renderAudit(audit) {
   setText(el.vLegiao(), String(audit.scores.legiao));
   setText(el.vLogos(), String(audit.scores.logos));
 
-  if (el.seloCert()) el.seloCert().textContent = `CERT: ${audit.certScore}/100`;
-  if (el.seloAuth()) el.seloAuth().textContent = `AUTENTICIDADE: ${audit.status}`;
+  const seloCert = el.seloCert();
+  const seloAuth = el.seloAuth();
+  if (seloCert) seloCert.textContent = `CERT: ${audit.certScore}/100`;
+  if (seloAuth) seloAuth.textContent = `AUTENTICIDADE: ${audit.status}`;
 
-  if (el.auditMotivo()) el.auditMotivo().textContent = audit.motivo;
+  const auditMotivo = el.auditMotivo();
+  if (auditMotivo) auditMotivo.textContent = audit.motivo;
 
   const cr = el.certResumo();
   const lr = el.ledgerResumo();
   const er = el.evidenciasResumo();
 
   if (cr) cr.textContent = `CERT=${audit.certScore}/100 | STATUS=${audit.status}\n${audit.motivo}`;
-  if (lr) lr.textContent = audit.ledger.map(x => `- ${x.etapa}: ${x.detalhe}`).join('\n');
-  if (er) er.textContent = audit.evidencias.map(x => `- ${x.tipo}: ${x.nome} (${x.meta})`).join('\n');
+  if (lr) lr.textContent = (Array.isArray(audit.ledger) ? audit.ledger : []).map(x => `- ${x.etapa}: ${x.detalhe}`).join('\n') || t('aguardando');
+  if (er) er.textContent = (Array.isArray(audit.evidencias) ? audit.evidencias : []).map(x => `- ${x.tipo}: ${x.nome} (${x.meta})`).join('\n') || t('aguardando');
 }
-
 
 // =============== Draft PRO ===============
 function areaLabel() {
@@ -570,10 +583,10 @@ function buildDraftHtml() {
   const safeInstr = escapeHtml(instr);
 
   const areaTxt = areaLabel();
-  const files = state.files;
+  const files = state.files || [];
 
   const fileList = files.length
-    ? `<ul>${files.map(f => `<li><strong>${escapeHtml(f.name)}</strong> — ${escapeHtml(formatBytes(f.size))}</li>`).join('')}</ul>`
+    ? `<ul>${files.map(f => `<li><strong>${escapeHtml(f.name)}</strong> — ${escapeHtml(formatBytes(f.size))} — ${escapeHtml(f.type || '—')}</li>`).join('')}</ul>`
     : `<p><em>Sem anexos informados.</em></p>`;
 
   const audit = state.audit;
@@ -586,7 +599,7 @@ function buildDraftHtml() {
           <li>ESTADO: ${audit.scores.estado}</li>
           <li>LEGIÃO: ${audit.scores.legiao}</li>
           <li>LOGOS: ${audit.scores.logos}</li>
-          <li><strong>CERT:</strong> ${audit.certScore}/100 (${audit.status})</li>
+          <li><strong>CERT:</strong> ${audit.certScore}/100 (${escapeHtml(audit.status)})</li>
         </ul>
         <p>${escapeHtml(audit.motivo)}</p>
       </div>`
@@ -596,22 +609,31 @@ function buildDraftHtml() {
 
   return `
 <section class="draft">
-<h1>Minuta Técnica — ${escapeHtml(areaTxt)}</h1>
-<p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
-<p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
+  <h1>Minuta Técnica — ${escapeHtml(areaTxt)}</h1>
+  <p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
+  <p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
 
-<div class="draft-block">
-<h2>Instrução</h2>
-<p>${safeInstr.replaceAll('\n','<br>')}</p>
-</div>
+  <div class="draft-block">
+    <h2>Instrução</h2>
+    <p>${safeInstr.replaceAll('\n','<br>')}</p>
+  </div>
 
-<div class="draft-block">
-<h2>Acervo Probatório</h2>
-${fileList}
-</div>
+  <div class="draft-block">
+    <h2>Acervo Probatório (metadados)</h2>
+    ${fileList}
+  </div>
 
-${auditBlock}
+  ${auditBlock}
 
+  <div class="draft-block">
+    <h2>Protocolo (Simulador)</h2>
+    <ul>
+      <li>Fail-closed: geração somente com instrução válida.</li>
+      <li>Sanitização: texto do usuário escapado (sem injeção HTML).</li>
+      <li>Offline-first: sem dependências externas.</li>
+      <li>Export: impressão isolada do documento.</li>
+    </ul>
+  </div>
 </section>
 `.trim();
 }
@@ -625,12 +647,14 @@ function renderDraft() {
   if (ph) ph.textContent = state.draftHtml ? '' : t('aguardandoDoc');
 }
 
-
 // =============== Draft CHAT (separado do PRO) ===============
 function buildChatDraftHtml() {
+  // prioridade: última msg do usuário; fallback: input digitado
+  const input = el.chatInput();
+  const typed = (input?.value || '').trim();
 
   const lastMe = [...(state.chat || [])].reverse().find(m => m.role === 'me');
-  const baseText = (lastMe?.text || '').trim();
+  const baseText = (lastMe?.text || typed || '').trim();
 
   if (baseText.length < 10) return '';
 
@@ -639,20 +663,19 @@ function buildChatDraftHtml() {
 
   return `
 <section class="draft">
-<h1>Documento — CHAT</h1>
-<p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
-<p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
+  <h1>Documento — CHAT</h1>
+  <p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
+  <p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
 
-<div class="draft-block">
-<h2>Entrada (CHAT)</h2>
-<p>${safe.replaceAll('\n','<br>')}</p>
-</div>
+  <div class="draft-block">
+    <h2>Entrada (CHAT)</h2>
+    <p>${safe.replaceAll('\n','<br>')}</p>
+  </div>
 
-<div class="draft-block">
-<h2>Saída (Simulador)</h2>
-<p><em>Documento gerado a partir da última mensagem do chat.</em></p>
-</div>
-
+  <div class="draft-block">
+    <h2>Saída (Simulador)</h2>
+    <p><em>Documento gerado a partir da última mensagem do chat.</em></p>
+  </div>
 </section>
 `.trim();
 }
@@ -666,62 +689,43 @@ function renderChatDraft() {
   if (ph) ph.textContent = state.chatDraftHtml ? '' : t('aguardandoDoc');
 }
 
-
-// =============== Isolamento PRO / CHAT ===============
+// =============== Isolamento PRO / CHAT (visual) ===============
 function syncViewForTab() {
-
   if (state.tab === 'pro') {
-
-    renderDraft();
     renderFiles();
-
+    renderDraft();
   } else {
-
-    renderChatDraft();
     renderChatFiles();
-
+    renderChatDraft();
   }
-
-  refreshButtons();
+  if (typeof refreshButtons === 'function') refreshButtons();
+  applyI18n();
 }
-
 
 // =============== Geração PRO ===============
 function generateAll() {
-
-  if (!isValidInstruction()) {
-    toast(t('precisaInstrucao'));
-    return;
-  }
+  if (!isValidInstruction()) { toast(t('precisaInstrucao')); return; }
 
   state.areaValue = el.area()?.value || state.areaValue;
-
   const instr = (el.cmd()?.value || '').trim();
 
-  state.audit = simulateAudit(instr, state.files);
-
+  state.audit = simulateAudit(instr, state.files || []);
   renderAudit(state.audit);
 
   state.draftHtml = buildDraftHtml();
-
   renderDraft();
 
   persistSession();
   refreshButtons();
 }
 
-
 // =============== Geração CHAT ===============
 function generateFromChat() {
-
   state.chatDraftHtml = buildChatDraftHtml();
-
   renderChatDraft();
-
   persistSession();
   refreshButtons();
 }
-
 
 // =========================
 // ===== FIM BLOCO 2/3 =====
@@ -738,8 +742,9 @@ function refreshButtons() {
   if (btnGerar) btnGerar.disabled = !okProInstr;
 
   const hasProDraft = !!state.draftHtml;
+
   const btnExportar = el.btnExportar();
-  if (btnExportar) btnExportar.disabled = !hasProDraft && state.tab === 'pro'; // PRO botão só faz sentido no PRO
+  if (btnExportar) btnExportar.disabled = !hasProDraft;
 
   const btnEnviar = el.btnEnviar();
   if (btnEnviar) btnEnviar.disabled = !hasProDraft;
@@ -747,23 +752,24 @@ function refreshButtons() {
   const btnArquivar = el.btnArquivar();
   if (btnArquivar) {
     const canArchive =
-      hasProDraft ||
-      (state.files && state.files.length) ||
-      (!!state.chatDraftHtml) ||
-      (state.chat && state.chat.length) ||
-      (state.chatFiles && state.chatFiles.length);
+      (state.tab === 'pro' && (hasProDraft || (state.files && state.files.length))) ||
+      (state.tab === 'chat' && ((!!state.chatDraftHtml) || (state.chat && state.chat.length) || (state.chatFiles && state.chatFiles.length)));
     btnArquivar.disabled = !canArchive;
   }
 
   const btnLimparAnexos = el.btnLimparAnexos();
   if (btnLimparAnexos) btnLimparAnexos.disabled = !(state.files && state.files.length);
 
+  // CHAT send habilita só se tiver texto
   const chatInput = el.chatInput();
   const chatSend = el.chatSend();
   if (chatSend && chatInput) chatSend.disabled = (chatInput.value.trim().length === 0);
 
+  // CHAT gerar doc: precisa msg do usuário ou texto digitado >=10
   const chatGerar = el.chatGerarDoc();
-  if (chatGerar) chatGerar.disabled = ((chatInput?.value || '').trim().length < 10) && !(state.chat && state.chat.length);
+  const typedLen = (chatInput?.value || '').trim().length;
+  const hasMeMsg = Array.isArray(state.chat) && state.chat.some(m => m.role === 'me' && String(m.text || '').trim().length >= 10);
+  if (chatGerar) chatGerar.disabled = !(typedLen >= 10 || hasMeMsg);
 
   const chatEnviar = el.chatEnviarDoc();
   if (chatEnviar) chatEnviar.disabled = !state.chatDraftHtml;
@@ -789,7 +795,6 @@ function persistSession() {
     chatDraftHtml: state.chatDraftHtml,
     chatFiles: state.chatFiles
   };
-
   try { saveLS(LS.session, payload); } catch (e) { console.error(e); }
 }
 
@@ -826,11 +831,7 @@ function copyToPrintSection() {
 function exportPdfPrint() {
   const out = el.out();
   const currentHtml = String(out?.innerHTML || '').trim();
-
-  if (!currentHtml) {
-    toast(t('precisaGerar'));
-    return;
-  }
+  if (!currentHtml) { toast(t('precisaGerar')); return; }
 
   const ok = copyToPrintSection();
   if (!ok) { toast(t('exportFalha')); return; }
@@ -903,6 +904,79 @@ async function shareChatDoc() {
 }
 
 // =============== Archive ===============
+function loadArchive() {
+  const arr = loadLS(LS.archive, []);
+  return Array.isArray(arr) ? arr : [];
+}
+function saveArchive(list) { try { saveLS(LS.archive, list); } catch (e) { console.error(e); } }
+
+function archiveItemTitle(item) {
+  const mode = item.mode === 'chat' ? 'CHAT' : 'PRO';
+  const area = item.areaLabel || item.areaValue || '—';
+  const dt = new Date(item.ts || nowTs()).toLocaleString();
+  return `${mode} • ${area} • ${dt}`;
+}
+
+function renderArchiveList() {
+  const ul = el.listaArquivados();
+  const empty = el.archiveEmpty();
+  if (!ul || !empty) return;
+
+  const list = loadArchive();
+  ul.innerHTML = '';
+
+  if (!list.length) { empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  for (const item of list) {
+    const li = document.createElement('li');
+    li.className = 'archive-item';
+
+    const meta = document.createElement('div');
+    meta.className = 'archive-meta';
+
+    const title = document.createElement('div');
+    title.className = 'archive-title';
+    title.textContent = archiveItemTitle(item);
+
+    const sub = document.createElement('div');
+    sub.className = 'archive-sub';
+
+    const fcount = Array.isArray(item.filesMeta) ? item.filesMeta.length : 0;
+    const ccount = Array.isArray(item.chat) ? item.chat.length : 0;
+    const hasDoc = item.mode === 'chat' ? !!item.chatDraftHtml : !!item.draftHtml;
+
+    // mostra “chat=0” quando for PRO e “anexos=0” quando não houver
+    sub.textContent = `doc=${hasDoc ? 'SIM' : 'NÃO'} • anexos=${fcount} • chat=${ccount}`;
+
+    meta.appendChild(title);
+    meta.appendChild(sub);
+
+    const actions = document.createElement('div');
+    actions.className = 'archive-actions';
+
+    const btnOpen = document.createElement('button');
+    btnOpen.className = 'btn-secundario';
+    btnOpen.type = 'button';
+    btnOpen.textContent = t('abrir');
+
+    const btnDel = document.createElement('button');
+    btnDel.className = 'btn-top';
+    btnDel.type = 'button';
+    btnDel.textContent = t('excluir');
+
+    btnOpen.addEventListener('click', () => { try { openArchived(item.id); } catch (e) { console.error(e); toastError(e); } });
+    btnDel.addEventListener('click', () => { try { deleteArchived(item.id); } catch (e) { console.error(e); toastError(e); } });
+
+    actions.appendChild(btnOpen);
+    actions.appendChild(btnDel);
+
+    li.appendChild(meta);
+    li.appendChild(actions);
+    ul.appendChild(li);
+  }
+}
+
 function archiveCurrentSession(modeHint) {
   const mode = (modeHint === 'chat' || state.tab === 'chat') ? 'chat' : 'pro';
   const list = loadArchive();
@@ -943,6 +1017,7 @@ function openArchived(id) {
   const item = list.find(x => x.id === id);
   if (!item) return;
 
+  // base
   state.lang = item.lang || state.lang;
   state.areaValue = item.areaValue || state.areaValue;
 
@@ -980,13 +1055,13 @@ function openArchived(id) {
   applyI18n();
   setTab(isChat ? 'chat' : 'pro');
 
-  renderFiles();
-  if (state.audit) renderAudit(state.audit);
-
-  if (isChat) {
-    if (typeof renderChatDraft === 'function') renderChatDraft();
-  } else {
+  if (!isChat) {
+    renderFiles();
+    if (state.audit) renderAudit(state.audit);
     renderDraft();
+  } else {
+    renderChatFiles();
+    renderChatDraft();
   }
 
   chatRender();
@@ -994,12 +1069,11 @@ function openArchived(id) {
   refreshButtons();
   persistSession();
 
+  // foco para continuar editando
   if (isChat) {
-    const ci = el.chatInput();
-    if (ci) { try { ci.focus(); } catch {} }
+    const ci = el.chatInput(); if (ci) { try { ci.focus(); } catch {} }
   } else {
-    const cm = el.cmd();
-    if (cm) { try { cm.focus(); } catch {} }
+    const cm = el.cmd(); if (cm) { try { cm.focus(); } catch {} }
   }
 }
 
@@ -1013,10 +1087,8 @@ function deleteArchived(id) {
 function clearArchive() {
   try { localStorage.removeItem(LS.archive); } catch (e) { console.error(e); }
   renderArchiveList();
-      }
-  
-    
-    
+}
+
 // =============== CHAT core ===============
 function chatSave() { persistSession(); }
 
@@ -1030,6 +1102,7 @@ function chatAddMessage(role, text) {
 function chatClear() {
   state.chat = [];
   state.chatDraftHtml = '';
+  state.chatFiles = [];
   chatSave();
   chatRender();
   if (state.tab === 'chat') renderChatDraft();
@@ -1125,7 +1198,7 @@ function clearSession() {
   toast(t('alertLimpo'));
 }
 
-// =============== Bind UI (único) ===============
+// =============== Bind UI (ÚNICO) ===============
 function bindUi() {
   // Language
   onClick(el.btnLangPt(), () => { state.lang = 'pt'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
@@ -1235,6 +1308,7 @@ function bindUi() {
         state.chatFiles.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
       }
       persistSession();
+      renderChatFiles();
       refreshButtons();
     });
   }
@@ -1243,6 +1317,7 @@ function bindUi() {
     state.chatFiles = [];
     const chatFile = el.chatFileInput(); if (chatFile) chatFile.value = '';
     persistSession();
+    renderChatFiles();
     refreshButtons();
   });
 
@@ -1282,8 +1357,9 @@ function boot() {
   applyI18n();
   setTab(state.tab);
 
-  if (state.audit) renderAudit(state.audit);
-
+  // Render inicial coerente
+  if (state.audit && state.tab === 'pro') renderAudit(state.audit);
+  syncViewForTab();
   chatRender();
   renderArchiveList();
   refreshButtons();
@@ -1304,4 +1380,4 @@ boot();
 // =========================
 // ===== FIM BLOCO 3/3 =====
 // =========================
-})();
+})(); // fecha IIFE do BLOCO 1
