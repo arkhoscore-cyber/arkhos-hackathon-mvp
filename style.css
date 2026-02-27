@@ -213,3 +213,51 @@ button:disabled{opacity:.55;cursor:not-allowed}
     box-shadow:none!important;
   }
                                  }
+/* =========================
+   PATCH — UTILITÁRIOS + PRINT
+   ========================= */
+
+/* utilitários usados no HTML */
+.row{display:flex;align-items:center}
+.row-gap{gap:10px;flex-wrap:wrap}
+.row-between{justify-content:space-between;gap:10px;flex-wrap:wrap}
+.upload-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+.file-list,.archive-list{list-style:none;padding:0;margin:10px 0 0}
+.file-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.file-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.archive-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.archive-title{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.archive-sub{font-size:12px;color:var(--muted)}
+.archive-actions{display:flex;gap:8px;align-items:center}
+
+/* melhorar responsividade do input+botão no chat */
+@media(max-width:520px){
+  .chat-input-wrap{flex-direction:column}
+  .chat-send{min-width:100%}
+}
+
+/* PRINT: imprimir SOMENTE a seção isolada, não o canvas da tela */
+@media print{
+  /* limpa o layout grid no print */
+  .bancada-container{display:block;padding:0;max-width:none}
+
+  /* esconde tudo que é “tela” */
+  .canvas-card{display:none!important}
+  #output-canvas{display:none!important}
+  #txt-placeholder{display:none!important}
+
+  /* garante que só a área de impressão aparece */
+  #secao-impressao-isolada{display:block!important}
+  #secao-impressao-isolada{
+    padding:0!important;
+    border:none!important;
+    background:#fff!important;
+  }
+
+  /* evita cortes feios */
+  *{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .draft, .draft *{page-break-inside:avoid}
+  }
