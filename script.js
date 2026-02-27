@@ -600,49 +600,37 @@
   // CHAT — Draft separado
   // =====================
   function buildChatDraftHtml() {
-    const input = el.chatInput();
-    const chatText = (input?.value || '').trim();
-    if (chatText.length < 10) return '';
+  function buildChatDraftHtml() {
+  const input = el.chatInput();
+  const typed = (input?.value || '').trim();
 
-    const dt = new Date();
-    const dtStr = dt.toLocaleString();
-    const safe = escapeHtml(chatText);
+  // Preferência: última mensagem do usuário no histórico
+  const lastMe = [...(state.chat || [])].reverse().find(m => m.role === 'me');
+  const baseText = (lastMe?.text || typed || '').trim();
 
-    return `
-      <section class="draft">
-        <h1>Documento — CHAT</h1>
-        <p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
-        <p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
+  if (baseText.length < 10) return '';
 
-        <div class="draft-block">
-          <h2>Entrada (CHAT)</h2>
-          <p>${safe.replaceAll('\n', '<br>')}</p>
-        </div>
+  const dt = new Date();
+  const dtStr = dt.toLocaleString();
+  const safe = escapeHtml(baseText);
 
-        <div class="draft-block">
-          <h2>Saída (Simulador)</h2>
-          <p><em>Documento gerado a partir do texto do chat (simulação).</em></p>
-        </div>
-      </section>
-    `.trim();
-  }
+  return `
+    <section class="draft">
+      <h1>Documento — CHAT</h1>
+      <p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
+      <p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
 
-  function renderChatDraft() {
-    const out = el.out();
-    const ph = el.placeholder();
-    if (!out) return;
+      <div class="draft-block">
+        <h2>Entrada (CHAT)</h2>
+        <p>${safe.replaceAll('\n', '<br>')}</p>
+      </div>
 
-    out.innerHTML = state.chatDraftHtml || '';
-    if (ph) ph.textContent = state.chatDraftHtml ? '' : t('aguardandoDoc');
-  }
-
-  function generateFromChat() {
-    const html = buildChatDraftHtml();
-    state.chatDraftHtml = html;
-
-    renderChatDraft();
-    refreshButtons();
-    persistSession();
+      <div class="draft-block">
+        <h2>Saída (Simulador)</h2>
+        <p><em>Documento gerado a partir da última mensagem do chat.</em></p>
+      </div>
+    </section>
+  `.trim();
   }
 
   /* === CUT_HERE_BLOCO_1 === */
@@ -720,12 +708,29 @@ function copyToPrintSection() {
 }
 
 function exportPdfPrint() {
-  if (!state.draftHtml) { toast(t('precisaGerar')); return; }
-  const ok = copyToPrintSection();
-  if (!ok) { toast(t('exportFalha')); return; }
-  try { window.print(); } catch (e) { console.error(e); toast(t('exportFalha')); }
-}
+  // Exporta o que está sendo exibido no canvas (PRO ou CHAT)
+  const out = el.out();
+  const currentHtml = String(out?.innerHTML || '').trim();
 
+  if (!currentHtml) {
+    // Mantém fail-closed: sem documento, não exporta
+    toast(t('precisaGerar'));
+    return;
+  }
+
+  const ok = copyToPrintSection(); // copia do canvas para a seção print
+  if (!ok) {
+    toast(t('exportFalha'));
+    return;
+  }
+
+  try {
+    window.print();
+  } catch (e) {
+    console.error(e);
+    toast(t('exportFalha'));
+  }
+}
 // =============== ARCHIVE ===============
 function loadArchive() {
   const arr = loadLS(LS.archive, []);
