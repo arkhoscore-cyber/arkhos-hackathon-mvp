@@ -92,10 +92,13 @@
     chatMessages: () => $('#chat-messages'),
     chatInput: () => $('#chat-input'),
     chatSend: () => $('#chat-send'),
-    chatArquivar: () => $('#chat-arquivar'),
-    chatLimpar: () => $('#chat-limpar')
-  };
+chatArquivar: () => $('#chat-arquivar'),
+chatLimpar: () => $('#chat-limpar'),
 
+chatEnviarDoc: () => $('#chat-enviar-doc'),
+chatFileInput: () => $('#chat-file'),
+btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
+};
   function nowTs() { return Date.now(); }
 
   function safeJsonParse(str, fallback) {
