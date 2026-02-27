@@ -1268,12 +1268,15 @@ if (fi) {
     refreshButtons();
   });
 }
-  onClick(el.btnLimparAnexos(), () => {
-  state.files = [];
-  state.fileBlobs.clear(); // limpa os Files reais também
-  const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
+  onClick(el.btnChatLimparAnexos(), () => {
+  state.chatFiles = [];
+  state.chatFileBlobs.clear(); // limpa os arquivos reais da memória
+
+  const chatFile = el.chatFileInput();
+  if (chatFile) chatFile.value = '';
+
   persistSession();
-  renderFiles();
+  renderChatFiles();
   refreshButtons();
 });
 
