@@ -14,15 +14,19 @@
   const MAX_ARCHIVE = 50;
 
   const state = {
-    lang: 'pt',
-    tab: 'pro',
-    areaValue: 'civil',
-    files: [], // {id,name,size,type,lastModified}
-    draftHtml: '',
-    audit: null, // {scores:{metal,estado,legiao,logos}, certScore, status, motivo, evidencias:[], ledger:[]}
-    chat: [] // {role:'me'|'bot', text, ts}
-  };
+  const state = {
+  lang: 'pt',
+  tab: 'pro',
+  areaValue: 'civil',
 
+  files: [],                // anexos do PRO
+  draftHtml: '',            // documento do PRO
+  audit: null,
+
+  chat: [],                 // mensagens do chat
+  chatDraftHtml: '',        // <<< DOCUMENTO GERADO NO CHAT
+  chatFiles: []             // <<< ANEXOS DO CHAT
+};
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
