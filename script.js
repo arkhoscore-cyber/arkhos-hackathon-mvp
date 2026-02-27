@@ -1,7 +1,7 @@
 /* ARKHOS_UI — script.js (offline-first, sem libs, LOCAL_SIMULADOR) */
 (() => {
   'use strict';
-  
+
   // =============== C1) STATE / STORAGE ===============
   const LS = {
     lang: 'arkhos_lang_v1',
@@ -13,24 +13,27 @@
   const MAX_ARCHIVE = 50;
 
   const state = {
-  
-  lang: 'pt',
-  tab: 'pro',
-  areaValue: 'civil',
+    lang: 'pt',
+    tab: 'pro',
+    areaValue: 'civil',
 
-  files: [],                // anexos do PRO
-  draftHtml: '',            // documento do PRO
-  audit: null,
+    // PRO
+    files: [],
+    draftHtml: '',
+    audit: null,
 
-  chat: [],                 // mensagens do chat
-  chatDraftHtml: '',        // <<< DOCUMENTO GERADO NO CHAT
-  chatFiles: []             // <<< ANEXOS DO CHAT
-};
+    // CHAT
+    chat: [],
+    chatDraftHtml: '',
+    chatFiles: []
+  };
+
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
   // Safe get element; returns null (no throw)
   const el = {
+    // Lang / top
     btnLangPt: () => $('#btn-lang-pt'),
     btnLangEn: () => $('#btn-lang-en'),
     btnAjuda: () => $('#btn-ajuda'),
@@ -45,25 +48,28 @@
     badgeHealth: () => $('#badge-health'),
     badgeRuntime: () => $('#badge-runtime'),
 
+    // Tabs
     btnTabPro: () => $('#btn-tab-pro'),
     btnTabChat: () => $('#btn-tab-chat'),
     telaPro: () => $('#tela-pro'),
     telaChat: () => $('#tela-chat'),
 
+    // PRO inputs / actions
     area: () => $('#area-direito'),
     cmd: () => $('#cmd-input'),
     btnGerar: () => $('#btn-executar'),
     btnExportar: () => $('#btn-exportar'),
     btnArquivar: () => $('#btn-arquivar'),
     btnEnviar: () => $('#btn-enviar'),
-    chatGerarDoc: () => $('#chat-gerar-doc'),
 
+    // PRO files
     fileInput: () => $('#file-soberano'),
     btnLimparAnexos: () => $('#btn-limpar-anexos'),
     tplFile: () => $('#tpl-file-item'),
     listaArquivos: () => $('#lista-arquivos'),
     filesEmpty: () => $('#files-empty'),
 
+    // Audit UI
     seloCert: () => $('#selo-cert'),
     seloAuth: () => $('#selo-auth'),
     barMetal: () => $('#bar-metal'),
@@ -80,24 +86,29 @@
     ledgerResumo: () => $('#ledger-resumo'),
     evidenciasResumo: () => $('#evidencias-resumo'),
 
+    // Canvas
     out: () => $('#output-canvas'),
     placeholder: () => $('#txt-placeholder'),
     printOnly: () => $('#secao-impressao-isolada'),
 
+    // Archive
     listaArquivados: () => $('#lista-arquivados'),
     archiveEmpty: () => $('#archive-empty'),
     btnLimparArchive: () => $('#btn-limpar-archive'),
 
+    // CHAT
     chatMessages: () => $('#chat-messages'),
     chatInput: () => $('#chat-input'),
     chatSend: () => $('#chat-send'),
-chatArquivar: () => $('#chat-arquivar'),
-chatLimpar: () => $('#chat-limpar'),
+    chatGerarDoc: () => $('#chat-gerar-doc'),
+    chatEnviarDoc: () => $('#chat-enviar-doc'),
+    chatArquivar: () => $('#chat-arquivar'),
+    chatLimpar: () => $('#chat-limpar'),
 
-chatEnviarDoc: () => $('#chat-enviar-doc'),
-chatFileInput: () => $('#chat-file'),
-btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
-};
+    chatFileInput: () => $('#chat-file'),
+    btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
+  };
+
   function nowTs() { return Date.now(); }
 
   function safeJsonParse(str, fallback) {
@@ -112,6 +123,42 @@ btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
 
   function saveLS(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  // =============== C12) AUTO-REPAIR GUARDS ===============
+  function onClick(selectorOrEl, fn) {
+    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
+    if (!node) return;
+    node.addEventListener('click', (e) => {
+      try { fn(e); } catch (err) { console.error(err); toastError(err); }
+    });
+  }
+
+  function onInput(selectorOrEl, fn) {
+    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
+    if (!node) return;
+    node.addEventListener('input', (e) => {
+      try { fn(e); } catch (err) { console.error(err); toastError(err); }
+    });
+  }
+
+  // =============== Toast minimal (fail loud) ===============
+  function toast(msg) {
+    try { alert(String(msg)); } catch { /* noop */ }
+  }
+  function toastError(err) {
+    const msg = (err && err.message) ? err.message : String(err || 'Erro');
+    toast(msg);
+  }
+
+  // =============== Sanitização ===============
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
   }
 
   // =============== C2) i18n + ARIA PRESSED ===============
@@ -234,7 +281,12 @@ btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
     const ttlRas = $('#ttl-rastreio'); if (ttlRas) ttlRas.textContent = t('rastreio');
 
     const ttlCanvas = $('#ttl-canvas'); if (ttlCanvas) ttlCanvas.textContent = t('documento');
-    const placeholder = el.placeholder(); if (placeholder && !state.draftHtml) placeholder.textContent = t('aguardandoDoc');
+
+    const placeholder = el.placeholder();
+    if (placeholder) {
+      const hasAny = state.tab === 'chat' ? !!state.chatDraftHtml : !!state.draftHtml;
+      placeholder.textContent = hasAny ? '' : t('aguardandoDoc');
+    }
 
     const chatInput = el.chatInput(); if (chatInput) chatInput.placeholder = t('chatPh');
     const chatSend = el.chatSend(); if (chatSend) chatSend.textContent = t('enviar');
@@ -244,7 +296,6 @@ btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
 
     const ttlArquivados = $('#ttl-arquivados'); if (ttlArquivados) ttlArquivados.textContent = t('arquivados');
     const archiveEmpty = el.archiveEmpty(); if (archiveEmpty) archiveEmpty.textContent = t('nenhumArquivado');
-
     const filesEmpty = el.filesEmpty(); if (filesEmpty) filesEmpty.textContent = t('nenhumArquivo');
 
     const btnAjuda = el.btnAjuda(); if (btnAjuda) btnAjuda.textContent = t('ajuda').toUpperCase();
@@ -290,101 +341,26 @@ btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
     }
   }
 
-  // =============== C12) AUTO-REPAIR GUARDS ===============
-  function onClick(selectorOrEl, fn) {
-    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
-    if (!node) return;
-    node.addEventListener('click', (e) => {
-      try { fn(e); } catch (err) { console.error(err); toastError(err); }
-    });
-  }
-
-  function onInput(selectorOrEl, fn) {
-    const node = (typeof selectorOrEl === 'string') ? $(selectorOrEl) : selectorOrEl;
-    if (!node) return;
-    node.addEventListener('input', (e) => {
-      try { fn(e); } catch (err) { console.error(err); toastError(err); }
-    });
-  }
-
-  // =============== Toast minimal (fail loud) ===============
-  function toast(msg) {
-    try { alert(String(msg)); } catch { /* noop */ }
-  }
-  function toastError(err) {
-    const msg = (err && err.message) ? err.message : String(err || 'Erro');
-    toast(msg);
-  }
-
-  // =============== Sanitização ===============
-  function escapeHtml(str) {
-    return String(str)
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
-
   // =============== Fail-closed ===============
   function isValidInstruction() {
     const v = (el.cmd()?.value || '').trim();
     return v.length >= 10;
   }
 
-  function refreshButtons() {
-    const ok = isValidInstruction();
-    const btnGerar = el.btnGerar();
-    if (btnGerar) btnGerar.disabled = !ok;
-
-    const hasDraft = !!state.draftHtml;
-    const btnExportar = el.btnExportar();
-    const btnArquivar = el.btnArquivar();
-    const btnEnviar = el.btnEnviar ? el.btnEnviar() : null;
-    if (btnEnviar) btnEnviar.disabled = !hasDraft;
-    if (btnExportar) btnExportar.disabled = !hasDraft;
-    if (btnArquivar) btnArquivar.disabled = !(hasDraft || state.chat.length || state.files.length);
-
-    const chatSend = el.chatSend();
-    const chatInput = el.chatInput();
-    if (chatSend && chatInput) chatSend.disabled = chatInput.value.trim().length === 0;
-
-    const btnLimparAnexos = el.btnLimparAnexos();
-    if (btnLimparAnexos) btnLimparAnexos.disabled = state.files.length === 0;
-  }
-
-  // =============== Session persistence (current work-in-progress) ===============
-  function persistSession() {
-    const payload = {
-      v: 1,
-      lang: state.lang,
-      tab: state.tab,
-      areaValue: state.areaValue,
-      files: state.files,
-      draftHtml: state.draftHtml,
-      audit: state.audit,
-      chat: state.chat
-    };
-    try { saveLS(LS.session, payload); } catch (e) { console.error(e); }
-  }
-
-  function restoreSession() {
-    const payload = loadLS(LS.session, null);
-    if (!payload || typeof payload !== 'object') return;
-
-    if (payload.lang) state.lang = payload.lang;
-    if (payload.tab) state.tab = payload.tab;
-    if (payload.areaValue) state.areaValue = payload.areaValue;
-
-    if (Array.isArray(payload.files)) state.files = payload.files;
-    state.draftHtml = typeof payload.draftHtml === 'string' ? payload.draftHtml : '';
-    state.audit = payload.audit && typeof payload.audit === 'object' ? payload.audit : null;
-    state.chat = Array.isArray(payload.chat) ? payload.chat : [];
-  }
-
   // =============== C4) Upload / Render files (usa template) ===============
   function fileIdFrom(f) {
     return `${f.name}|${f.size}|${f.type}|${f.lastModified}`;
+  }
+
+  function formatBytes(n) {
+    const num = Number(n) || 0;
+    if (num < 1024) return `${num} B`;
+    const kb = num / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    const mb = kb / 1024;
+    if (mb < 1024) return `${mb.toFixed(1)} MB`;
+    const gb = mb / 1024;
+    return `${gb.toFixed(2)} GB`;
   }
 
   function renderFiles() {
@@ -424,17 +400,6 @@ btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
       }
       ul.appendChild(li);
     }
-  }
-
-  function formatBytes(n) {
-    const num = Number(n) || 0;
-    if (num < 1024) return `${num} B`;
-    const kb = num / 1024;
-    if (kb < 1024) return `${kb.toFixed(1)} KB`;
-    const mb = kb / 1024;
-    if (mb < 1024) return `${mb.toFixed(1)} MB`;
-    const gb = mb / 1024;
-    return `${gb.toFixed(2)} GB`;
   }
 
   // =============== C5) Auditoria simulada (DETERMINÍSTICA) ===============
@@ -591,7 +556,6 @@ btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
     const dt = new Date();
     const dtStr = dt.toLocaleString();
 
-    // Documento “minuta técnica” (simulada)
     return `
       <section class="draft">
         <h1>Minuta Técnica — ${escapeHtml(areaTxt)}</h1>
@@ -627,447 +591,457 @@ btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
     const out = el.out();
     const ph = el.placeholder();
     if (!out) return;
+
     out.innerHTML = state.draftHtml || '';
     if (ph) ph.textContent = state.draftHtml ? '' : t('aguardandoDoc');
   }
+
   // =====================
-// CHAT — Draft separado
-// =====================
-function buildChatDraftHtml() {
-  const input = el.chatInput();
-  const chatText = (input?.value || '').trim();
+  // CHAT — Draft separado
+  // =====================
+  function buildChatDraftHtml() {
+    const input = el.chatInput();
+    const chatText = (input?.value || '').trim();
+    if (chatText.length < 10) return '';
 
-  // Se você quiser usar o histórico em vez do input, trocamos depois.
-  // Por enquanto: simples e determinístico.
-  if (chatText.length < 10) return '';
+    const dt = new Date();
+    const dtStr = dt.toLocaleString();
+    const safe = escapeHtml(chatText);
 
-  const dt = new Date();
-  const dtStr = dt.toLocaleString();
+    return `
+      <section class="draft">
+        <h1>Documento — CHAT</h1>
+        <p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
+        <p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
 
-  // Sanitização igual ao PRO
-  const safe = escapeHtml(chatText);
+        <div class="draft-block">
+          <h2>Entrada (CHAT)</h2>
+          <p>${safe.replaceAll('\n', '<br>')}</p>
+        </div>
 
-  return `
-    <section class="draft">
-      <h1>Documento — CHAT</h1>
-      <p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
-      <p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
+        <div class="draft-block">
+          <h2>Saída (Simulador)</h2>
+          <p><em>Documento gerado a partir do texto do chat (simulação).</em></p>
+        </div>
+      </section>
+    `.trim();
+  }
 
-      <div class="draft-block">
-        <h2>Entrada (CHAT)</h2>
-        <p>${safe.replaceAll('\n', '<br>')}</p>
-      </div>
+  function renderChatDraft() {
+    const out = el.out();
+    const ph = el.placeholder();
+    if (!out) return;
 
-      <div class="draft-block">
-        <h2>Saída (Simulador)</h2>
-        <p><em>Documento gerado a partir do texto do chat (simulação).</em></p>
-      </div>
-    </section>
-  `.trim();
-}
+    out.innerHTML = state.chatDraftHtml || '';
+    if (ph) ph.textContent = state.chatDraftHtml ? '' : t('aguardandoDoc');
+  }
 
-function renderChatDraft() {
-  const out = el.out();
-  const ph = el.placeholder();
-  if (!out) return;
-
-  out.innerHTML = state.chatDraftHtml || '';
-  if (ph) ph.textContent = state.chatDraftHtml ? '' : t('aguardandoDoc');
-}
   function generateFromChat() {
-  // gera somente o documento do CHAT
-  const html = buildChatDraftHtml();
-  state.chatDraftHtml = html;
+    const html = buildChatDraftHtml();
+    state.chatDraftHtml = html;
 
-  // renderiza no mesmo canvas, mas com o draft do CHAT
-  renderChatDraft();
+    renderChatDraft();
+    refreshButtons();
+    persistSession();
+  }
 
-  // atualiza botões / persistência sem mexer no PRO
+  /* === CUT_HERE_BLOCO_1 === */
+  // A partir daqui entra o JS_BLOCO_2
+ /* === JS_BLOCO_2 === */
+/* COLE ESTE BLOCO INTEIRO LOGO ABAIXO DO:  /* === CUT_HERE_BLOCO_1 === */  */
+
+// =============== Buttons / Session (PRO+CHAT) ===============
+function refreshButtons() {
+  const ok = isValidInstruction();
+  const btnGerar = el.btnGerar(); if (btnGerar) btnGerar.disabled = !ok;
+
+  const hasProDraft = !!state.draftHtml;
+  const btnExportar = el.btnExportar(); if (btnExportar) btnExportar.disabled = !hasProDraft;
+  const btnEnviar = el.btnEnviar(); if (btnEnviar) btnEnviar.disabled = !hasProDraft;
+
+  const hasChatDraft = !!state.chatDraftHtml;
+  const btnArquivar = el.btnArquivar();
+  if (btnArquivar) btnArquivar.disabled = !(hasProDraft || (state.files && state.files.length) || hasChatDraft || (state.chat && state.chat.length) || (state.chatFiles && state.chatFiles.length));
+
+  const btnLimparAnexos = el.btnLimparAnexos(); if (btnLimparAnexos) btnLimparAnexos.disabled = !(state.files && state.files.length);
+
+  const chatInput = el.chatInput();
+  const chatSend = el.chatSend();
+  if (chatSend && chatInput) chatSend.disabled = (chatInput.value.trim().length === 0);
+
+  const chatGerar = el.chatGerarDoc(); if (chatGerar) chatGerar.disabled = ((chatInput?.value || '').trim().length < 10);
+  const chatEnviar = el.chatEnviarDoc(); if (chatEnviar) chatEnviar.disabled = !hasChatDraft;
+
+  const btnChatLimpar = el.btnChatLimparAnexos(); if (btnChatLimpar) btnChatLimpar.disabled = !(state.chatFiles && state.chatFiles.length);
+}
+
+function persistSession() {
+  const payload = {
+    v: 1,
+    lang: state.lang,
+    tab: state.tab,
+    areaValue: state.areaValue,
+    files: state.files,
+    draftHtml: state.draftHtml,
+    audit: state.audit,
+    chat: state.chat,
+    chatDraftHtml: state.chatDraftHtml,
+    chatFiles: state.chatFiles
+  };
+  try { saveLS(LS.session, payload); } catch (e) { console.error(e); }
+}
+
+function restoreSession() {
+  const payload = loadLS(LS.session, null);
+  if (!payload || typeof payload !== 'object') return;
+
+  if (payload.lang) state.lang = payload.lang;
+  if (payload.tab) state.tab = payload.tab;
+  if (payload.areaValue) state.areaValue = payload.areaValue;
+
+  if (Array.isArray(payload.files)) state.files = payload.files;
+  state.draftHtml = typeof payload.draftHtml === 'string' ? payload.draftHtml : '';
+  state.audit = payload.audit && typeof payload.audit === 'object' ? payload.audit : null;
+
+  state.chat = Array.isArray(payload.chat) ? payload.chat : [];
+  state.chatDraftHtml = typeof payload.chatDraftHtml === 'string' ? payload.chatDraftHtml : '';
+  state.chatFiles = Array.isArray(payload.chatFiles) ? payload.chatFiles : [];
+}
+
+// =============== PRINT / EXPORT (PRO) ===============
+function copyToPrintSection() {
+  const out = el.out();
+  const printArea = el.printOnly();
+  if (!out || !printArea) return false;
+  const html = String(out.innerHTML || '').trim();
+  if (!html) return false;
+  printArea.innerHTML = html;
+  return true;
+}
+
+function exportPdfPrint() {
+  if (!state.draftHtml) { toast(t('precisaGerar')); return; }
+  const ok = copyToPrintSection();
+  if (!ok) { toast(t('exportFalha')); return; }
+  try { window.print(); } catch (e) { console.error(e); toast(t('exportFalha')); }
+}
+
+// =============== ARCHIVE ===============
+function loadArchive() {
+  const arr = loadLS(LS.archive, []);
+  return Array.isArray(arr) ? arr : [];
+}
+function saveArchive(list) { try { saveLS(LS.archive, list); } catch (e) { console.error(e); } }
+
+function archiveItemTitle(item) {
+  const mode = item.mode === 'chat' ? 'CHAT' : 'PRO';
+  const area = item.areaLabel || item.areaValue || '—';
+  const dt = new Date(item.ts || nowTs()).toLocaleString();
+  return `${mode} • ${area} • ${dt}`;
+}
+
+function renderArchiveList() {
+  const ul = el.listaArquivados();
+  const empty = el.archiveEmpty();
+  if (!ul || !empty) return;
+
+  const list = loadArchive();
+  ul.innerHTML = '';
+
+  if (!list.length) { empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  for (const item of list) {
+    const li = document.createElement('li');
+    li.className = 'archive-item';
+
+    const meta = document.createElement('div');
+    meta.className = 'archive-meta';
+
+    const title = document.createElement('div');
+    title.className = 'archive-title';
+    title.textContent = archiveItemTitle(item);
+
+    const sub = document.createElement('div');
+    sub.className = 'archive-sub';
+    const fcount = Array.isArray(item.filesMeta) ? item.filesMeta.length : 0;
+    const ccount = Array.isArray(item.chat) ? item.chat.length : 0;
+    const hasDoc = item.mode === 'chat' ? !!item.chatDraftHtml : !!item.draftHtml;
+    sub.textContent = `doc=${hasDoc ? 'SIM' : 'NÃO'} • anexos=${fcount} • chat=${ccount}`;
+
+    meta.appendChild(title);
+    meta.appendChild(sub);
+
+    const actions = document.createElement('div');
+    actions.className = 'archive-actions';
+
+    const btnOpen = document.createElement('button');
+    btnOpen.className = 'btn-secundario';
+    btnOpen.type = 'button';
+    btnOpen.textContent = t('abrir');
+
+    const btnDel = document.createElement('button');
+    btnDel.className = 'btn-top';
+    btnDel.type = 'button';
+    btnDel.textContent = t('excluir');
+
+    btnOpen.addEventListener('click', () => { try { openArchived(item.id); } catch (e) { console.error(e); toastError(e); } });
+    btnDel.addEventListener('click', () => { try { deleteArchived(item.id); } catch (e) { console.error(e); toastError(e); } });
+
+    actions.appendChild(btnOpen);
+    actions.appendChild(btnDel);
+    li.appendChild(meta);
+    li.appendChild(actions);
+    ul.appendChild(li);
+  }
+}
+
+function archiveCurrentSession(modeHint) {
+  const mode = (modeHint === 'chat' || state.tab === 'chat') ? 'chat' : 'pro';
+  const list = loadArchive();
+
+  const item = {
+    id: `a_${nowTs()}_${hash32(`${mode}|${state.areaValue}|${(el.cmd()?.value || '').trim()}|${(state.files||[]).map(f=>f.id).join(',')}|${(state.chat||[]).length}`)}`,
+    ts: nowTs(),
+    mode,
+    lang: state.lang,
+    areaValue: state.areaValue,
+    areaLabel: areaLabel(),
+
+    // PRO
+    cmd: (el.cmd()?.value || '').trim(),
+    filesMeta: (mode === 'chat' ? (state.chatFiles || []).slice() : (state.files || []).slice()),
+    audit: state.audit,
+    draftHtml: state.draftHtml,
+
+    // CHAT
+    chat: (state.chat || []).slice(),
+    chatDraftHtml: state.chatDraftHtml
+  };
+
+  const next = [item, ...list].slice(0, MAX_ARCHIVE);
+  saveArchive(next);
+  renderArchiveList();
+  toast(t('alertArquivado'));
+}
+
+function openArchived(id) {
+  const list = loadArchive();
+  const item = list.find(x => x.id === id);
+  if (!item) return;
+
+  state.lang = item.lang || state.lang;
+  state.areaValue = item.areaValue || state.areaValue;
+
+  // restore doc by mode
+  state.draftHtml = typeof item.draftHtml === 'string' ? item.draftHtml : '';
+  state.chatDraftHtml = typeof item.chatDraftHtml === 'string' ? item.chatDraftHtml : '';
+  state.chat = Array.isArray(item.chat) ? item.chat : [];
+
+  // restore files into correct bucket
+  if (item.mode === 'chat') {
+    state.chatFiles = Array.isArray(item.filesMeta) ? item.filesMeta : [];
+  } else {
+    state.files = Array.isArray(item.filesMeta) ? item.filesMeta : [];
+  }
+
+  // Apply to inputs/UI
+  const area = el.area(); if (area) area.value = state.areaValue;
+  const cmd = el.cmd(); if (cmd) cmd.value = item.cmd || '';
+
+  applyI18n();
+  setTab(item.mode === 'chat' ? 'chat' : 'pro');
+
+  renderFiles();
+  if (state.audit) renderAudit(state.audit);
+  if (state.tab === 'chat') renderChatDraft(); else renderDraft();
+  chatRender();
   refreshButtons();
   persistSession();
+}
+
+function deleteArchived(id) {
+  const list = loadArchive();
+  const next = list.filter(x => x.id !== id);
+  saveArchive(next);
+  renderArchiveList();
+}
+function clearArchive() {
+  try { localStorage.removeItem(LS.archive); } catch (e) { console.error(e); }
+  renderArchiveList();
+}
+
+// =============== CHAT ===============
+function chatSave() { persistSession(); }
+
+function chatAddMessage(role, text) {
+  state.chat.push({ role: role === 'bot' ? 'bot' : 'me', text: String(text || ''), ts: nowTs() });
+  chatSave(); chatRender(); refreshButtons();
+}
+
+function chatClear() {
+  state.chat = [];
+  chatSave(); chatRender(); refreshButtons();
+  toast(t('alertLimpo'));
+}
+
+function chatRender() {
+  const box = el.chatMessages();
+  if (!box) return;
+  box.innerHTML = '';
+  for (const m of state.chat) {
+    const wrap = document.createElement('div');
+    wrap.className = `msg ${m.role === 'bot' ? 'bot' : 'me'}`;
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = new Date(m.ts || nowTs()).toLocaleString();
+
+    const text = document.createElement('div');
+    text.className = 'text';
+    text.textContent = m.text;
+
+    wrap.appendChild(meta);
+    wrap.appendChild(text);
+    box.appendChild(wrap);
   }
+  try { box.scrollTop = box.scrollHeight; } catch { /* noop */ }
+}
 
-  /* === CUT_HERE === */
- // =============== C7) PRINT / EXPORT (copy to only-print) ===============
-  function copyToPrintSection() {
-    const out = el.out();
-    const printArea = el.printOnly();
-    if (!out || !printArea) return false;
+function simulateChatReply(userText) {
+  const trimmed = String(userText || '').trim();
+  const seed = hash32(`${trimmed}__${state.areaValue}__${state.lang}`);
+  const rnd = prng(seed);
 
-    const html = String(out.innerHTML || '').trim();
-    if (!html) return false;
+  const variantsPt = [
+    'Entendi. Se você quiser, posso transformar isso em um documento no CHAT.',
+    'Certo. Você prefere um resumo objetivo ou uma versão mais detalhada?',
+    'Ok. Para fortalecer, inclua datas, nomes e o que exatamente quer que a autoridade determine.'
+  ];
+  const variantsEn = [
+    'Got it. If you want, I can turn this into a document in CHAT.',
+    'Okay. Do you prefer a concise summary or a more detailed version?',
+    'Alright. To strengthen it, include dates, names, and what exactly you want decided.'
+  ];
 
-    printArea.innerHTML = html;
+  const pool = state.lang === 'en' ? variantsEn : variantsPt;
+  return pool[Math.floor(rnd() * pool.length)] || pool[0];
+}
+
+// =============== MODALS + SHARE ===============
+function openModal(modalEl) { if (!modalEl) return; modalEl.classList.remove('hidden'); modalEl.setAttribute('aria-hidden', 'false'); }
+function closeModal(modalEl) { if (!modalEl) return; modalEl.classList.add('hidden'); modalEl.setAttribute('aria-hidden', 'true'); }
+function closeAllModals() { closeModal(el.modalAjuda()); closeModal(el.modalConfig()); }
+
+function htmlToText(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = String(html || '');
+  return (tmp.textContent || tmp.innerText || '').trim();
+}
+
+async function copyToClipboard(text) {
+  const s = String(text || '');
+  if (!s) return false;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(s);
     return true;
   }
+  const ta = document.createElement('textarea');
+  ta.value = s;
+  ta.setAttribute('readonly', 'true');
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  const ok = document.execCommand('copy');
+  document.body.removeChild(ta);
+  return !!ok;
+}
 
-  function exportPdfPrint() {
-    if (!state.draftHtml) {
-      toast(t('precisaGerar'));
-      return;
-    }
-    const ok = copyToPrintSection();
-    if (!ok) {
-      toast(t('exportFalha'));
-      return;
-    }
-    try {
-      window.print();
-    } catch (e) {
-      console.error(e);
-      toast(t('exportFalha'));
-    }
+async function shareCurrent() {
+  const text = state.draftHtml ? htmlToText(state.draftHtml) : '';
+  if (!text) { toast(t('precisaGerar')); return; }
+  const title = 'ARKHOS — Documento';
+  try { if (navigator.share) { await navigator.share({ title, text }); return; } } catch (e) { console.error(e); }
+  try {
+    const ok = await copyToClipboard(text);
+    if (ok) toast(t('alertCopiado')); else throw new Error('Clipboard falhou');
+  } catch (e) {
+    console.error(e);
+    try { prompt('Copie o texto:', text); } catch { toast(t('exportFalha')); }
   }
+}
 
-  // =============== C8) ARCHIVE (list/open/delete/clear) ===============
-  function loadArchive() {
-    const arr = loadLS(LS.archive, []);
-    return Array.isArray(arr) ? arr : [];
+async function shareChatDoc() {
+  const text = state.chatDraftHtml ? htmlToText(state.chatDraftHtml) : '';
+  if (!text) { toast(t('precisaGerar')); return; }
+  const title = 'ARKHOS — Documento (CHAT)';
+  try { if (navigator.share) { await navigator.share({ title, text }); return; } } catch (e) { console.error(e); }
+  try {
+    const ok = await copyToClipboard(text);
+    if (ok) toast(t('alertCopiado')); else throw new Error('Clipboard falhou');
+  } catch (e) {
+    console.error(e);
+    try { prompt('Copie o texto:', text); } catch { toast(t('exportFalha')); }
   }
+}
 
-  function saveArchive(list) {
-    try { saveLS(LS.archive, list); } catch (e) { console.error(e); }
-  }
+function clearSession() {
+  state.files = [];
+  state.draftHtml = '';
+  state.audit = null;
 
-  function archiveItemTitle(item) {
-    const area = item.areaLabel || item.areaValue || '—';
-    const dt = new Date(item.ts || nowTs()).toLocaleString();
-    return `${area} • ${dt}`;
-  }
+  state.chat = [];
+  state.chatDraftHtml = '';
+  state.chatFiles = [];
 
-  function renderArchiveList() {
-    const ul = el.listaArquivados();
-    const empty = el.archiveEmpty();
-    if (!ul || !empty) return;
+  const cmd = el.cmd(); if (cmd) cmd.value = '';
+  const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
+  const chatFile = el.chatFileInput(); if (chatFile) chatFile.value = '';
 
-    const list = loadArchive();
-    ul.innerHTML = '';
+  renderFiles();
+  if (state.tab === 'chat') renderChatDraft(); else renderDraft();
+  applyI18n();
+  chatRender();
+  refreshButtons();
 
-    if (!list.length) {
-      empty.classList.remove('hidden');
-      return;
-    }
-    empty.classList.add('hidden');
+  try { localStorage.removeItem(LS.session); } catch (e) { console.error(e); }
+  toast(t('alertLimpo'));
+}
 
-    for (const item of list) {
-      const li = document.createElement('li');
-      li.className = 'archive-item';
+// =============== HEALTH/RUNTIME + generate flow ===============
+function setHealthBadge(text) { const b = el.badgeHealth(); if (!b) return; b.textContent = String(text || 'HEALTH: OK'); }
+function setRuntimeBadge(text) { const b = el.badgeRuntime(); if (!b) return; b.textContent = String(text || 'RUNTIME: LOCAL'); }
 
-      const meta = document.createElement('div');
-      meta.className = 'archive-meta';
+function generateAll() {
+  if (!isValidInstruction()) { toast(t('precisaInstrucao')); return; }
 
-      const title = document.createElement('div');
-      title.className = 'archive-title';
-      title.textContent = archiveItemTitle(item);
+  state.areaValue = el.area()?.value || state.areaValue;
+  const instr = (el.cmd()?.value || '').trim();
 
-      const sub = document.createElement('div');
-      sub.className = 'archive-sub';
-      const fcount = Array.isArray(item.filesMeta) ? item.filesMeta.length : 0;
-      const ccount = Array.isArray(item.chat) ? item.chat.length : 0;
-      sub.textContent = `draft=${item.draftHtml ? 'SIM' : 'NÃO'} • anexos=${fcount} • chat=${ccount}`;
+  state.audit = simulateAudit(instr, state.files);
+  renderAudit(state.audit);
 
-      meta.appendChild(title);
-      meta.appendChild(sub);
+  state.draftHtml = buildDraftHtml();
+  renderDraft();
 
-      const actions = document.createElement('div');
-      actions.className = 'archive-actions';
+  persistSession();
+  refreshButtons();
+}
 
-      const btnOpen = document.createElement('button');
-      btnOpen.className = 'btn-secundario';
-      btnOpen.type = 'button';
-      btnOpen.textContent = t('abrir');
-
-      const btnDel = document.createElement('button');
-      btnDel.className = 'btn-top';
-      btnDel.type = 'button';
-      btnDel.textContent = t('excluir');
-
-      btnOpen.addEventListener('click', () => {
-        try { openArchived(item.id); } catch (e) { console.error(e); toastError(e); }
-      });
-
-      btnDel.addEventListener('click', () => {
-        try { deleteArchived(item.id); } catch (e) { console.error(e); toastError(e); }
-      });
-
-      actions.appendChild(btnOpen);
-      actions.appendChild(btnDel);
-
-      li.appendChild(meta);
-      li.appendChild(actions);
-      ul.appendChild(li);
-    }
-  }
-
-  function archiveCurrentSession() {
-    const list = loadArchive();
-
-    const item = {
-      id: `a_${nowTs()}_${hash32(`${state.areaValue}|${(el.cmd()?.value || '').trim()}|${state.files.map(f => f.id).join(',')}`)}`,
-      ts: nowTs(),
-      lang: state.lang,
-      areaValue: state.areaValue,
-      areaLabel: areaLabel(),
-      cmd: (el.cmd()?.value || '').trim(),
-      filesMeta: state.files.slice(),
-      audit: state.audit,
-      draftHtml: state.draftHtml,
-      chat: state.chat.slice()
-    };
-
-    const next = [item, ...list].slice(0, MAX_ARCHIVE);
-    saveArchive(next);
-    renderArchiveList();
-    toast(t('alertArquivado'));
-  }
-
-  function openArchived(id) {
-    const list = loadArchive();
-    const item = list.find(x => x.id === id);
-    if (!item) return;
-
-    state.lang = item.lang || state.lang;
-    state.areaValue = item.areaValue || state.areaValue;
-    state.files = Array.isArray(item.filesMeta) ? item.filesMeta : [];
-    state.audit = item.audit && typeof item.audit === 'object' ? item.audit : null;
-    state.draftHtml = typeof item.draftHtml === 'string' ? item.draftHtml : '';
-    state.chat = Array.isArray(item.chat) ? item.chat : [];
-
-    // Apply to inputs/UI
-    const area = el.area();
-    if (area) area.value = state.areaValue;
-
-    const cmd = el.cmd();
-    if (cmd) cmd.value = item.cmd || '';
-
-    applyI18n();
-    renderFiles();
-    if (state.audit) renderAudit(state.audit);
-    renderDraft();
-    chatRender();
-    refreshButtons();
-    persistSession();
-  }
-
-  function deleteArchived(id) {
-    const list = loadArchive();
-    const next = list.filter(x => x.id !== id);
-    saveArchive(next);
-    renderArchiveList();
-  }
-
-  function clearArchive() {
-    try { localStorage.removeItem(LS.archive); } catch (e) { console.error(e); }
-    renderArchiveList();
-  }
-
-  // =============== C9) CHAT (persist + archive) ===============
-  function chatAddMessage(role, text) {
-    state.chat.push({
-      role: role === 'bot' ? 'bot' : 'me',
-      text: String(text || ''),
-      ts: nowTs()
-    });
-    chatSave();
-    chatRender();
-    refreshButtons();
-  }
-
-  function chatSave() { persistSession(); }
-
-  function chatClear() {
-    state.chat = [];
-    chatSave();
-    chatRender();
-    refreshButtons();
-    toast(t('alertLimpo'));
-  }
-
-  function chatRender() {
-    const box = el.chatMessages();
-    if (!box) return;
-    box.innerHTML = '';
-
-    for (const m of state.chat) {
-      const wrap = document.createElement('div');
-      wrap.className = `msg ${m.role === 'bot' ? 'bot' : 'me'}`;
-
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent = new Date(m.ts || nowTs()).toLocaleString();
-
-      const text = document.createElement('div');
-      text.className = 'text';
-      text.textContent = m.text;
-
-      wrap.appendChild(meta);
-      wrap.appendChild(text);
-      box.appendChild(wrap);
-    }
-
-    try { box.scrollTop = box.scrollHeight; } catch { /* noop */ }
-  }
-
-  function simulateChatReply(userText) {
-    const trimmed = String(userText || '').trim();
-    const seed = hash32(`${trimmed}__${state.areaValue}__${state.lang}`);
-    const rnd = prng(seed);
-
-    const variantsPt = [
-      'Entendi. Se você quiser, posso transformar isso em uma minuta técnica no modo PRO.',
-      'Certo. Você prefere um resumo objetivo ou uma versão mais detalhada?',
-      'Ok. Para fortalecer o pedido, inclua datas, nomes e o que exatamente você quer que o juiz/órgão determine.'
-    ];
-    const variantsEn = [
-      'Got it. If you want, I can turn this into a technical draft in PRO mode.',
-      'Okay. Do you prefer a concise summary or a more detailed version?',
-      'Alright. To strengthen it, include dates, names, and what exactly you want the authority to decide.'
-    ];
-
-    const pool = state.lang === 'en' ? variantsEn : variantsPt;
-    const pick = pool[Math.floor(rnd() * pool.length)] || pool[0];
-
-    return pick;
-  }
-
-  // =============== C10) MODALS + CONFIG actions ===============
-  function openModal(modalEl) {
-    if (!modalEl) return;
-    modalEl.classList.remove('hidden');
-    modalEl.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeModal(modalEl) {
-    if (!modalEl) return;
-    modalEl.classList.add('hidden');
-    modalEl.setAttribute('aria-hidden', 'true');
-  }
-
-  function closeAllModals() {
-    closeModal(el.modalAjuda());
-    closeModal(el.modalConfig());
-  }
-
-  function htmlToText(html) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = String(html || '');
-    return (tmp.textContent || tmp.innerText || '').trim();
-  }
-
-  async function copyToClipboard(text) {
-    const s = String(text || '');
-    if (!s) return false;
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(s);
-      return true;
-    }
-
-    const ta = document.createElement('textarea');
-    ta.value = s;
-    ta.setAttribute('readonly', 'true');
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    const ok = document.execCommand('copy');
-    document.body.removeChild(ta);
-    return !!ok;
-  }
-
-  async function shareCurrent() {
-    const text = state.draftHtml ? htmlToText(state.draftHtml) : '';
-    if (!text) {
-      toast(t('precisaGerar'));
-      return;
-    }
-
-    const title = 'ARKHOS — Documento';
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, text });
-        return;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    try {
-      const ok = await copyToClipboard(text);
-      if (ok) toast(t('alertCopiado'));
-      else throw new Error('Clipboard falhou');
-    } catch (e) {
-      console.error(e);
-      try { prompt('Copie o texto:', text); } catch { toast(t('exportFalha')); }
-    }
-  }
-
-  function clearSession() {
-    state.files = [];
-    state.draftHtml = '';
-    state.audit = null;
-    state.chat = [];
-
-    const cmd = el.cmd(); if (cmd) cmd.value = '';
-    const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
-
-    renderFiles();
-    renderDraft();
-    applyI18n();
-    chatRender();
-    refreshButtons();
-
-    try { localStorage.removeItem(LS.session); } catch (e) { console.error(e); }
-    toast(t('alertLimpo'));
-  }
-
-  // =============== C11) HEALTH/RUNTIME + generate flow ===============
-  function setHealthBadge(text) {
-    const b = el.badgeHealth();
-    if (!b) return;
-    b.textContent = String(text || 'HEALTH: OK');
-  }
-
-  function setRuntimeBadge(text) {
-    const b = el.badgeRuntime();
-    if (!b) return;
-    b.textContent = String(text || 'RUNTIME: LOCAL');
-  }
-
-  function generateAll() {
-    if (!isValidInstruction()) {
-      toast(t('precisaInstrucao'));
-      return;
-    }
-
-    state.areaValue = el.area()?.value || state.areaValue;
-
-    const instr = (el.cmd()?.value || '').trim();
-    state.audit = simulateAudit(instr, state.files);
-    renderAudit(state.audit);
-
-    state.draftHtml = buildDraftHtml();
-    renderDraft();
-
-    persistSession();
-    refreshButtons();
-  }
-
-  // =============== Bind UI ===============
-  function bindUi() {
-  // Language
+// =============== Bind UI ===============
+function bindUi() {
   onClick(el.btnLangPt(), () => { state.lang = 'pt'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
   onClick(el.btnLangEn(), () => { state.lang = 'en'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
 
-  // Tabs
-  onClick(el.btnTabPro(), () => { setTab('pro'); persistSession(); });
-  onClick(el.btnTabChat(), () => { setTab('chat'); persistSession(); });
+  onClick(el.btnTabPro(), () => { setTab('pro'); renderDraft(); applyI18n(); persistSession(); refreshButtons(); });
+  onClick(el.btnTabChat(), () => { setTab('chat'); renderChatDraft(); applyI18n(); persistSession(); refreshButtons(); });
 
-  // Inputs
   onInput(el.cmd(), () => { refreshButtons(); persistSession(); });
   onInput(el.area(), () => { state.areaValue = el.area()?.value || state.areaValue; persistSession(); });
 
-  // Files
+  // PRO files
   const fi = el.fileInput();
   if (fi) {
     fi.addEventListener('change', () => {
@@ -1075,38 +1049,185 @@ function renderChatDraft() {
       for (const f of files) {
         const id = fileIdFrom(f);
         if (state.files.some(x => x.id === id)) continue;
-        state.files.push({
-          id,
-          name: f.name,
-          size: f.size,
-          type: f.type,
-          lastModified: f.lastModified
-        });
+        state.files.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
       }
-      persistSession();
-      renderFiles();
+      persistSession(); renderFiles(); refreshButtons();
+    });
+  }
+  onClick(el.btnLimparAnexos(), () => {
+    state.files = [];
+    const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
+    persistSession(); renderFiles(); refreshButtons();
+  });
+
+  // PRO actions
+  onClick(el.btnGerar(), () => { generateAll(); });
+  onClick(el.btnExportar(), () => { exportPdfPrint(); });
+  onClick(el.btnEnviar(), () => { shareCurrent(); });
+  onClick(el.btnArquivar(), () => { archiveCurrentSession(state.tab); });
+
+  // Archive
+  onClick(el.btnLimparArchive(), () => { clearArchive(); });
+
+  // CHAT input/send
+  onInput(el.chatInput(), () => { refreshButtons(); });
+  onClick(el.chatSend(), () => {
+    const input = el.chatInput();
+    if (!input) return;
+    const txt = input.value.trim();
+    if (!txt) return;
+
+    chatAddMessage('me', txt);
+    input.value = '';
+    refreshButtons();
+
+    setTimeout(() => {
+      const reply = simulateChatReply(txt);
+      chatAddMessage('bot', reply);
+    }, 500);
+  });
+
+  // Chips
+  $$('.chip-action').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const chip = btn.getAttribute('data-chip') || '';
+      const input = el.chatInput();
+      if (!input) return;
+
+      const mapPt = { peticao:'Quero uma petição inicial objetiva. Contexto: ', resumo:'Resuma este caso em tópicos: ', revisao:'Revise e melhore o texto abaixo (clareza e força): ', relatorio:'Gere um relatório estruturado (fatos, pedidos, riscos): ' };
+      const mapEn = { peticao:'I want a concise initial petition. Context: ', resumo:'Summarize this case in bullet points: ', revisao:'Review and improve the text below (clarity and strength): ', relatorio:'Generate a structured report (facts, requests, risks): ' };
+      const map = state.lang === 'en' ? mapEn : mapPt;
+
+      input.value = map[chip] || input.value;
+      input.focus();
       refreshButtons();
+    });
+  });
+
+  // CHAT doc actions
+  onClick(el.chatGerarDoc(), () => { if (typeof generateFromChat === 'function') generateFromChat(); });
+  onClick(el.chatEnviarDoc(), () => { shareChatDoc(); });
+  onClick(el.chatArquivar(), () => { archiveCurrentSession('chat'); });
+  onClick(el.chatLimpar(), () => { chatClear(); });
+
+  // CHAT files
+  const cfi = el.chatFileInput();
+  if (cfi) {
+    cfi.addEventListener('change', () => {
+      const files = Array.from(cfi.files || []);
+      for (const f of files) {
+        const id = fileIdFrom(f);
+        if (state.chatFiles.some(x => x.id === id)) continue;
+        state.chatFiles.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
+      }
+      persistSession(); refreshButtons();
+    });
+  }
+  onClick(el.btnChatLimparAnexos(), () => {
+    state.chatFiles = [];
+    const chatFile = el.chatFileInput(); if (chatFile) chatFile.value = '';
+    persistSession(); refreshButtons();
+  });
+
+  // Modals
+  onClick(el.btnAjuda(), () => { openModal(el.modalAjuda()); });
+  onClick(el.btnConfig(), () => { openModal(el.modalConfig()); });
+  onClick(el.btnAjudaFechar(), () => { closeModal(el.modalAjuda()); });
+  onClick(el.btnConfigFechar(), () => { closeModal(el.modalConfig()); });
+
+  onClick(el.btnLimparSessao(), () => { clearSession(); closeModal(el.modalConfig()); });
+  onClick(el.btnCompartilhar(), () => { shareCurrent(); });
+
+  const modalA = el.modalAjuda();
+  const modalC = el.modalConfig();
+  if (modalA) modalA.addEventListener('click', (e) => { if (e.target === modalA) closeModal(modalA); });
+  if (modalC) modalC.addEventListener('click', (e) => { if (e.target === modalC) closeModal(modalC); });
+
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllModals(); });
+}
+
+// =============== Boot ===============
+function boot() {
+  const savedLang = loadLS(LS.lang, null);
+  if (savedLang === 'pt' || savedLang === 'en') state.lang = savedLang;
+
+  const savedTab = loadLS(LS.tab, null);
+  if (savedTab === 'pro' || savedTab === 'chat') state.tab = savedTab;
+
+  restoreSession();
+
+  const area = el.area(); if (area) area.value = state.areaValue || area.value;
+
+  setHealthBadge('HEALTH: OK');
+  setRuntimeBadge('RUNTIME: LOCAL');
+
+  applyI18n();
+  setTab(state.tab);
+
+  renderFiles();
+  if (state.audit) renderAudit(state.audit);
+
+  if (state.tab === 'chat') renderChatDraft(); else renderDraft();
+  chatRender();
+  renderArchiveList();
+  refreshButtons();
+
+  bindUi();
+}
+
+window.addEventListener('error', (e) => { try { console.error(e.error || e.message || e); } catch { } });
+window.addEventListener('unhandledrejection', (e) => { try { console.error(e.reason || e); } catch { } });
+
+boot();
+})();
+/* === FIM_JS_BLOCO_2 === */
+/* === JS_BLOCO_3 === */
+/* COLE ESTE BLOCO INTEIRO LOGO ABAIXO DO:  /* === FIM_JS_BLOCO_2 === */  */
+
+// =============== Bind UI ===============
+function bindUi() {
+  // Language
+  onClick(el.btnLangPt(), () => { state.lang = 'pt'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
+  onClick(el.btnLangEn(), () => { state.lang = 'en'; saveLS(LS.lang, state.lang); applyI18n(); renderArchiveList(); });
+
+  // Tabs
+  onClick(el.btnTabPro(), () => { setTab('pro'); renderDraft(); applyI18n(); persistSession(); refreshButtons(); });
+  onClick(el.btnTabChat(), () => { setTab('chat'); renderChatDraft(); applyI18n(); persistSession(); refreshButtons(); });
+
+  // Inputs
+  onInput(el.cmd(), () => { refreshButtons(); persistSession(); });
+  onInput(el.area(), () => { state.areaValue = el.area()?.value || state.areaValue; persistSession(); });
+
+  // PRO files
+  const fi = el.fileInput();
+  if (fi) {
+    fi.addEventListener('change', () => {
+      const files = Array.from(fi.files || []);
+      for (const f of files) {
+        const id = fileIdFrom(f);
+        if (state.files.some(x => x.id === id)) continue;
+        state.files.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
+      }
+      persistSession(); renderFiles(); refreshButtons();
     });
   }
 
   onClick(el.btnLimparAnexos(), () => {
     state.files = [];
     const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
-    persistSession();
-    renderFiles();
-    refreshButtons();
+    persistSession(); renderFiles(); refreshButtons();
   });
 
-  // Generate / Export / Archive (PRO)
+  // PRO actions
   onClick(el.btnGerar(), () => { generateAll(); });
   onClick(el.btnExportar(), () => { exportPdfPrint(); });
   onClick(el.btnEnviar(), () => { shareCurrent(); });
-  onClick(el.btnArquivar(), () => { archiveCurrentSession(); });
+  onClick(el.btnArquivar(), () => { archiveCurrentSession(state.tab); });
 
   // Archive panel
   onClick(el.btnLimparArchive(), () => { clearArchive(); });
 
-  // Chat
+  // CHAT input/send
   onInput(el.chatInput(), () => { refreshButtons(); });
 
   onClick(el.chatSend(), () => {
@@ -1151,22 +1272,31 @@ function renderChatDraft() {
     });
   });
 
-  // Chat: gerar documento + exportar
-  onClick(el.chatGerarDoc(), () => {
-    if (typeof generateFromChat === 'function') return generateFromChat();
-    // fallback seguro (não quebra): se ainda não existir, não mata o app
-    if (typeof generateAll === 'function') return generateAll();
-  });
-
-  onClick(el.chatEnviarDoc(), () => {
-    // prioridade: enviar DOC do chat (sem misturar PRO)
-    if (typeof shareChatDoc === 'function') return shareChatDoc();
-    // fallback seguro (mantém comportamento antigo sem quebrar)
-    if (typeof shareCurrent === 'function') return shareCurrent();
-  });
-
-  onClick(el.chatArquivar(), () => { archiveCurrentSession(); });
+  // CHAT doc actions
+  onClick(el.chatGerarDoc(), () => { if (typeof generateFromChat === 'function') generateFromChat(); });
+  onClick(el.chatEnviarDoc(), () => { shareChatDoc(); });
+  onClick(el.chatArquivar(), () => { archiveCurrentSession('chat'); });
   onClick(el.chatLimpar(), () => { chatClear(); });
+
+  // CHAT files
+  const cfi = el.chatFileInput();
+  if (cfi) {
+    cfi.addEventListener('change', () => {
+      const files = Array.from(cfi.files || []);
+      for (const f of files) {
+        const id = fileIdFrom(f);
+        if (state.chatFiles.some(x => x.id === id)) continue;
+        state.chatFiles.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
+      }
+      persistSession(); refreshButtons();
+    });
+  }
+
+  onClick(el.btnChatLimparAnexos(), () => {
+    state.chatFiles = [];
+    const chatFile = el.chatFileInput(); if (chatFile) chatFile.value = '';
+    persistSession(); refreshButtons();
+  });
 
   // Modals
   onClick(el.btnAjuda(), () => { openModal(el.modalAjuda()); });
@@ -1178,58 +1308,59 @@ function renderChatDraft() {
   onClick(el.btnLimparSessao(), () => { clearSession(); closeModal(el.modalConfig()); });
   onClick(el.btnCompartilhar(), () => { shareCurrent(); });
 
-  // Click outside modal card closes
+  // Click outside modal closes
   const modalA = el.modalAjuda();
   const modalC = el.modalConfig();
   if (modalA) modalA.addEventListener('click', (e) => { if (e.target === modalA) closeModal(modalA); });
   if (modalC) modalC.addEventListener('click', (e) => { if (e.target === modalC) closeModal(modalC); });
 
   // Esc closes modals
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeAllModals();
-  });
-                                                                                            }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllModals(); });
+}
 
-  // =============== Boot ===============
-  function boot() {
-    // Restore basics
-    const savedLang = loadLS(LS.lang, null);
-    if (savedLang === 'pt' || savedLang === 'en') state.lang = savedLang;
+// =============== Boot ===============
+function boot() {
+  // Restore basics
+  const savedLang = loadLS(LS.lang, null);
+  if (savedLang === 'pt' || savedLang === 'en') state.lang = savedLang;
 
-    const savedTab = loadLS(LS.tab, null);
-    if (savedTab === 'pro' || savedTab === 'chat') state.tab = savedTab;
+  const savedTab = loadLS(LS.tab, null);
+  if (savedTab === 'pro' || savedTab === 'chat') state.tab = savedTab;
 
-    restoreSession();
+  restoreSession();
 
-    // Apply to inputs
-    const area = el.area(); if (area) area.value = state.areaValue || area.value;
+  // Apply to inputs
+  const area = el.area(); if (area) area.value = state.areaValue || area.value;
 
-    // Badges
-    setHealthBadge('HEALTH: OK');
-    setRuntimeBadge('RUNTIME: LOCAL');
+  // Badges
+  setHealthBadge('HEALTH: OK');
+  setRuntimeBadge('RUNTIME: LOCAL');
 
-    // Render
-    applyI18n();
-    setTab(state.tab);
-    renderFiles();
-    if (state.audit) renderAudit(state.audit);
-    renderDraft();
-    chatRender();
-    renderArchiveList();
-    refreshButtons();
+  // Render
+  applyI18n();
+  setTab(state.tab);
 
-    // Bind
-    bindUi();
-  }
+  renderFiles();
+  if (state.audit) renderAudit(state.audit);
 
-  // =============== Global error hooks ===============
-  window.addEventListener('error', (e) => {
-    try { console.error(e.error || e.message || e); } catch { /* noop */ }
-  });
+  if (state.tab === 'chat') renderChatDraft(); else renderDraft();
+  chatRender();
+  renderArchiveList();
+  refreshButtons();
 
-  window.addEventListener('unhandledrejection', (e) => {
-    try { console.error(e.reason || e); } catch { /* noop */ }
-  });
+  // Bind
+  bindUi();
+}
 
-  boot();
+// =============== Global error hooks ===============
+window.addEventListener('error', (e) => {
+  try { console.error(e.error || e.message || e); } catch { /* noop */ }
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+  try { console.error(e.reason || e); } catch { /* noop */ }
+});
+
+boot();
 })();
+/* === FIM_JS_BLOCO_3 === */
