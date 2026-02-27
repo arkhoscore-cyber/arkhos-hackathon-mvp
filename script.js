@@ -16,20 +16,24 @@
 
   // =============== STATE (SSOT) ===============
   const state = {
-    lang: 'pt',
-    tab: 'pro',
-    areaValue: 'civil',
+  lang: 'pt',
+  tab: 'pro',
+  areaValue: 'civil',
 
-    // PRO
-    files: [],
-    draftHtml: '',
-    audit: null,
+  // PRO
+  files: [],
+  draftHtml: '',
+  audit: null,
 
-    // CHAT
-    chat: [],
-    chatDraftHtml: '',
-    chatFiles: []
-  };
+  // CHAT
+  chat: [],
+  chatDraftHtml: '',
+  chatFiles: [],
+
+  // Blobs (não persistem no localStorage; só em runtime)
+  fileBlobs: new Map(),      // PRO: id -> File
+  chatFileBlobs: new Map()   // CHAT: id -> File
+};
 
   // =============== DOM HELPERS ===============
   const $ = (sel) => document.querySelector(sel);
@@ -857,13 +861,48 @@ async function copyToClipboard(text) {
 
 // PRO share
 async function shareCurrent() {
-  const text = state.draftHtml ? htmlToText(state.draftHtml) : '';
+  const html = state.draftHtml || '';
+  const text = html ? htmlToText(html) : '';
   if (!text) { toast(t('precisaGerar')); return; }
+
   const title = 'ARKHOS — Documento';
 
-  try { if (navigator.share) { await navigator.share({ title, text }); return; } }
-  catch (e) { console.error(e); }
+  // cria um arquivo do documento (HTML)
+  const docName = `ARKHOS_${new Date().toISOString().slice(0,19).replaceAll(':','-')}.html`;
+  const docFile = new File([html], docName, { type: 'text/html' });
 
+  // pega anexos reais selecionados (se existirem)
+  const anexos = [];
+  try {
+    for (const meta of (state.files || [])) {
+      const f = state.fileBlobs.get(meta.id);
+      if (f) anexos.push(f);
+    }
+  } catch {}
+
+  // tenta compartilhar arquivo(s)
+  try {
+    if (navigator.share) {
+      // Web Share Level 2 (files)
+      if (navigator.canShare && navigator.canShare({ files: [docFile] })) {
+        const filesToSend = [docFile, ...anexos].slice(0, 10);
+        await navigator.share({
+          title,
+          text: 'Documento ARKHOS em anexo.',
+          files: filesToSend
+        });
+        return;
+      }
+
+      // fallback: share texto
+      await navigator.share({ title, text });
+      return;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  // fallback geral: copiar texto
   try {
     const ok = await copyToClipboard(text);
     if (ok) toast(t('alertCopiado')); else throw new Error('Clipboard falhou');
@@ -1202,27 +1241,31 @@ function bindUi() {
 
   // PRO files
   const fi = el.fileInput();
-  if (fi) {
-    fi.addEventListener('change', () => {
-      const files = Array.from(fi.files || []);
-      for (const f of files) {
-        const id = fileIdFrom(f);
-        if (state.files.some(x => x.id === id)) continue;
-        state.files.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
-      }
-      persistSession();
-      renderFiles();
-      refreshButtons();
-    });
-  }
+if (fi) {
+  fi.addEventListener('change', () => {
+    const files = Array.from(fi.files || []);
+    for (const f of files) {
+      const id = fileIdFrom(f);
+      if (state.files.some(x => x.id === id)) continue;
 
-  onClick(el.btnLimparAnexos(), () => {
-    state.files = [];
-    const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
+      // guarda o File real (pra poder compartilhar)
+      state.fileBlobs.set(id, f);
+
+      state.files.push({ id, name: f.name, size: f.size, type: f.type, lastModified: f.lastModified });
+    }
     persistSession();
     renderFiles();
     refreshButtons();
   });
+}
+  onClick(el.btnLimparAnexos(), () => {
+  state.files = [];
+  state.fileBlobs.clear(); // limpa os Files reais também
+  const fileInput = el.fileInput(); if (fileInput) fileInput.value = '';
+  persistSession();
+  renderFiles();
+  refreshButtons();
+});
 
   // PRO actions
   onClick(el.btnGerar(), () => { generateAll(); });
