@@ -27,8 +27,7 @@ body{
              radial-gradient(900px 500px at 90% 10%,rgba(157,124,255,.08),transparent 55%),
              var(--bg);
   color:var(--text);
-  overflow-x:hidden;
-}
+  
 
 .hidden{display:none!important}
 .sr-only{
