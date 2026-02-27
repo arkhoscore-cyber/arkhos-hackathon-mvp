@@ -261,22 +261,3 @@ button:disabled{opacity:.55;cursor:not-allowed}
   *{print-color-adjust:exact;-webkit-print-color-adjust:exact}
   .draft, .draft *{page-break-inside:avoid}
   }
-/* ===== FIX: evitar arrastar pro lado (overflow-x) no Android ===== */
-html, body { overflow-x: hidden; }
-* { max-width: 100%; }
-
-/* topbar pode quebrar linha no mobile */
-.topbar { flex-wrap: wrap; gap: 10px; }
-.topbar-right { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
-
-/* evita texto/miolos forçando largura maior que a tela */
-.brand, .brand-text { min-width: 0; }
-.badges { flex-wrap: wrap; }
-
-/* botões não empurrarem a largura */
-.top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-
-/* mobile: reduzir “peso” dos botões */
-@media (max-width: 900px){
-  .btn-top, .btn-main, .btn-secundario { min-height: 44px; padding: 8px 12px; }
-}
