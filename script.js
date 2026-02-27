@@ -13,7 +13,7 @@
   const MAX_ARCHIVE = 50;
 
   const state = {
-  const state = {
+  
   lang: 'pt',
   tab: 'pro',
   areaValue: 'civil',
