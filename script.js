@@ -631,6 +631,62 @@ btnChatLimparAnexos: () => $('#btn-chat-limpar-anexos')
     out.innerHTML = state.draftHtml || '';
     if (ph) ph.textContent = state.draftHtml ? '' : t('aguardandoDoc');
   }
+  // =====================
+// CHAT — Draft separado
+// =====================
+function buildChatDraftHtml() {
+  const input = el.chatInput();
+  const chatText = (input?.value || '').trim();
+
+  // Se você quiser usar o histórico em vez do input, trocamos depois.
+  // Por enquanto: simples e determinístico.
+  if (chatText.length < 10) return '';
+
+  const dt = new Date();
+  const dtStr = dt.toLocaleString();
+
+  // Sanitização igual ao PRO
+  const safe = escapeHtml(chatText);
+
+  return `
+    <section class="draft">
+      <h1>Documento — CHAT</h1>
+      <p><strong>Modo:</strong> LOCAL_SIMULADOR</p>
+      <p><strong>Carimbo:</strong> ${escapeHtml(dtStr)}</p>
+
+      <div class="draft-block">
+        <h2>Entrada (CHAT)</h2>
+        <p>${safe.replaceAll('\n', '<br>')}</p>
+      </div>
+
+      <div class="draft-block">
+        <h2>Saída (Simulador)</h2>
+        <p><em>Documento gerado a partir do texto do chat (simulação).</em></p>
+      </div>
+    </section>
+  `.trim();
+}
+
+function renderChatDraft() {
+  const out = el.out();
+  const ph = el.placeholder();
+  if (!out) return;
+
+  out.innerHTML = state.chatDraftHtml || '';
+  if (ph) ph.textContent = state.chatDraftHtml ? '' : t('aguardandoDoc');
+}
+  function generateFromChat() {
+  // gera somente o documento do CHAT
+  const html = buildChatDraftHtml();
+  state.chatDraftHtml = html;
+
+  // renderiza no mesmo canvas, mas com o draft do CHAT
+  renderChatDraft();
+
+  // atualiza botões / persistência sem mexer no PRO
+  refreshButtons();
+  persistSession();
+  }
 
   /* === CUT_HERE === */
  // =============== C7) PRINT / EXPORT (copy to only-print) ===============
