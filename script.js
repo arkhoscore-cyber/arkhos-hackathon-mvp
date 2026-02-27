@@ -1,6 +1,37 @@
 /* ARKHOS_UI — script.js (offline-first, sem libs, LOCAL_SIMULADOR) */
 (() => {
   'use strict';
+  // === DEBUG MOBILE: captura erros na tela (remova depois) ===
+(function () {
+  function showErr(msg) {
+    try {
+      let box = document.getElementById('debug-errors');
+      if (!box) {
+        box = document.createElement('pre');
+        box.id = 'debug-errors';
+        box.style.cssText = [
+          'position:fixed','left:8px','right:8px','bottom:8px',
+          'max-height:40vh','overflow:auto','z-index:999999',
+          'background:#180b0b','color:#ffd2d2','padding:10px',
+          'border:1px solid #ff6b6b','border-radius:8px',
+          'font-size:12px','white-space:pre-wrap'
+        ].join(';');
+        document.body.appendChild(box);
+      }
+      box.textContent = (msg + '\n\n' + (box.textContent || '')).slice(0, 4000);
+    } catch (_) {}
+  }
+
+  window.addEventListener('error', (e) => {
+    const msg = `[ERROR] ${e.message}\n${e.filename || ''}:${e.lineno || ''}:${e.colno || ''}`;
+    showErr(msg);
+  });
+
+  window.addEventListener('unhandledrejection', (e) => {
+    const msg = `[PROMISE] ${String(e.reason || 'rejection')}`;
+    showErr(msg);
+  });
+})();
   
 
   // =============== C1) STATE / STORAGE ===============
